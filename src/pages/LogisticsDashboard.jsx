@@ -1,28 +1,46 @@
-import React from 'react';
-import { Truck, Package, Clock, CheckCircle2, MapPin, DollarSign } from 'lucide-react';
+import React, { useState } from 'react';
+import { Truck, CheckCircle2, Clock, DollarSign, MapPin, X, CheckCircle, Phone } from 'lucide-react';
 
-const trips = [
-  { id: 1, from: 'Nakuru', to: 'Nairobi CBD', cargo: 'Irish Potatoes (120kg)', status: 'in_transit', earning: 'KSh 3,500', date: '9 Jun 2026' },
-  { id: 2, from: 'Kiambu', to: 'Westlands', cargo: 'Tomatoes (80kg)', status: 'completed', earning: 'KSh 2,200', date: '8 Jun 2026' },
-  { id: 3, from: 'Kajiado', to: 'Mombasa Rd', cargo: 'Red Onions (200kg)', status: 'pending', earning: 'KSh 5,000', date: '10 Jun 2026' },
+const INITIAL_TRIPS = [
+  { id: 1, from: 'Nakuru', to: 'Nairobi CBD', cargo: 'Irish Potatoes (120kg)', status: 'in_transit', earning: 3500, date: '9 Jun 2026' },
+  { id: 2, from: 'Kiambu', to: 'Westlands', cargo: 'Tomatoes (80kg)', status: 'completed', earning: 2200, date: '8 Jun 2026' },
+  { id: 3, from: 'Kajiado', to: 'Mombasa Rd', cargo: 'Red Onions (200kg)', status: 'pending', earning: 5000, date: '10 Jun 2026' },
 ];
 
-const chipClass = (status) => ({
-  in_transit: 'chip-transit',
-  completed:  'chip-completed',
-  pending:    'chip-pending',
-})[status] || 'chip-pending';
+const chipClass = (s) => ({ in_transit: 'chip-transit', completed: 'chip-completed', pending: 'chip-pending' })[s] || 'chip-pending';
 
 const LogisticsDashboard = () => {
+  const [trips, setTrips]     = useState(INITIAL_TRIPS);
+  const [modal, setModal]     = useState(null); // 'withdraw' | 'trip'
+  const [selected, setSelected] = useState(null);
+  const [toast, setToast]     = useState('');
+  const [phone, setPhone]     = useState('0712 345 678');
+  const balance = 14700;
+
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+
+  const updateStatus = (id, newStatus) => {
+    setTrips(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
+    showToast(newStatus === 'in_transit' ? 'Trip accepted! Safe travels.' : 'Trip marked as completed.');
+    setModal(null);
+  };
+
   const stats = [
-    { icon: Truck,        label: 'Active Trips',     value: '2',         sub: 'In progress now' },
-    { icon: CheckCircle2, label: 'Completed',         value: '48',        sub: 'All time' },
-    { icon: Clock,        label: 'Pending',           value: '3',         sub: 'Awaiting dispatch' },
-    { icon: DollarSign,   label: 'Total Earnings',    value: 'KSh 82,400', sub: 'This month' },
+    { icon: Truck,        label: 'Active Trips',   value: trips.filter(t=>t.status==='in_transit').length, sub: 'In progress now' },
+    { icon: CheckCircle2, label: 'Completed',       value: trips.filter(t=>t.status==='completed').length + 46, sub: 'All time' },
+    { icon: Clock,        label: 'Pending',         value: trips.filter(t=>t.status==='pending').length, sub: 'Awaiting dispatch' },
+    { icon: DollarSign,   label: 'Total Earnings',  value: `KSh ${trips.reduce((a,b)=>a+b.earning,0).toLocaleString()}`, sub: 'This month' },
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 relative">
+      {/* Toast */}
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 bg-ag-primary text-white px-5 py-3 rounded-card shadow-lg font-bold text-sm flex items-center gap-2">
+          <CheckCircle className="w-4 h-4" /> {toast}
+        </div>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {stats.map(({ icon: Icon, label, value, sub }) => (
@@ -39,16 +57,16 @@ const LogisticsDashboard = () => {
         ))}
       </div>
 
-      {/* Earnings card */}
+      {/* Earnings Card */}
       <div className="bg-ag-primary-cont border border-ag-primary rounded-card p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <p className="text-ag-primary-fixed text-xs font-bold uppercase tracking-widest mb-2">M-PESA Earnings Balance</p>
-            <p className="text-4xl font-extrabold text-white">KSh 14,700</p>
+            <p className="text-4xl font-extrabold text-white">KSh {balance.toLocaleString()}</p>
             <p className="text-white/50 text-xs mt-1 font-bold">Available for withdrawal</p>
           </div>
-          <button className="btn-pay !min-h-0 !py-3 !text-sm">
-            💰 Withdraw to M-PESA
+          <button onClick={() => setModal('withdraw')} className="btn-pay !min-h-0 !py-3 !text-sm">
+            Withdraw to M-PESA
           </button>
         </div>
       </div>
@@ -57,7 +75,7 @@ const LogisticsDashboard = () => {
       <div className="bg-white border border-ag-border rounded-card overflow-hidden">
         <div className="px-6 py-4 border-b border-ag-border flex items-center justify-between">
           <h2 className="text-headline-md text-ag-body">My Trips</h2>
-          <span className="chip-pending">3 Active</span>
+          <span className="chip-pending">{trips.filter(t=>t.status==='pending').length} Pending</span>
         </div>
         <div className="divide-y divide-ag-border">
           {trips.map(trip => (
@@ -77,14 +95,76 @@ const LogisticsDashboard = () => {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1.5">
-                  <span className="text-ag-amber font-extrabold text-sm">{trip.earning}</span>
+                  <span className="text-ag-amber font-extrabold text-sm">KSh {trip.earning.toLocaleString()}</span>
                   <span className={chipClass(trip.status)}>{trip.status.replace('_', ' ')}</span>
+                  {trip.status === 'pending' && (
+                    <button onClick={() => { setSelected(trip); setModal('trip'); }} className="text-xs text-ag-primary font-bold hover:underline">
+                      Accept Trip
+                    </button>
+                  )}
+                  {trip.status === 'in_transit' && (
+                    <button onClick={() => updateStatus(trip.id, 'completed')} className="text-xs text-ag-pay font-bold hover:underline">
+                      Mark Delivered
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* ── MODAL: Withdraw ── */}
+      {modal === 'withdraw' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-card w-full max-w-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-ag-body">Withdraw to M-PESA</h3>
+              <button onClick={() => setModal(null)}><X className="w-5 h-5 text-ag-muted" /></button>
+            </div>
+            <div className="bg-ag-surface rounded-btn p-3 mb-4 text-sm font-bold text-ag-body">
+              Available: <span className="text-ag-pay">KSh {balance.toLocaleString()}</span>
+            </div>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-xs font-bold text-ag-body mb-1">M-PESA Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ag-outline" />
+                  <input value={phone} onChange={e=>setPhone(e.target.value)} className="form-input pl-10 text-sm" placeholder="07XX XXX XXX" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-ag-body mb-1">Amount (KSh)</label>
+                <input type="number" defaultValue={balance} max={balance} className="form-input text-sm" placeholder="Enter amount" />
+              </div>
+              <button
+                onClick={() => { showToast(`KSh ${balance.toLocaleString()} withdrawal initiated to ${phone}!`); setModal(null); }}
+                className="btn-pay w-full mt-2"
+              >
+                Confirm Withdrawal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: Accept Trip ── */}
+      {modal === 'trip' && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-card w-full max-w-sm p-6">
+            <h3 className="font-extrabold text-ag-body text-lg mb-2">Accept Trip?</h3>
+            <p className="text-sm text-ag-muted mb-1">Cargo: <strong>{selected.cargo}</strong></p>
+            <p className="text-sm text-ag-muted mb-1">Route: <strong>{selected.from} → {selected.to}</strong></p>
+            <p className="text-sm text-ag-muted mb-4">Earnings: <strong className="text-ag-amber">KSh {selected.earning.toLocaleString()}</strong></p>
+            <div className="flex gap-3">
+              <button onClick={() => setModal(null)} className="btn-secondary flex-1 !min-h-0 !py-3 !text-sm">Decline</button>
+              <button onClick={() => updateStatus(selected.id, 'in_transit')} className="btn-primary flex-1 !min-h-0 !py-3 !text-sm">
+                Accept Trip
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

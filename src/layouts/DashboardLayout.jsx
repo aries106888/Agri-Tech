@@ -110,9 +110,7 @@ const DashboardLayout = ({ role = 'farmer' }) => {
             <h1 className="text-headline-md text-ag-body">
               Good morning, {userName} 👋
             </h1>
-            <p className="text-label-sm text-ag-muted">
-              {new Date().toLocaleDateString('en-KE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
+            <p className="text-label-sm text-ag-muted">{ROLE_LABEL[role]}</p>
           </div>
           <div className="flex items-center gap-4">
             <button className="relative p-2 text-ag-muted hover:text-ag-body transition-colors">
