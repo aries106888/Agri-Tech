@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingBag, Truck, Package, Clock, MapPin, X, CheckCircle, Plus, Heart, ShoppingCart, Minus } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ShoppingBag, Truck, Package, Clock, MapPin, X, CheckCircle, Plus, Heart, ShoppingCart, Minus, Settings, Map } from 'lucide-react';
 
 const SHOP_PRODUCTS = [
   { id: 1, name: 'Fresh Yellow Bananas', farmer: 'Njoroge K.', county: 'Kisii',      price: 60,  unit: '/kg',    image: '/images/banana.png'  },
@@ -22,6 +22,9 @@ const INITIAL_ORDERS = [
 const chipClass = (s) => ({ in_transit: 'chip-transit', completed: 'chip-completed', pending: 'chip-pending' })[s] || 'chip-pending';
 
 const BuyerDashboard = () => {
+  const location = useLocation();
+  const currentPath = location.pathname.split('/').pop();
+
   const [orders, setOrders]       = useState(INITIAL_ORDERS);
   const [cartItems, setCartItems] = useState([]);
   const [modal, setModal]         = useState(null); // 'cart' | 'checkout' | 'cancel' | 'farmers'
@@ -79,6 +82,91 @@ const BuyerDashboard = () => {
     { icon: Package,      label: 'Completed',       value: orders.filter(o => o.status === 'completed').length + 21 },
     { icon: Clock,        label: 'Pending',         value: orders.filter(o => o.status === 'pending').length },
   ];
+
+  if (currentPath === 'orders') {
+    return (
+      <div className="bg-white border border-ag-border rounded-card overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-ag-border">
+          <h2 className="text-headline-md text-ag-body">All My Orders</h2>
+        </div>
+        <div className="divide-y divide-ag-border">
+          {orders.map(order => (
+            <div key={order.id} className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-ag-primary rounded-btn flex items-center justify-center text-ag-primary-fixed font-bold text-xs shrink-0">
+                  {order.crop.substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-bold text-ag-body text-sm">{order.crop}</p>
+                  <p className="text-xs text-ag-muted">Farmer: {order.farmer} · {order.qty}</p>
+                  <div className="flex items-center gap-1 mt-0.5 text-xs text-ag-muted">
+                    <MapPin className="w-3 h-3" /> {order.county}
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1.5">
+                <span className="text-ag-amber font-extrabold text-sm">KSh {order.amount.toLocaleString()}</span>
+                <span className={chipClass(order.status)}>{order.status.replace('_', ' ')}</span>
+                {order.status === 'pending' && (
+                  <button onClick={() => { setSelected(order); setModal('cancel'); }} className="text-xs text-red-500 font-bold hover:underline">Cancel</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Cancel Modal logic reuse here if needed */}
+        {modal === 'cancel' && selected && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-card w-full max-w-sm p-6">
+              <h3 className="font-extrabold text-ag-body text-lg mb-2">Cancel Order?</h3>
+              <p className="text-sm text-ag-muted mb-4">Cancel your order of <strong>{selected.crop}</strong> from {selected.farmer}?</p>
+              <div className="flex gap-3">
+                <button onClick={() => setModal(null)} className="btn-secondary flex-1 !min-h-0 !py-3 !text-sm">Keep It</button>
+                <button onClick={() => cancelOrder(selected.id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-btn text-sm">Cancel Order</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (currentPath === 'deliveries') {
+    return (
+      <div className="flex flex-col gap-6">
+        <h2 className="text-headline-md text-ag-body flex items-center gap-2"><Map className="w-6 h-6 text-ag-primary" /> Delivery Tracking</h2>
+        <div className="bg-ag-primary-cont border border-ag-primary rounded-card p-6">
+          <p className="text-ag-primary-fixed font-bold text-sm mb-2">1 Active Delivery</p>
+          <p className="text-white text-xs mb-1">Driver: <strong>David Ochieng</strong> (0712 345 678)</p>
+          <p className="text-white text-xs mb-1">Vehicle: <strong>KCA 123Z (Isuzu FRR)</strong></p>
+          <p className="text-white text-xs mb-1">Route: <strong>Nakuru → Nairobi CBD</strong></p>
+          <div className="mt-4 bg-white/10 rounded-btn h-2 w-full overflow-hidden">
+            <div className="bg-ag-primary-fixed h-full w-2/3" />
+          </div>
+          <p className="text-xs font-bold text-white mt-2 text-right">65% complete (ETA: 45 mins)</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentPath === 'settings') {
+    return (
+      <div className="bg-white border border-ag-border rounded-card p-8 max-w-2xl">
+        <h2 className="text-headline-md text-ag-body mb-6 flex items-center gap-2"><Settings className="w-6 h-6 text-ag-primary" /> Buyer Settings</h2>
+        <div className="flex flex-col gap-5">
+          <div>
+            <label className="block text-sm font-bold text-ag-body mb-1.5">Business Name</label>
+            <input type="text" defaultValue="Naivas Ltd" className="form-input" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-ag-body mb-1.5">Default Delivery Location</label>
+            <input type="text" defaultValue="Nairobi CBD, Tom Mboya St" className="form-input" />
+          </div>
+          <button onClick={() => alert('Settings saved!')} className="btn-primary w-fit mt-2">Save Settings</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 relative">

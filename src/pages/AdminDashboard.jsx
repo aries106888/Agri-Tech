@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import { Users, ListOrdered, ShoppingBag, TrendingUp, CheckCircle2, X, Truck, Settings, Ban, UserCheck, RefreshCw, AlertTriangle } from 'lucide-react';
 
 const INITIAL_LISTINGS = [
@@ -32,10 +33,19 @@ const chipByStatus = (s) => ({
   in_transit: 'chip-transit', pending: 'chip-pending', suspended: 'chip-sold-out', available: 'chip-verified', on_trip: 'chip-transit',
 })[s] || 'chip-pending';
 
-const TABS = ['Listings', 'Users', 'Orders', 'Logistics', 'Settings'];
+const TABS = [
+  { label: 'Overview', path: 'dashboard' },
+  { label: 'Listings', path: 'listings' },
+  { label: 'Users', path: 'users' },
+  { label: 'Orders', path: 'orders' },
+  { label: 'Moderation', path: 'moderation' },
+  { label: 'Settings', path: 'settings' }
+];
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('Listings');
+  const location = useLocation();
+  const currentPath = location.pathname.split('/').pop();
+
   const [listings, setListings]   = useState(INITIAL_LISTINGS);
   const [users, setUsers]         = useState(INITIAL_USERS);
   const [orders, setOrders]       = useState(INITIAL_ORDERS);
@@ -98,33 +108,42 @@ const AdminDashboard = () => {
       <div className="bg-white border border-ag-border rounded-card overflow-hidden">
         <div className="flex border-b border-ag-border overflow-x-auto">
           {TABS.map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
+            <Link
+              key={tab.path}
+              to={`/admin/${tab.path}`}
               className={`px-5 py-4 text-sm font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${
-                activeTab === tab
+                currentPath === tab.path
                   ? 'text-ag-primary border-b-2 border-ag-primary bg-ag-primary-fixed/30'
                   : 'text-ag-muted hover:text-ag-body'
               }`}
             >
-              {tab === 'Listings' && <ListOrdered className="w-4 h-4" />}
-              {tab === 'Users' && <Users className="w-4 h-4" />}
-              {tab === 'Orders' && <ShoppingBag className="w-4 h-4" />}
-              {tab === 'Logistics' && <Truck className="w-4 h-4" />}
-              {tab === 'Settings' && <Settings className="w-4 h-4" />}
-              {tab}
-              {tab === 'Listings' && listings.length > 0 && (
+              {tab.label === 'Listings' && <ListOrdered className="w-4 h-4" />}
+              {tab.label === 'Users' && <Users className="w-4 h-4" />}
+              {tab.label === 'Orders' && <ShoppingBag className="w-4 h-4" />}
+              {tab.label === 'Moderation' && <Truck className="w-4 h-4" />}
+              {tab.label === 'Settings' && <Settings className="w-4 h-4" />}
+              {tab.label}
+              {tab.label === 'Listings' && listings.length > 0 && (
                 <span className="bg-ag-amber text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{listings.length}</span>
               )}
-              {tab === 'Users' && users.filter(u=>u.status==='pending_kyc').length > 0 && (
+              {tab.label === 'Users' && users.filter(u=>u.status==='pending_kyc').length > 0 && (
                 <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{users.filter(u=>u.status==='pending_kyc').length}</span>
               )}
-            </button>
+            </Link>
           ))}
         </div>
 
+        {/* ── TAB: Overview ── */}
+        {currentPath === 'dashboard' && (
+           <div className="p-12 text-center">
+             <CheckCircle2 className="w-16 h-16 text-ag-primary mx-auto mb-4" />
+             <h2 className="text-2xl font-extrabold text-ag-body mb-2">System Running Smoothly</h2>
+             <p className="text-ag-muted font-bold">Select a tab above or from the sidebar to manage the platform.</p>
+           </div>
+        )}
+
         {/* ── TAB: Listings ── */}
-        {activeTab === 'Listings' && (
+        {currentPath === 'listings' && (
           <div>
             {listings.length === 0 ? (
               <div className="py-12 text-center">
@@ -161,7 +180,7 @@ const AdminDashboard = () => {
         )}
 
         {/* ── TAB: Users ── */}
-        {activeTab === 'Users' && (
+        {currentPath === 'users' && (
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <p className="text-sm font-bold text-ag-muted">{users.length} users</p>
@@ -215,7 +234,7 @@ const AdminDashboard = () => {
         )}
 
         {/* ── TAB: Orders ── */}
-        {activeTab === 'Orders' && (
+        {currentPath === 'orders' && (
           <div className="divide-y divide-ag-border">
             {orders.map(order => (
               <div key={order.id} className="flex items-center justify-between px-6 py-4 hover:bg-ag-canvas">
@@ -241,8 +260,8 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* ── TAB: Logistics ── */}
-        {activeTab === 'Logistics' && (
+        {/* ── TAB: Logistics/Moderation ── */}
+        {currentPath === 'moderation' && (
           <div className="p-6">
             <p className="text-sm font-bold text-ag-muted mb-4">Active Fleet ({drivers.length} drivers)</p>
             <div className="divide-y divide-ag-border">
@@ -276,7 +295,7 @@ const AdminDashboard = () => {
         )}
 
         {/* ── TAB: Settings ── */}
-        {activeTab === 'Settings' && (
+        {currentPath === 'settings' && (
           <div className="p-6 flex flex-col gap-6">
             <div>
               <h3 className="font-bold text-ag-body mb-4 flex items-center gap-2"><Settings className="w-4 h-4" /> Platform Settings</h3>

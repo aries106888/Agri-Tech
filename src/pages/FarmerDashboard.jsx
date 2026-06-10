@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TrendingUp, Package, Clock, BarChart2, Pencil, ArrowDownToLine, FileText, CheckCircle2, Truck, AlertCircle, X, CheckCircle, Phone } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { TrendingUp, Package, Clock, BarChart2, Pencil, ArrowDownToLine, FileText, CheckCircle2, Truck, AlertCircle, X, CheckCircle, Phone, Settings } from 'lucide-react';
 
 const INITIAL_LISTINGS = [
   { id: 1, crop: 'Grade A Maize', qty: '50 Bags', price: 'KSh 4,100/bag', harvested: '12 Oct', status: 'verified' },
@@ -27,6 +28,9 @@ const statusChip = (status) => {
 };
 
 const FarmerDashboard = () => {
+  const location = useLocation();
+  const currentPath = location.pathname.split('/').pop();
+  
   const [walletBalance, setWalletBalance] = useState(34200);
   const [listings, setListings] = useState(INITIAL_LISTINGS);
   const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
@@ -60,6 +64,175 @@ const FarmerDashboard = () => {
     { icon: Clock,      label: 'Pending Orders',    value: transactions.filter(t=>t.status==='pending').length, sub: 'Awaiting dispatch', color: 'text-yellow-600' },
     { icon: BarChart2,  label: 'Avg. Price / kg',   value: 'KSh 52',      sub: 'Market avg: KSh 48', color: 'text-ag-primary' },
   ];
+
+  if (currentPath === 'listings') {
+    return (
+      <div className="bg-white border border-ag-border rounded-card overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-ag-border">
+          <h2 className="text-headline-md text-ag-body">My Active & Archived Listings</h2>
+          <button className="btn-primary !min-h-0 !py-2 !text-xs">+ New Listing</button>
+        </div>
+        <div className="divide-y divide-ag-border">
+          {listings.map(listing => (
+            <div key={listing.id} className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-ag-primary rounded-btn flex items-center justify-center text-ag-primary-fixed font-bold text-sm shrink-0">
+                  {listing.crop.substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-bold text-ag-body">{listing.crop}</p>
+                  <p className="text-sm text-ag-muted">{listing.harvested} · {listing.qty}</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1.5">
+                <span className="text-ag-amber font-extrabold">{listing.price}</span>
+                <div className="flex items-center gap-3">
+                  {statusChip(listing.status)}
+                  <button onClick={() => { setSelected(listing); setModal('edit_listing'); }} className="text-ag-muted hover:text-ag-primary transition-colors">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Reuse Edit Modal */}
+        {modal === 'edit_listing' && selected && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-card w-full max-w-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-extrabold text-ag-body">Edit Listing</h3>
+                <button onClick={() => setModal(null)}><X className="w-5 h-5 text-ag-muted" /></button>
+              </div>
+              <form onSubmit={saveListing} className="flex flex-col gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-ag-body mb-1">Crop</label>
+                  <input type="text" defaultValue={selected.crop} className="form-input text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-ag-body mb-1">Quantity</label>
+                  <input type="text" defaultValue={selected.qty} className="form-input text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-ag-body mb-1">Price</label>
+                  <input type="text" defaultValue={selected.price} className="form-input text-sm" />
+                </div>
+                <button type="submit" className="btn-primary w-full mt-2">Save Changes</button>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (currentPath === 'orders') {
+    return (
+      <div className="bg-white border border-ag-border rounded-card overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-ag-border">
+          <h2 className="text-headline-md text-ag-body">All Orders & Transactions</h2>
+        </div>
+        <div className="divide-y divide-ag-border">
+          {transactions.map(tx => {
+            const StatusIcon = tx.status === 'completed' ? CheckCircle2 : tx.status === 'in_transit' ? Truck : AlertCircle;
+            return (
+              <div key={tx.id} className="flex items-center justify-between px-6 py-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-ag-surface rounded-btn flex items-center justify-center shrink-0">
+                    <StatusIcon className={`w-6 h-6 ${tx.status === 'completed' ? 'text-ag-pay' : tx.status === 'in_transit' ? 'text-blue-500' : 'text-yellow-500'}`} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-ag-body">{tx.crop}</p>
+                    <p className="text-sm text-ag-muted">{tx.buyer} · {tx.date}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1.5">
+                  <span className="text-ag-amber font-extrabold">KSh {tx.amount.toLocaleString()}</span>
+                  {statusChip(tx.status)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (currentPath === 'payments') {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="bg-ag-primary-cont border border-ag-primary rounded-card p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <p className="text-ag-primary-fixed text-sm font-bold uppercase tracking-widest mb-2">M-PESA Wallet Balance</p>
+              <p className="text-5xl font-extrabold text-white">KSh {walletBalance.toLocaleString()}</p>
+            </div>
+            <button onClick={() => setModal('withdraw')} className="btn-pay !min-h-0 !py-4 !px-6 !text-base">
+              <ArrowDownToLine className="w-5 h-5" /> Withdraw Funds
+            </button>
+          </div>
+        </div>
+        <div className="bg-white border border-ag-border rounded-card p-6 text-center">
+          <CheckCircle2 className="w-12 h-12 text-ag-pay mx-auto mb-3" />
+          <h3 className="font-bold text-ag-body text-lg">No pending settlements</h3>
+          <p className="text-ag-muted mt-1">All your completed orders have been credited to your wallet.</p>
+        </div>
+        
+        {modal === 'withdraw' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-card w-full max-w-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-extrabold text-ag-body">Withdraw to M-PESA</h3>
+                <button onClick={() => setModal(null)}><X className="w-5 h-5 text-ag-muted" /></button>
+              </div>
+              <div className="bg-ag-surface rounded-btn p-3 mb-4 text-sm font-bold text-ag-body">
+                Available: <span className="text-ag-pay">KSh {walletBalance.toLocaleString()}</span>
+              </div>
+              <div className="flex flex-col gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-ag-body mb-1">M-PESA Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ag-outline" />
+                    <input value={phone} onChange={e=>setPhone(e.target.value)} className="form-input pl-10 text-sm" placeholder="07XX XXX XXX" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-ag-body mb-1">Amount (KSh)</label>
+                  <input type="number" defaultValue={walletBalance} max={walletBalance} className="form-input text-sm" placeholder="Enter amount" />
+                </div>
+                <button onClick={handleWithdraw} disabled={walletBalance === 0} className={`btn-pay w-full mt-2 ${walletBalance === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  Confirm Withdrawal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (currentPath === 'settings') {
+    return (
+      <div className="bg-white border border-ag-border rounded-card p-8 max-w-2xl">
+        <h2 className="text-headline-md text-ag-body mb-6 flex items-center gap-2"><Settings className="w-6 h-6 text-ag-primary" /> Profile Settings</h2>
+        <div className="flex flex-col gap-5">
+          <div>
+            <label className="block text-sm font-bold text-ag-body mb-1.5">Farm Name</label>
+            <input type="text" defaultValue="Mwangi Farms Ltd" className="form-input" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-ag-body mb-1.5">Primary Phone (M-PESA)</label>
+            <input type="text" defaultValue="0712 345 678" className="form-input" />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-ag-body mb-1.5">County Location</label>
+            <input type="text" defaultValue="Nakuru" className="form-input" />
+          </div>
+          <button onClick={() => alert('Settings saved!')} className="btn-primary w-fit mt-2">Save Profile Settings</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6 relative">
