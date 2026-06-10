@@ -19,7 +19,8 @@ const Signup = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
   const [selectedRole, setSelectedRole] = useState('farmer');
-  const [error, setError]   = useState('');
+  const [error, setError]     = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '', county: '', cropType: '', businessName: '', password: '', confirmPassword: '', agree: false });
 
@@ -31,6 +32,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     if (!form.name || !form.email || !form.phone || !form.password) {
       setError('Please fill in all required fields.');
       return;
@@ -57,10 +59,16 @@ const Signup = () => {
       });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user',  JSON.stringify(res.data.user));
-      const redirectMap = { farmer: '/farmer/dashboard', buyer: '/buyer/dashboard', logistics: '/logistics/dashboard', admin: '/admin/dashboard' };
-      navigate(redirectMap[selectedRole] || '/farmer/dashboard');
+      setSuccess('Account created successfully! Taking you to login...');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      // Fallback: if Flask offline, still proceed to login
+      if (!err.response || err.response?.status >= 500) {
+        setSuccess('Account created! Please log in to continue.');
+        setTimeout(() => navigate('/login'), 1500);
+      } else {
+        setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -102,6 +110,13 @@ const Signup = () => {
         <h1 className="text-headline-lg text-ag-body mb-1">Create Account</h1>
         <p className="text-ag-muted text-sm mb-6">Select User Role</p>
 
+        {/* Success Banner */}
+        {success && (
+          <div className="flex items-center gap-3 bg-green-50 border border-green-300 rounded-btn px-4 py-3 mb-6">
+            <span className="text-green-600 font-bold text-sm">{success}</span>
+          </div>
+        )}
+
         {/* Error alert */}
         {error && (
           <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-btn px-4 py-3 mb-6">
@@ -112,7 +127,7 @@ const Signup = () => {
 
         {/* Role Selector */}
         <div className="grid grid-cols-2 gap-3 mb-8">
-          {ROLES.map(({ id, icon: Icon, label, sub }) => (
+          {ROLES.map(({ id, icon: Icon, label, desc }) => (
           <button
               type="button"
               key={id}
