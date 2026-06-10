@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
+    background-color: #F9FAF6;
+    color: #1A1C1A;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Public Sans', ui-sans-serif, sans-serif;
+  }
+}
+
+@layer components {
+  /* Primary Button — Burnt Amber */
+  .btn-primary {
+    @apply bg-ag-amber text-white font-extrabold text-base rounded-btn min-h-btn px-6 
+           flex items-center justify-center gap-2
+           hover:bg-amber-900 transition-colors cursor-pointer;
+  }
+
+  /* Payment Button — Payment Green */
+  .btn-pay {
+    @apply bg-ag-pay text-white font-extrabold text-base rounded-btn min-h-btn px-6
+           flex items-center justify-center gap-2
+           hover:bg-green-600 transition-colors cursor-pointer;
+  }
+
+  /* Secondary Button — Forest Green outline */
+  .btn-secondary {
+    @apply bg-transparent text-ag-primary font-bold text-base rounded-btn min-h-btn px-6
+           border-2 border-ag-primary flex items-center justify-center gap-2
+           hover:bg-ag-primary-fixed transition-colors cursor-pointer;
+  }
+
+  /* Tertiary — text link */
+  .btn-tertiary {
+    @apply text-ag-amber font-bold underline text-base bg-transparent border-0
+           hover:text-amber-900 cursor-pointer transition-colors;
+  }
+
+  /* Input field */
+  .form-input {
+    @apply w-full bg-ag-card border-2 border-ag-border rounded-btn px-4 py-3 text-ag-body 
+           text-base placeholder-ag-outline
+           focus:outline-none focus:border-ag-primary transition-colors;
+  }
+
+  /* Status chips */
+  .chip-verified {
+    @apply bg-ag-primary-fixed text-ag-primary text-xs font-bold uppercase px-3 py-1 rounded-full;
+  }
+  .chip-transit {
+    @apply bg-amber-100 text-amber-800 text-xs font-bold uppercase px-3 py-1 rounded-full;
+  }
+  .chip-pending {
+    @apply bg-yellow-100 text-yellow-800 text-xs font-bold uppercase px-3 py-1 rounded-full;
+  }
+  .chip-completed {
+    @apply bg-green-100 text-green-800 text-xs font-bold uppercase px-3 py-1 rounded-full;
+  }
+  .chip-sold-out {
+    @apply bg-red-100 text-red-800 text-xs font-bold uppercase px-3 py-1 rounded-full;
+  }
+  .chip-low-stock {
+    @apply bg-orange-100 text-orange-800 text-xs font-bold uppercase px-3 py-1 rounded-full;
+  }
+
+  /* Card */
+  .ag-card {
+    @apply bg-ag-card border border-ag-border rounded-card p-5;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F3F4F1; }
+::-webkit-scrollbar-thumb { background: #C1C8C2; border-radius: 99px; }

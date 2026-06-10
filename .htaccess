@@ -1,0 +1,15 @@
+Options -MultiViews
+RewriteEngine On
+
+# ─── API Requests → PHP Backend ─────────────────────────────────────────────
+# All requests to /Agri-Tech.php/api/* are handled by the API index.php
+RewriteRule ^api/(.*)$ api/index.php?request=$1 [QSA,NC,L]
+
+# ─── All other requests → React App ─────────────────────────────────────────
+# Serve existing static files (dist/assets/*, images, etc.) directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# All remaining routes go to the built React SPA entry point
+RewriteRule ^ dist/index.html [L]
