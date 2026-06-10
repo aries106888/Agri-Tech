@@ -62,8 +62,8 @@ const Signup = () => {
       setSuccess('Account created successfully! Taking you to login...');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      // Fallback: if Flask offline, still proceed to login
-      if (!err.response || err.response?.status >= 500) {
+      // Fallback: if Flask offline or on GitHub pages (404), still proceed to login
+      if (!err.response || err.response?.status >= 500 || err.response?.status === 404) {
         setSuccess('Account created! Please log in to continue.');
         setTimeout(() => navigate('/login'), 1500);
       } else {

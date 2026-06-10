@@ -44,8 +44,8 @@ const Login = () => {
       setSuccess(`Welcome back, ${user.name}! Redirecting...`);
       setTimeout(() => navigate(redirect || getRedirect(form.role)), 800);
     } catch (err) {
-      // Fallback: if Flask is offline, use role-based local redirect
-      if (!err.response || err.response?.status >= 500) {
+      // Fallback: if Flask is offline or we are on GitHub Pages (404), use role-based local redirect
+      if (!err.response || err.response?.status >= 500 || err.response?.status === 404) {
         const user = { name: form.email.split('@')[0], role: form.role, email: form.email };
         localStorage.setItem('token', btoa(form.email + ':' + form.role));
         localStorage.setItem('user', JSON.stringify(user));

@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { Leaf, ArrowRight, CheckCircle, TrendingUp, Users, DollarSign } from 'lucide-react';
 
 // ---- Sample product data ----
+const base = import.meta.env.BASE_URL;
 const featuredCrops = [
-  { id: 1, name: 'Irish Potatoes', county: 'Nakuru', price: 45, unit: 'kg', farmer: 'Mwangi J.', badge: 'VERIFIED', img: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&q=80' },
-  { id: 2, name: 'Grade A Tomatoes', county: 'Kiambu', price: 80, unit: 'kg', farmer: 'Sarah K.', badge: 'LOW STOCK', img: 'https://images.unsplash.com/photo-1546094096-0df4bcaad337?w=400&q=80' },
-  { id: 3, name: 'Sweet Green Maize', county: 'Uasin Gishu', price: 25, unit: 'pc', farmer: 'Kibet E.', badge: 'VERIFIED', img: 'https://images.unsplash.com/photo-1601592930067-f6bde17c7f29?w=400&q=80' },
-  { id: 4, name: 'Red Onions', county: 'Kajiado', price: 120, unit: 'kg', farmer: 'Agnes L.', badge: 'VERIFIED', img: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=400&q=80' },
+  { id: 1, name: 'Irish Potatoes', county: 'Nakuru', price: 45, unit: 'kg', farmer: 'Mwangi J.', badge: 'VERIFIED', img: `${base}images/potatoes.png` },
+  { id: 2, name: 'Grade A Tomatoes', county: 'Kiambu', price: 80, unit: 'kg', farmer: 'Sarah K.', badge: 'LOW STOCK', img: `${base}images/tomatoes.png` },
+  { id: 3, name: 'Sweet Green Maize', county: 'Uasin Gishu', price: 25, unit: 'pc', farmer: 'Kibet E.', badge: 'VERIFIED', img: `${base}images/maize.png` },
+  { id: 4, name: 'Red Onions', county: 'Kajiado', price: 120, unit: 'kg', farmer: 'Agnes L.', badge: 'VERIFIED', img: `${base}images/onions.png` },
 ];
 
 const steps = [
