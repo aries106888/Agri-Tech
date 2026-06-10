@@ -196,7 +196,7 @@ def method_not_allowed(e):
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    print("\n🌿 ShambaPoint Flask API")
+    print("\n ShambaPoint Flask API")
     print("   Running at: http://localhost:5000/api")
     print("   Press CTRL+C to stop\n")
     app.run(host='0.0.0.0', port=5000, debug=True)
