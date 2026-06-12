@@ -108,7 +108,7 @@ const DashboardLayout = ({ role = 'farmer' }) => {
         <header className="bg-white border-b border-ag-border px-8 py-4 flex items-center justify-between sticky top-0 z-40">
           <div>
             <h1 className="text-headline-md text-ag-body">
-              Good morning, {userName} 👋
+              {role === 'admin' ? 'Platform Overview' : `Good morning, ${userName} 👋`}
             </h1>
             <p className="text-label-sm text-ag-muted">{ROLE_LABEL[role]}</p>
           </div>
