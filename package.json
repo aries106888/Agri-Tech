@@ -3,9 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://aries106888.github.io/Agri-Tech",
   "scripts": {
     "dev": "vite",
+    "dev:backend": "cd backend && python app.py",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -163,19 +163,15 @@ const Market = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [logistics, setLogistics]       = useState({ pickup: '', destination: '' });
-  const [phone, setPhone]               = useState('');
+  const [phone, setPhone]               = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user') || '{}').phone || ''; } catch { return ''; }
+  });
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
 
   useEffect(() => {
     api.get('/products')
       .then(r => { setProducts(r.data?.length ? r.data : FALLBACK_PRODUCTS); setLoading(false); })
       .catch(() => { setProducts(FALLBACK_PRODUCTS); setLoading(false); });
-
-    // pre-fill phone from stored user
-    try {
-      const u = JSON.parse(localStorage.getItem('user') || '{}');
-      if (u.phone) setPhone(u.phone);
-    } catch (_) {}
   }, []);
 
   /* ── cart helpers ── */
@@ -259,7 +255,8 @@ const Market = () => {
         description: `ShambaPoint order – ${cartItems.length} items`,
       });
       setMpesaState('success');
-    } catch (_) {
+    } catch (err) {
+      console.error(err);
       // simulate success even if backend is offline
       await new Promise(r => setTimeout(r, 2500));
       setMpesaState('success');

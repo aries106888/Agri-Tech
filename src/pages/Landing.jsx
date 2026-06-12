@@ -139,7 +139,6 @@ const Landing = () => {
           <nav className="flex gap-6 text-white/70 text-sm font-bold">
             <Link to="/" className="hover:text-white">Home</Link>
             <Link to="/market" className="hover:text-white">Marketplace</Link>
-            <Link to="/signup" className="hover:text-white">Sign Up</Link>
           </nav>
           <p className="text-white/40 text-xs">© {new Date().getFullYear()} ShambaPoint Kenya. All rights reserved.</p>
         </div>

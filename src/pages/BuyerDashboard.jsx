@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   ShoppingBag, Truck, Package, Clock, MapPin, X, CheckCircle, CheckCircle2,
   Plus, Heart, ShoppingCart, Minus, Settings, Map, Trash2, Phone,
-  ArrowRight, ArrowLeft, Loader2, Star
+  ArrowRight, ArrowLeft, Loader2
 } from 'lucide-react';
 
 /* ─── produce that actually has images ─── */
