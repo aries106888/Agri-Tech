@@ -34,7 +34,7 @@ const CROP_IMAGES = {
   Cabbage:   '/images/cabbage.png',
   Spinach:   '/images/spinach.png',
   Carrots:   '/images/carrots.png',
-  Beans:     'https://images.unsplash.com/photo-1612257999756-bce33bf37a3b?w=500&q=80',
+  Beans:     '/images/beans.png',
   Pineapple: 'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=500&q=80',
   Avocado:   'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=500&q=80',
 };
