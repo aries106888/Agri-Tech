@@ -49,13 +49,15 @@ def index():
         "status": "online",
         "routes": {
             "GET  /api/products":        "List all products",
-            "GET  /api/products/<id>":   "Get single product",
+            "GET  /api/products/{id}":   "Get single product",
             "POST /api/auth/register":   "Register a new user",
             "POST /api/auth/login":      "Login and get token",
             "GET  /api/orders":          "List orders",
             "POST /api/orders":          "Place a new order",
             "GET  /api/logistics":       "List available drivers",
             "POST /api/logistics":       "Request transport allocation",
+            "POST /api/cart":            "Add item to cart",
+            "POST /api/payments/mpesa/stkpush": "Initiate M-Pesa payment"
         }
     })
 
@@ -184,6 +186,22 @@ def add_to_cart():
     if not data.get('productId'):
         return jsonify({"error": "productId is required"}), 422
     return jsonify({"message": "Item added to cart", "productId": data['productId']})
+
+# ─── PAYMENTS ─────────────────────────────────────────────────────────────────
+@app.route('/api/payments/mpesa/stkpush', methods=['POST'])
+def mpesa_stkpush():
+    data = request.get_json() or {}
+    if not data.get('phone') or not data.get('amount'):
+        return jsonify({"error": "phone and amount are required"}), 422
+    
+    return jsonify({
+        "message": "STK Push initiated successfully",
+        "CheckoutRequestID": f"ws_CO_{random_id(12)}",
+        "MerchantRequestID": random_id(8),
+        "ResponseCode": "0",
+        "ResponseDescription": "Success. Request accepted for processing",
+        "CustomerMessage": f"Payment request of KES {data.get('amount')} sent to {data.get('phone')}"
+    })
 
 # ─── 404 ──────────────────────────────────────────────────────────────────────
 @app.errorhandler(404)
