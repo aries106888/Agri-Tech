@@ -174,21 +174,7 @@ const Login = () => {
           </form>
         </div>
 
-        {/* Role Hint Cards */}
-        <div className="mt-6 grid grid-cols-2 gap-3">
-          {ROLES.map(r => (
-            <div
-              key={r.id}
-              onClick={() => setForm(p => ({ ...p, role: r.id }))}
-              className={`p-3 rounded-card border-2 cursor-pointer transition-all ${
-                form.role === r.id ? 'border-ag-primary bg-ag-primary/5' : 'border-ag-border bg-white hover:border-ag-primary/40'
-              }`}
-            >
-              <p className={`text-xs font-bold ${form.role === r.id ? 'text-ag-primary' : 'text-ag-body'}`}>{r.label}</p>
-              <p className="text-xs text-ag-muted mt-0.5">{r.redirect}</p>
-            </div>
-          ))}
-        </div>
+
       </div>
     </div>
   );
