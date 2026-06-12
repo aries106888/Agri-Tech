@@ -1,11 +1,29 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Users, ListOrdered, ShoppingBag, TrendingUp, CheckCircle2, X, Truck, Settings, Ban, UserCheck, RefreshCw, AlertTriangle } from 'lucide-react';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const INITIAL_LISTINGS = [
   { id: 1, crop: '500kg Maize',    farmer: 'David K.',  county: 'Uasin Gishu', price: 'KSh 25,000' },
   { id: 2, crop: '200kg Tomatoes', farmer: 'Aisha M.',  county: 'Kiambu',      price: 'KSh 16,000' },
   { id: 3, crop: '80 Crates Eggs', farmer: 'Peter O.',  county: 'Nakuru',      price: 'KSh 9,600'  },
+];
+
+const MONTHLY_REVENUE = [
+  { name: 'Jan', revenue: 420000 },
+  { name: 'Feb', revenue: 510000 },
+  { name: 'Mar', revenue: 680000 },
+  { name: 'Apr', revenue: 850000 },
+  { name: 'May', revenue: 1200000 },
+  { name: 'Jun', revenue: 1540000 },
+];
+
+const CROP_SALES = [
+  { name: 'Maize', sales: 45 },
+  { name: 'Tomatoes', sales: 25 },
+  { name: 'Potatoes', sales: 15 },
+  { name: 'Onions', sales: 10 },
+  { name: 'Cabbage', sales: 5 },
 ];
 
 const INITIAL_USERS = [
@@ -135,11 +153,48 @@ const AdminDashboard = () => {
 
         {/* ── TAB: Overview ── */}
         {currentPath === 'dashboard' && (
-           <div className="p-12 text-center">
-             <CheckCircle2 className="w-16 h-16 text-ag-primary mx-auto mb-4" />
-             <h2 className="text-2xl font-extrabold text-ag-body mb-2">System Running Smoothly</h2>
-             <p className="text-ag-muted font-bold">Select a tab above or from the sidebar to manage the platform.</p>
-           </div>
+          <div className="p-6 grid grid-cols-1 xl:grid-cols-2 gap-6 bg-ag-canvas/30">
+            
+            {/* Revenue Trend Chart */}
+            <div className="border border-ag-border rounded-card p-5 bg-white hover:shadow-md transition-shadow">
+              <h3 className="font-extrabold text-ag-body mb-6 text-sm flex items-center gap-2"><TrendingUp className="w-4 h-4 text-ag-primary" /> Platform Revenue Trend</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={MONTHLY_REVENUE} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} tickFormatter={(val) => `KSh ${val/1000}k`} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
+                      formatter={(value) => [`KSh ${value.toLocaleString()}`, 'Revenue']}
+                    />
+                    <Line type="monotone" dataKey="revenue" stroke="#3d6c38" strokeWidth={3} dot={{ r: 4, fill: '#3d6c38', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Crop Distribution Chart */}
+            <div className="border border-ag-border rounded-card p-5 bg-white hover:shadow-md transition-shadow">
+              <h3 className="font-extrabold text-ag-body mb-6 text-sm flex items-center gap-2"><ShoppingBag className="w-4 h-4 text-ag-amber" /> Top Selling Produce Categories</h3>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={CROP_SALES} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6b7280' }} width={80} />
+                    <Tooltip 
+                      cursor={{ fill: '#f3f4f6' }}
+                      contentStyle={{ borderRadius: '12px', border: '1px solid #e5e7eb' }}
+                      formatter={(value) => [`${value}%`, 'Market Share']}
+                    />
+                    <Bar dataKey="sales" fill="#d97706" radius={[0, 4, 4, 0]} barSize={24} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+          </div>
         )}
 
         {/* ── TAB: Listings ── */}
