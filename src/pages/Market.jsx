@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, MapPin, ChevronDown, ShoppingCart, SlidersHorizontal, X } from 'lucide-react';
 import api from '../services/api';
 
@@ -6,11 +6,78 @@ const COUNTIES = ['Nairobi','Kiambu','Nakuru','Meru','Uasin Gishu','Kajiado','Ny
 const CROP_TYPES = ['Maize','Tomatoes','Potatoes','Onions','Cabbage','Spinach','Carrots','Beans','Pineapple','Avocado'];
 
 const FALLBACK_PRODUCTS = [
-  { id: 101, name: 'Fresh Yellow Bananas', farmer: 'Njoroge K.', county: 'Kisii', price: '60', unit: '/kg', verified: true, lowStock: false, image: '/images/banana.png' },
-  { id: 102, name: 'Crisp Red Apples', farmer: 'Wanjiku F.', county: 'Meru', price: '150', unit: '/kg', verified: true, lowStock: false, image: '/images/apple.png' },
-  { id: 103, name: 'Sweet Ripe Mangoes', farmer: 'Mutua J.', county: 'Machakos', price: '120', unit: '/kg', verified: false, lowStock: true, image: '/images/mango.png' },
-  { id: 104, name: 'Juicy Oranges', farmer: 'Akinyi O.', county: 'Kisumu', price: '80', unit: '/kg', verified: true, lowStock: false, image: '/images/orange.png' },
+  { id: 101, name: 'Fresh Yellow Bananas', farmer: 'Njoroge K.', county: 'Kisii', price: '60', unit: '/kg', verified: true, lowStock: false, image: 'https://images.unsplash.com/photo-1528825871115-3581a5387919?w=500&q=80' },
+  { id: 102, name: 'Crisp Red Apples', farmer: 'Wanjiku F.', county: 'Meru', price: '150', unit: '/kg', verified: true, lowStock: false, image: 'https://images.unsplash.com/photo-1560806e614c9db59230ddd5586400233?w=500&q=80' },
+  { id: 103, name: 'Sweet Ripe Mangoes', farmer: 'Mutua J.', county: 'Machakos', price: '120', unit: '/kg', verified: false, lowStock: true, image: 'https://images.unsplash.com/photo-1545470348-d5e4b1b17b6c?w=500&q=80' },
+  { id: 104, name: 'Juicy Oranges', farmer: 'Akinyi O.', county: 'Kisumu', price: '80', unit: '/kg', verified: true, lowStock: false, image: 'https://images.unsplash.com/photo-1599599810694-b5ac4dd94b5a?w=500&q=80' },
 ];
+
+const SidebarContent = ({ pendingFilters, setPending, toggleFilter, applyFilters }) => (
+  <div className="flex flex-col gap-6 h-full">
+    <h2 className="text-headline-md text-ag-body">Filter Listings</h2>
+
+    {/* Crop Type */}
+    <div>
+      <h3 className="text-label-bold text-ag-muted uppercase tracking-widest mb-3 text-xs">Crop Type</h3>
+      <div className="flex flex-col gap-2">
+        {CROP_TYPES.map(c => (
+          <label key={c} className="flex items-center gap-2.5 cursor-pointer group">
+            <input type="checkbox" checked={pendingFilters.crops.includes(c)} onChange={() => toggleFilter('crops', c)} className="w-4 h-4 accent-ag-primary rounded" />
+            <span className="text-sm font-bold text-ag-body group-hover:text-ag-primary transition-colors">{c}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    {/* County */}
+    <div>
+      <h3 className="text-label-bold text-ag-muted uppercase tracking-widest mb-3 text-xs">County</h3>
+      <div className="flex flex-col gap-2">
+        {COUNTIES.map(c => (
+          <label key={c} className="flex items-center gap-2.5 cursor-pointer group">
+            <input type="checkbox" checked={pendingFilters.counties.includes(c)} onChange={() => toggleFilter('counties', c)} className="w-4 h-4 accent-ag-primary rounded" />
+            <span className="text-sm font-bold text-ag-body group-hover:text-ag-primary transition-colors">{c}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    {/* Price Range */}
+    <div>
+      <h3 className="text-label-bold text-ag-muted uppercase tracking-widest mb-3 text-xs">Price Range (KSh/kg)</h3>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-muted text-xs font-bold">KSh</span>
+          <input type="number" placeholder="Min" value={pendingFilters.minPrice} onChange={e => setPending(p => ({ ...p, minPrice: e.target.value }))} className="w-full bg-ag-card border-2 border-ag-border rounded-btn pl-9 pr-2 py-2 text-sm focus:outline-none focus:border-ag-primary" />
+        </div>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-muted text-xs font-bold">KSh</span>
+          <input type="number" placeholder="Max" value={pendingFilters.maxPrice} onChange={e => setPending(p => ({ ...p, maxPrice: e.target.value }))} className="w-full bg-ag-card border-2 border-ag-border rounded-btn pl-9 pr-2 py-2 text-sm focus:outline-none focus:border-ag-primary" />
+        </div>
+      </div>
+    </div>
+
+    {/* Verified Toggle */}
+    <div>
+      <h3 className="text-label-bold text-ag-muted uppercase tracking-widest mb-3 text-xs">Seller Quality</h3>
+      <label className="flex items-center justify-between cursor-pointer">
+        <span className="text-sm font-bold text-ag-body">Verified Farmers Only</span>
+        <button
+          onClick={() => setPending(p => ({ ...p, verifiedOnly: !p.verifiedOnly }))}
+          className={`relative w-12 h-6 rounded-full transition-colors ${pendingFilters.verifiedOnly ? 'bg-ag-primary' : 'bg-ag-border'}`}
+        >
+          <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${pendingFilters.verifiedOnly ? 'left-7' : 'left-1'}`} />
+        </button>
+      </label>
+    </div>
+
+    {/* Apply Button */}
+    <div className="mt-auto pt-4 border-t border-ag-border sticky bottom-0 bg-white pb-2">
+      <button onClick={applyFilters} className="btn-primary w-full">Apply Filters</button>
+      <button onClick={() => { setPending({ counties: [], crops: [], minPrice: '', maxPrice: '', verifiedOnly: false }); }} className="btn-tertiary w-full mt-2 text-center">Clear All</button>
+    </div>
+  </div>
+);
 
 const Market = () => {
   const [products, setProducts]         = useState([]);
@@ -93,78 +160,18 @@ const Market = () => {
       return 0;
     });
 
-  const SidebarContent = () => (
-    <div className="flex flex-col gap-6 h-full">
-      <h2 className="text-headline-md text-ag-body">Filter Listings</h2>
 
-      {/* Crop Type */}
-      <div>
-        <h3 className="text-label-bold text-ag-muted uppercase tracking-widest mb-3 text-xs">Crop Type</h3>
-        <div className="flex flex-col gap-2">
-          {CROP_TYPES.map(c => (
-            <label key={c} className="flex items-center gap-2.5 cursor-pointer group">
-              <input type="checkbox" checked={pendingFilters.crops.includes(c)} onChange={() => toggleFilter('crops', c)} className="w-4 h-4 accent-ag-primary rounded" />
-              <span className="text-sm font-bold text-ag-body group-hover:text-ag-primary transition-colors">{c}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* County */}
-      <div>
-        <h3 className="text-label-bold text-ag-muted uppercase tracking-widest mb-3 text-xs">County</h3>
-        <div className="flex flex-col gap-2">
-          {COUNTIES.map(c => (
-            <label key={c} className="flex items-center gap-2.5 cursor-pointer group">
-              <input type="checkbox" checked={pendingFilters.counties.includes(c)} onChange={() => toggleFilter('counties', c)} className="w-4 h-4 accent-ag-primary rounded" />
-              <span className="text-sm font-bold text-ag-body group-hover:text-ag-primary transition-colors">{c}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Price Range */}
-      <div>
-        <h3 className="text-label-bold text-ag-muted uppercase tracking-widest mb-3 text-xs">Price Range (KSh/kg)</h3>
-        <div className="grid grid-cols-2 gap-2">
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-muted text-xs font-bold">KSh</span>
-            <input type="number" placeholder="Min" value={pendingFilters.minPrice} onChange={e => setPending(p => ({ ...p, minPrice: e.target.value }))} className="w-full bg-ag-card border-2 border-ag-border rounded-btn pl-9 pr-2 py-2 text-sm focus:outline-none focus:border-ag-primary" />
-          </div>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-muted text-xs font-bold">KSh</span>
-            <input type="number" placeholder="Max" value={pendingFilters.maxPrice} onChange={e => setPending(p => ({ ...p, maxPrice: e.target.value }))} className="w-full bg-ag-card border-2 border-ag-border rounded-btn pl-9 pr-2 py-2 text-sm focus:outline-none focus:border-ag-primary" />
-          </div>
-        </div>
-      </div>
-
-      {/* Verified Toggle */}
-      <div>
-        <h3 className="text-label-bold text-ag-muted uppercase tracking-widest mb-3 text-xs">Seller Quality</h3>
-        <label className="flex items-center justify-between cursor-pointer">
-          <span className="text-sm font-bold text-ag-body">Verified Farmers Only</span>
-          <button
-            onClick={() => setPending(p => ({ ...p, verifiedOnly: !p.verifiedOnly }))}
-            className={`relative w-12 h-6 rounded-full transition-colors ${pendingFilters.verifiedOnly ? 'bg-ag-primary' : 'bg-ag-border'}`}
-          >
-            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${pendingFilters.verifiedOnly ? 'left-7' : 'left-1'}`} />
-          </button>
-        </label>
-      </div>
-
-      {/* Apply Button */}
-      <div className="mt-auto pt-4 border-t border-ag-border sticky bottom-0 bg-white pb-2">
-        <button onClick={applyFilters} className="btn-primary w-full">Apply Filters</button>
-        <button onClick={() => { setPending({ counties: [], crops: [], minPrice: '', maxPrice: '', verifiedOnly: false }); }} className="btn-tertiary w-full mt-2 text-center">Clear All</button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="flex min-h-screen bg-ag-canvas">
       {/* ── DESKTOP SIDEBAR ── */}
       <aside className="hidden lg:flex w-sidebar shrink-0 border-r border-ag-border bg-white px-6 py-8 flex-col sticky top-0 h-screen overflow-y-auto">
-        <SidebarContent />
+        <SidebarContent
+          pendingFilters={pendingFilters}
+          setPending={setPending}
+          toggleFilter={toggleFilter}
+          applyFilters={applyFilters}
+        />
       </aside>
 
       {/* ── MOBILE SIDEBAR OVERLAY ── */}
@@ -173,7 +180,12 @@ const Market = () => {
           <div className="absolute inset-0 bg-black/40" onClick={() => setSidebarOpen(false)} />
           <aside className="relative w-72 bg-white h-full px-6 py-8 overflow-y-auto flex flex-col">
             <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 text-ag-muted"><X className="w-5 h-5" /></button>
-            <SidebarContent />
+            <SidebarContent
+              pendingFilters={pendingFilters}
+              setPending={setPending}
+              toggleFilter={toggleFilter}
+              applyFilters={applyFilters}
+            />
           </aside>
         </div>
       )}

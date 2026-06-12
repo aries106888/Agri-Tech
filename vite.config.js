@@ -3,10 +3,11 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/Agri-Tech/',
+  base: '/',
   plugins: [react()],
   server: {
     port: 5174,
+    host: '0.0.0.0', // Listen on all network interfaces for remote access
     proxy: {
       // All /api/* requests are forwarded to the Flask backend
       '/api': {

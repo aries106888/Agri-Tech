@@ -1,14 +1,12 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { Leaf, ArrowRight, CheckCircle, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { Leaf, ArrowRight, TrendingUp, Users, DollarSign } from 'lucide-react';
 
 // ---- Sample product data ----
-const base = import.meta.env.BASE_URL;
 const featuredCrops = [
-  { id: 1, name: 'Irish Potatoes', county: 'Nakuru', price: 45, unit: 'kg', farmer: 'Mwangi J.', badge: 'VERIFIED', img: `${base}images/potatoes.png` },
-  { id: 2, name: 'Grade A Tomatoes', county: 'Kiambu', price: 80, unit: 'kg', farmer: 'Sarah K.', badge: 'LOW STOCK', img: `${base}images/tomatoes.png` },
-  { id: 3, name: 'Sweet Green Maize', county: 'Uasin Gishu', price: 25, unit: 'pc', farmer: 'Kibet E.', badge: 'VERIFIED', img: `${base}images/maize.png` },
-  { id: 4, name: 'Red Onions', county: 'Kajiado', price: 120, unit: 'kg', farmer: 'Agnes L.', badge: 'VERIFIED', img: `${base}images/onions.png` },
+  { id: 1, name: 'Irish Potatoes', county: 'Nakuru', price: 45, unit: 'kg', farmer: 'Mwangi J.', badge: 'VERIFIED', img: 'https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?w=500&q=80' },
+  { id: 2, name: 'Grade A Tomatoes', county: 'Kiambu', price: 80, unit: 'kg', farmer: 'Sarah K.', badge: 'LOW STOCK', img: 'https://images.unsplash.com/photo-1592924357228-91ec8c86e5cd?w=500&q=80' },
+  { id: 3, name: 'Sweet Green Maize', county: 'Uasin Gishu', price: 25, unit: 'pc', farmer: 'Kibet E.', badge: 'VERIFIED', img: 'https://images.unsplash.com/photo-1599599810694-b5ac4dd94b5a?w=500&q=80' },
+  { id: 4, name: 'Red Onions', county: 'Kajiado', price: 120, unit: 'kg', farmer: 'Agnes L.', badge: 'VERIFIED', img: 'https://images.unsplash.com/photo-1599599811043-921d41886b13?w=500&q=80' },
 ];
 
 const steps = [
@@ -52,10 +50,6 @@ const Landing = () => {
                 alt="Kenyan farmers harvesting crops"
                 className="w-full h-80 lg:h-96 object-cover"
               />
-              <div className="absolute bottom-4 left-4 bg-ag-primary/90 backdrop-blur-sm border border-white/20 rounded-card px-4 py-3">
-                <p className="text-ag-primary-fixed font-bold text-sm">🌿 Live Market Prices</p>
-                <p className="text-white text-xs mt-0.5">Tomatoes — KSh 80/kg · Maize — KSh 25/pc</p>
-              </div>
             </div>
           </div>
         </div>
@@ -140,14 +134,14 @@ const Landing = () => {
         <div className="max-w-desktop mx-auto px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2 text-white font-extrabold text-lg">
             <Leaf className="w-5 h-5 text-ag-primary-fixed" />
-            AgriTech
+            ShambaPoint
           </div>
           <nav className="flex gap-6 text-white/70 text-sm font-bold">
             <Link to="/" className="hover:text-white">Home</Link>
             <Link to="/market" className="hover:text-white">Marketplace</Link>
             <Link to="/signup" className="hover:text-white">Sign Up</Link>
           </nav>
-          <p className="text-white/40 text-xs">© {new Date().getFullYear()} AgriTech Kenya. All rights reserved.</p>
+          <p className="text-white/40 text-xs">© {new Date().getFullYear()} ShambaPoint Kenya. All rights reserved.</p>
         </div>
       </footer>
     </div>

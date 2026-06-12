@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Leaf, LayoutDashboard, ListOrdered, ShoppingBag,
@@ -64,7 +64,7 @@ const DashboardLayout = ({ role = 'farmer' }) => {
         <div className="px-6 py-5 border-b border-white/10">
           <Link to="/" className="flex items-center gap-2 text-white font-extrabold text-xl mb-1">
             <Leaf className="w-5 h-5 text-ag-primary-fixed" />
-            AgriTech
+            ShambaPoint
           </Link>
           <p className="text-ag-primary-fixed text-xs font-bold">{ROLE_LABEL[role]}</p>
         </div>

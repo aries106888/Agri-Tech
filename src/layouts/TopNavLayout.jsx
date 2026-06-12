@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Leaf, Menu, X } from 'lucide-react';
 
@@ -21,7 +21,7 @@ const TopNavLayout = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 text-white font-extrabold text-xl tracking-tight">
             <Leaf className="w-6 h-6 text-ag-primary-fixed" />
-            AgriTech
+            ShambaPoint
           </Link>
 
           {/* Desktop Nav Links */}

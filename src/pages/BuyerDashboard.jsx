@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, Truck, Package, Clock, MapPin, X, CheckCircle, Plus, Heart, ShoppingCart, Minus, Settings, Map } from 'lucide-react';
 

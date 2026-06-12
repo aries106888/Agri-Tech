@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, ShieldCheck, AlertCircle } from 'lucide-react';
 import api from '../services/api';
@@ -17,7 +17,7 @@ const STEPS = ['Your Role', 'Your Details', 'Verify'];
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState(0);
+  const [step] = useState(0);
   const [selectedRole, setSelectedRole] = useState('farmer');
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
@@ -75,22 +75,21 @@ const Signup = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
     <div className="min-h-screen bg-ag-canvas py-12 px-4 flex flex-col items-center">
       {/* Header Brand */}
       <div className="w-full max-w-[560px] mb-8">
-        <div className="bg-ag-primary rounded-card p-6 mb-6">
-          <div className="flex items-center gap-2 text-white font-extrabold text-xl mb-2">
-            🌿 AgriTech
+        <div className="bg-ag-primary rounded-card p-6 mb-6 flex items-center gap-3">
+          <span className="text-3xl">🌿</span>
+          <div>
+            <p className="text-white font-extrabold text-xl">ShambaPoint</p>
+            <p className="text-ag-primary-fixed font-bold text-sm">Sell Your Harvest. Get Paid Instantly.</p>
           </div>
-          <p className="text-ag-primary-fixed font-bold text-sm">Efficient Agribusiness.</p>
-          <p className="text-white/60 text-sm mt-2">Connecting Kenya's agricultural ecosystem through powerful digital tools and local market insights.</p>
         </div>
 
         {/* Progress Steps */}
         <div className="flex items-center gap-0 mb-8">
           {STEPS.map((s, i) => (
-            <React.Fragment key={s}>
+            <Fragment key={s}>
               <div className="flex flex-col items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
                   i <= step ? 'bg-ag-primary border-ag-primary text-white' : 'bg-white border-ag-border text-ag-muted'
@@ -100,13 +99,13 @@ const Signup = () => {
               {i < STEPS.length - 1 && (
                 <div className={`flex-1 h-0.5 mx-2 mb-5 ${i < step ? 'bg-ag-primary' : 'bg-ag-border'}`} />
               )}
-            </React.Fragment>
+            </Fragment>
           ))}
         </div>
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-[560px] bg-white border border-ag-border rounded-card p-8 shadow-sm">
+      <form onSubmit={handleSubmit} className="w-full max-w-[560px] bg-white border border-ag-border rounded-card p-8 shadow-sm">
         <h1 className="text-headline-lg text-ag-body mb-1">Create Account</h1>
         <p className="text-ag-muted text-sm mb-6">Select User Role</p>
 
@@ -254,9 +253,8 @@ const Signup = () => {
             <Link to="/login" className="btn-tertiary !text-sm">Login</Link>
           </p>
         </div>
-      </div>
+      </form>
     </div>
-    </form>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, Leaf, CheckCircle } from 'lucide-react';
 import api from '../services/api';
@@ -44,8 +44,11 @@ const Login = () => {
       setSuccess(`Welcome back, ${user.name}! Redirecting...`);
       setTimeout(() => navigate(redirect || getRedirect(form.role)), 800);
     } catch (err) {
-      // Fallback: if Flask is offline or we are on GitHub Pages (404), use role-based local redirect
-      if (!err.response || err.response?.status >= 500 || err.response?.status === 404) {
+      // Bulletproof fallback: If the backend is off or returns any connection error,
+      // log the user in locally so the frontend can still be used and tested.
+      const isExpectedBackendError = err.response && (err.response.status === 400 || err.response.status === 401);
+      
+      if (!isExpectedBackendError) {
         const user = { name: form.email.split('@')[0], role: form.role, email: form.email };
         localStorage.setItem('token', btoa(form.email + ':' + form.role));
         localStorage.setItem('user', JSON.stringify(user));
@@ -75,7 +78,7 @@ const Login = () => {
         {/* Card */}
         <div className="bg-white border border-ag-border rounded-card p-8 shadow-sm">
           <h1 className="text-headline-lg text-ag-body mb-1">Welcome Back</h1>
-          <p className="text-ag-muted text-sm mb-8">Sign in to your AgriTech account</p>
+          <p className="text-ag-muted text-sm mb-8">Sign in to your ShambaPoint account</p>
 
           {/* Success Banner */}
           {success && (
@@ -161,7 +164,7 @@ const Login = () => {
               disabled={loading}
               className={`btn-primary w-full text-base mt-2 ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Signing in...' : `Login to AgriTech \u2192`}
+              {loading ? 'Signing in...' : `Login to ShambaPoint →`}
             </button>
 
             <p className="text-center text-sm text-ag-muted">

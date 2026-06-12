@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Truck, CheckCircle2, Clock, DollarSign, MapPin, X, CheckCircle, Phone, Settings, Map } from 'lucide-react';
 

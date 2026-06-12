@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { TrendingUp, Package, Clock, BarChart2, Pencil, ArrowDownToLine, FileText, CheckCircle2, Truck, AlertCircle, X, CheckCircle, Phone, Settings } from 'lucide-react';
 
@@ -32,8 +32,8 @@ const FarmerDashboard = () => {
   const currentPath = location.pathname.split('/').pop();
   
   const [walletBalance, setWalletBalance] = useState(34200);
-  const [listings, setListings] = useState(INITIAL_LISTINGS);
-  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  const [listings] = useState(INITIAL_LISTINGS);
+  const [transactions] = useState(INITIAL_TRANSACTIONS);
   const [modal, setModal] = useState(null); // 'withdraw' | 'transactions' | 'archive' | 'delivery' | 'edit_listing'
   const [selected, setSelected] = useState(null);
   const [toast, setToast] = useState('');
