@@ -1,23 +1,36 @@
+import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Layouts
+// Layouts (small — kept eager)
 import TopNavLayout    from './layouts/TopNavLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
-// Pages
-import Landing          from './pages/Landing';
-import Login            from './pages/Login';
-import Signup           from './pages/Signup';
-import Market           from './pages/Market';
-import FarmerDashboard  from './pages/FarmerDashboard';
-import BuyerDashboard   from './pages/BuyerDashboard';
-import LogisticsDashboard from './pages/LogisticsDashboard';
-import AdminDashboard   from './pages/AdminDashboard';
+// Pages — lazy loaded for code-splitting
+const Landing           = lazy(() => import('./pages/Landing'));
+const Login             = lazy(() => import('./pages/Login'));
+const Signup            = lazy(() => import('./pages/Signup'));
+const Market            = lazy(() => import('./pages/Market'));
+const FarmerDashboard   = lazy(() => import('./pages/FarmerDashboard'));
+const BuyerDashboard    = lazy(() => import('./pages/BuyerDashboard'));
+const LogisticsDashboard = lazy(() => import('./pages/LogisticsDashboard'));
+const AdminDashboard    = lazy(() => import('./pages/AdminDashboard'));
+
+// Simple full-screen loading fallback
+const PageLoader = () => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#F0F4F0' }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ width: 40, height: 40, border: '4px solid #2D6A4F', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+      <p style={{ color: '#2D6A4F', fontWeight: 700, fontSize: 14 }}>Loading…</p>
+    </div>
+    <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+  </div>
+);
 
 function App() {
   return (
     <Router>
-      <Routes>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
         {/* ── Public pages with Top Nav ── */}
         <Route element={<TopNavLayout />}>
           <Route index         element={<Landing />} />
@@ -69,6 +82,7 @@ function App() {
         {/* ── Catch-all ── */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </Router>
   );
 }
