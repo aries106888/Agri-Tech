@@ -26,10 +26,10 @@ PRODUCTS = [
     {"id": 6,  "name": "Grade A Tomatoes",     "price": "80",  "unit": "/kg",    "farmer": "Sarah K.",  "county": "Kiambu",      "verified": True,  "lowStock": True,  "image": "https://images.unsplash.com/photo-1546094096-0df4bcaad337?w=600&q=80"},
     {"id": 7,  "name": "Sweet Green Maize",    "price": "25",  "unit": "/pc",    "farmer": "Kibet E.",  "county": "Uasin Gishu", "verified": True,  "lowStock": False, "image": "https://images.unsplash.com/photo-1601592930067-f6bde17c7f29?w=600&q=80"},
     {"id": 8,  "name": "Red Onions",           "price": "120", "unit": "/kg",    "farmer": "Agnes L.",  "county": "Kajiado",     "verified": True,  "lowStock": False, "image": "https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&q=80"},
-    {"id": 9,  "name": "Leafy Spinach",        "price": "30",  "unit": "/bunch", "farmer": "Njoroge T.","county": "Limuru",      "verified": False, "lowStock": False, "image": "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&q=80"},
+    {"id": 9,  "name": "Leafy Spinach",        "price": "10",  "unit": "/bunch", "farmer": "Njoroge T.","county": "Limuru",      "verified": False, "lowStock": False, "image": "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&q=80"},
     {"id": 10, "name": "Sweet Pineapple",      "price": "150", "unit": "/pc",    "farmer": "Maina P.",  "county": "Thika",       "verified": True,  "lowStock": False, "image": "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=600&q=80"},
     {"id": 11, "name": "Green Cabbage",        "price": "35",  "unit": "/head",  "farmer": "David K.",  "county": "Nakuru",      "verified": False, "lowStock": False, "image": "https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?w=600&q=80"},
-    {"id": 12, "name": "Ripe Avocados",        "price": "15",  "unit": "/pc",    "farmer": "Wambui A.", "county": "Kisumu",      "verified": True,  "lowStock": False, "image": "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600&q=80"},
+    {"id": 12, "name": "Ripe Avocados",        "price": "30",  "unit": "/pc",    "farmer": "Wambui A.", "county": "Kisumu",      "verified": True,  "lowStock": False, "image": "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600&q=80"},
 ]
 
 DRIVERS = [
@@ -41,6 +41,11 @@ DRIVERS = [
 ORDERS = []  # In-memory order store (resets on server restart)
 
 # ─── ROOT ─────────────────────────────────────────────────────────────────────
+@app.route('/', methods=['GET'])
+def home():
+    from flask import redirect
+    return redirect('/api')
+
 @app.route('/api', methods=['GET'])
 def index():
     return jsonify({

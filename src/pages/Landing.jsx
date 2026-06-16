@@ -9,11 +9,6 @@ const featuredCrops = [
   { id: 4, name: 'Red Onions',       county: 'Kajiado',     price: 120, unit: 'kg', farmer: 'Agnes L.',  badge: 'VERIFIED',  img: '/images/onions.png'    },
 ];
 
-const steps = [
-  { num: '01', title: 'List Your Crop', desc: 'Create a listing in minutes. Add photos, quantity, price and county.' },
-  { num: '02', title: 'Get Matched with Buyers', desc: 'Qualified buyers in your region receive instant notifications of your listing.' },
-  { num: '03', title: 'Receive Payment Instantly', desc: 'Payment is sent directly to your M-PESA wallet — no delays, no middlemen.' },
-];
 
 const Landing = () => {
   return (
@@ -29,8 +24,8 @@ const Landing = () => {
             <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight tracking-tight mb-6" style={{ letterSpacing: '-0.02em' }}>
               Sell Your Harvest.<br />Get Paid Instantly.
             </h1>
-            <p className="text-white/75 text-body-lg mb-10 max-w-md">
-              Kenya's direct farm-to-buyer marketplace. Fair prices. Fast M-PESA payments. No middlemen.
+            <p className="text-white/75 text-body-lg mb-10 max-w-2xl">
+              Your land is your business. Your harvest is your income. ShambaPoint was not built for the big companies it was built for you, the farmer who wakes up before the sun, who works the soil with their hands, who feeds this nation and still struggles to get a fair price.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/signup" className="btn-primary text-base px-8">
@@ -111,23 +106,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ===== HOW IT WORKS ===== */}
-      <section className="bg-ag-surface border-y border-ag-border">
-        <div className="max-w-desktop mx-auto px-12 py-16">
-          <h2 className="text-headline-lg text-ag-body mb-12 text-center">How It Works</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map(step => (
-              <div key={step.num} className="ag-card">
-                <div className="w-12 h-12 bg-ag-primary rounded-card flex items-center justify-center mb-5">
-                  <span className="text-ag-primary-fixed font-extrabold text-base">{step.num}</span>
-                </div>
-                <h3 className="text-headline-md text-ag-body mb-2">{step.title}</h3>
-                <p className="text-ag-muted text-body-md">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+
 
       {/* ===== FOOTER ===== */}
       <footer className="bg-ag-primary">
@@ -136,10 +115,6 @@ const Landing = () => {
             <Leaf className="w-5 h-5 text-ag-primary-fixed" />
             ShambaPoint
           </div>
-          <nav className="flex gap-6 text-white/70 text-sm font-bold">
-            <Link to="/" className="hover:text-white">Home</Link>
-            <Link to="/market" className="hover:text-white">Marketplace</Link>
-          </nav>
           <p className="text-white/40 text-xs">© {new Date().getFullYear()} ShambaPoint Kenya. All rights reserved.</p>
         </div>
       </footer>

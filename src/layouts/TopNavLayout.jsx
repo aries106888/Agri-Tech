@@ -9,8 +9,8 @@ const TopNavLayout = () => {
   const navLinks = [
     { label: 'Home', path: '/' },
     { label: 'Marketplace', path: '/market' },
-    { label: 'How It Works', path: '/how-it-works' },
-    { label: 'About', path: '/about' },
+    { label: 'Login', path: '/login' },
+    { label: 'Sign Up', path: '/signup' },
   ];
 
   return (
@@ -41,16 +41,6 @@ const TopNavLayout = () => {
             ))}
           </nav>
 
-          {/* CTA Buttons */}
-          <div className="hidden md:flex items-center gap-3">
-            <Link to="/login" className="text-white font-bold text-sm border-2 border-white/40 px-5 py-2.5 rounded-btn hover:border-white/80 transition-colors">
-              Login
-            </Link>
-            <Link to="/signup" className="btn-primary !min-h-0 !py-2.5 !text-sm">
-              Sign Up
-            </Link>
-          </div>
-
           {/* Mobile Hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -68,10 +58,6 @@ const TopNavLayout = () => {
                 {link.label}
               </Link>
             ))}
-            <div className="flex gap-3 pt-2">
-              <Link to="/login" className="flex-1 text-center text-white font-bold text-sm border-2 border-white/40 px-4 py-2.5 rounded-btn">Login</Link>
-              <Link to="/signup" className="flex-1 text-center bg-ag-amber text-white font-bold text-sm px-4 py-2.5 rounded-btn">Sign Up</Link>
-            </div>
           </div>
         )}
       </header>
@@ -85,3 +71,4 @@ const TopNavLayout = () => {
 };
 
 export default TopNavLayout;
+
