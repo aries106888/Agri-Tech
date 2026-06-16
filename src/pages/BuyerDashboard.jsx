@@ -8,50 +8,50 @@ import {
 
 /* ─── produce that actually has images ─── */
 const SHOP_PRODUCTS = [
-  { id: 1,  name: 'Irish Potatoes',      farmer: 'Mwangi J.',  county: 'Nakuru',      price: 45,  unit: '/kg',    image: '/images/potatoes.png',  badge: 'VERIFIED'  },
-  { id: 2,  name: 'Grade A Tomatoes',    farmer: 'Sarah K.',   county: 'Kiambu',      price: 80,  unit: '/kg',    image: '/images/tomatoes.png',  badge: 'LOW STOCK' },
-  { id: 3,  name: 'Sweet Green Maize',   farmer: 'Kibet E.',   county: 'Uasin Gishu', price: 25,  unit: '/pc',    image: '/images/maize.png',     badge: 'VERIFIED'  },
-  { id: 4,  name: 'Red Onions',          farmer: 'Agnes L.',   county: 'Kajiado',     price: 120, unit: '/kg',    image: '/images/onions.png',    badge: 'VERIFIED'  },
-  { id: 5,  name: 'Fresh Green Cabbage', farmer: 'Otieno M.',  county: 'Kericho',     price: 35,  unit: '/kg',    image: '/images/cabbage.png',   badge: 'VERIFIED'  },
-  { id: 6,  name: 'Organic Spinach',     farmer: 'Wanjiru A.', county: 'Kiambu',      price: 40,  unit: '/bunch', image: '/images/spinach.png',   badge: 'LOW STOCK' },
-  { id: 7,  name: 'Farm Carrots',        farmer: 'Kamau D.',   county: 'Nyandarua',   price: 55,  unit: '/kg',    image: '/images/carrots.png',   badge: null        },
-  { id: 8,  name: 'Yellow Wax Beans',    farmer: 'Chebet R.',  county: 'Meru',        price: 70,  unit: '/kg',    image: '/images/beans.png',     badge: 'VERIFIED'  },
-  { id: 9,  name: 'Sweet Pineapple',     farmer: 'Oduya F.',   county: 'Kisumu',      price: 90,  unit: '/pc',    image: 'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=400&q=80', badge: 'VERIFIED' },
-  { id: 10, name: 'Hass Avocado',        farmer: 'Njoroge P.', county: "Murang'a",    price: 15,  unit: '/pc',    image: 'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=400&q=80', badge: 'LOW STOCK'},
+  { id: 1, name: 'Irish Potatoes', farmer: 'Mwangi J.', county: 'Nakuru', price: 45, unit: '/kg', image: '/images/potatoes.png', badge: 'VERIFIED' },
+  { id: 2, name: 'Grade A Tomatoes', farmer: 'Sarah K.', county: 'Kiambu', price: 80, unit: '/kg', image: '/images/tomatoes.png', badge: 'LOW STOCK' },
+  { id: 3, name: 'Sweet Green Maize', farmer: 'Kibet E.', county: 'Uasin Gishu', price: 25, unit: '/pc', image: '/images/maize.png', badge: 'VERIFIED' },
+  { id: 4, name: 'Red Onions', farmer: 'Agnes L.', county: 'Kajiado', price: 120, unit: '/kg', image: '/images/onions.png', badge: 'VERIFIED' },
+  { id: 5, name: 'Fresh Green Cabbage', farmer: 'Otieno M.', county: 'Kericho', price: 35, unit: '/kg', image: '/images/cabbage.png', badge: 'VERIFIED' },
+  { id: 6, name: 'Organic Spinach', farmer: 'Wanjiru A.', county: 'Kiambu', price: 40, unit: '/bunch', image: '/images/spinach.png', badge: 'LOW STOCK' },
+  { id: 7, name: 'Farm Carrots', farmer: 'Kamau D.', county: 'Nyandarua', price: 55, unit: '/kg', image: '/images/carrots.png', badge: null },
+  { id: 8, name: 'Yellow Wax Beans', farmer: 'Chebet R.', county: 'Meru', price: 70, unit: '/kg', image: '/images/beans.png', badge: 'VERIFIED' },
+  { id: 9, name: 'Sweet Pineapple', farmer: 'Oduya F.', county: 'Kisumu', price: 90, unit: '/pc', image: 'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=400&q=80', badge: 'VERIFIED' },
+  { id: 10, name: 'Hass Avocado', farmer: 'Njoroge P.', county: "Murang'a", price: 15, unit: '/pc', image: 'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=400&q=80', badge: 'LOW STOCK' },
 ];
 
-const COUNTIES = ['Nairobi','Kiambu','Nakuru','Meru','Uasin Gishu','Kajiado','Kisumu','Machakos','Nyandarua','Kericho'];
+const COUNTIES = ['Nairobi', 'Kiambu', 'Nakuru', 'Meru', 'Uasin Gishu', 'Kajiado', 'Kisumu', 'Machakos', 'Nyandarua', 'Kericho'];
 
 const INITIAL_ORDERS = [
-  { id: 1, crop: 'Irish Potatoes',   farmer: 'Mwangi J.', county: 'Nakuru', qty: '50kg', amount: 2250, status: 'in_transit' },
-  { id: 2, crop: 'Grade A Tomatoes', farmer: 'Sarah K.',  county: 'Kiambu', qty: '20kg', amount: 1600, status: 'completed'  },
-  { id: 3, crop: 'Red Onions',       farmer: 'Agnes L.',  county: 'Kajiado',qty: '30kg', amount: 3600, status: 'pending'    },
+  { id: 1, crop: 'Irish Potatoes', farmer: 'Mwangi J.', county: 'Nakuru', qty: '50kg', amount: 2250, status: 'in_transit' },
+  { id: 2, crop: 'Grade A Tomatoes', farmer: 'Sarah K.', county: 'Kiambu', qty: '20kg', amount: 1600, status: 'completed' },
+  { id: 3, crop: 'Red Onions', farmer: 'Agnes L.', county: 'Kajiado', qty: '30kg', amount: 3600, status: 'pending' },
 ];
 
 const chipClass = (s) => ({
   in_transit: 'chip-transit',
-  completed:  'chip-completed',
-  pending:    'chip-pending',
-  cancelled:  'bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full',
+  completed: 'chip-completed',
+  pending: 'chip-pending',
+  cancelled: 'bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full',
 })[s] || 'chip-pending';
 
 /* ══════════════════════════════════════════════════════ */
 const BuyerDashboard = () => {
-  const location    = useLocation();
+  const location = useLocation();
   const currentPath = location.pathname.split('/').pop();
 
-  const [orders, setOrders]           = useState(INITIAL_ORDERS);
-  const [cartItems, setCartItems]     = useState([]);
-  const [cartOpen, setCartOpen]       = useState(false);
-  const [modal, setModal]             = useState(null); // 'checkout' | 'cancel'
-  const [selected, setSelected]       = useState(null);
-  const [toast, setToast]             = useState('');
-  const [logistics, setLogistics]     = useState({ pickup: '', destination: '' });
+  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [cartItems, setCartItems] = useState([]);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [modal, setModal] = useState(null); // 'checkout' | 'cancel'
+  const [selected, setSelected] = useState(null);
+  const [toast, setToast] = useState('');
+  const [logistics, setLogistics] = useState({ pickup: '', destination: '' });
   const [checkoutStep, setCheckoutStep] = useState(1);
-  const [phone, setPhone]             = useState(() => {
+  const [phone, setPhone] = useState(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}').phone || ''; } catch { return ''; }
   });
-  const [mpesaState, setMpesaState]   = useState('idle'); // idle | sending | success
+  const [mpesaState, setMpesaState] = useState('idle'); // idle | sending | success
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -100,7 +100,7 @@ const BuyerDashboard = () => {
       setCheckoutStep(1);
       setMpesaState('idle');
       setLogistics({ pickup: '', destination: '' });
-      showToast('🎉 Payment confirmed! Order placed successfully.');
+      showToast(' Payment confirmed! Order placed successfully.');
     }, 3000);
   };
 
@@ -111,10 +111,10 @@ const BuyerDashboard = () => {
   };
 
   const stats = [
-    { icon: ShoppingBag, label: 'Total Orders',  value: orders.length + 21 },
-    { icon: Truck,        label: 'In Transit',    value: orders.filter(o => o.status === 'in_transit').length },
-    { icon: Package,      label: 'Completed',     value: orders.filter(o => o.status === 'completed').length + 21 },
-    { icon: Clock,        label: 'Pending',       value: orders.filter(o => o.status === 'pending').length },
+    { icon: ShoppingBag, label: 'Total Orders', value: orders.length + 21 },
+    { icon: Truck, label: 'In Transit', value: orders.filter(o => o.status === 'in_transit').length },
+    { icon: Package, label: 'Completed', value: orders.filter(o => o.status === 'completed').length + 21 },
+    { icon: Clock, label: 'Pending', value: orders.filter(o => o.status === 'pending').length },
   ];
 
   /* ═══════════════ SUB-PAGES ═══════════════ */
@@ -258,9 +258,8 @@ const BuyerDashboard = () => {
             return (
               <div
                 key={product.id}
-                className={`border-2 rounded-card overflow-hidden flex flex-col hover:shadow-lg transition-all group ${
-                  inCart ? 'border-ag-primary shadow-sm' : 'border-ag-border'
-                }`}
+                className={`border-2 rounded-card overflow-hidden flex flex-col hover:shadow-lg transition-all group ${inCart ? 'border-ag-primary shadow-sm' : 'border-ag-border'
+                  }`}
               >
                 {/* Image */}
                 <div className="relative h-32 overflow-hidden bg-ag-canvas">
@@ -270,9 +269,8 @@ const BuyerDashboard = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {product.badge && (
-                    <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      product.badge === 'VERIFIED' ? 'chip-verified' : 'chip-low-stock'
-                    }`}>
+                    <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${product.badge === 'VERIFIED' ? 'chip-verified' : 'chip-low-stock'
+                      }`}>
                       {product.badge === 'VERIFIED' ? '✓ Verified' : 'Low Stock'}
                     </span>
                   )}
@@ -467,9 +465,9 @@ const BuyerDashboard = () => {
             <div className="px-6 py-4 border-b border-ag-border bg-ag-primary flex items-center justify-between sticky top-0">
               <div>
                 <h2 className="font-extrabold text-white text-base">
-                  {checkoutStep === 1 && '🛒 Review Order'}
-                  {checkoutStep === 2 && '🚚 Logistics & Delivery'}
-                  {checkoutStep === 3 && '📱 M-PESA Payment'}
+                  {checkoutStep === 1 && ' Review Order'}
+                  {checkoutStep === 2 && ' Logistics & Delivery'}
+                  {checkoutStep === 3 && ' M-PESA Payment'}
                 </h2>
                 <p className="text-white/70 text-xs mt-0.5">Step {checkoutStep} of 3</p>
               </div>
@@ -555,7 +553,7 @@ const BuyerDashboard = () => {
                     <div className="bg-ag-primary rounded-card p-4 flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-5 h-5 text-white" />
-                        <h4 className="text-white font-extrabold text-sm">Transport Allocated ✅</h4>
+                        <h4 className="text-white font-extrabold text-sm">Transport Allocated </h4>
                       </div>
                       <p className="text-white/80 text-xs">Driver: <strong className="text-white">David Ochieng</strong></p>
                       <p className="text-white/80 text-xs">Vehicle: <strong className="text-white">KCA 123Z – Isuzu FRR</strong></p>
@@ -595,7 +593,7 @@ const BuyerDashboard = () => {
                       <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
                         <CheckCircle2 className="w-10 h-10 text-green-600" />
                       </div>
-                      <h3 className="font-extrabold text-xl text-ag-body">Payment Received! 🎉</h3>
+                      <h3 className="font-extrabold text-xl text-ag-body">Payment Received! </h3>
                       <p className="text-ag-muted text-sm">Your order is confirmed and transport dispatched.</p>
                       <div className="bg-ag-canvas rounded-card p-4 w-full text-left border border-ag-border">
                         <p className="text-xs text-ag-muted mb-1">Amount Paid</p>
@@ -655,7 +653,7 @@ const BuyerDashboard = () => {
                           {mpesaState === 'sending' ? (
                             <><Loader2 className="w-4 h-4 animate-spin" /> Sending STK Push...</>
                           ) : (
-                            <>📱 Send M-PESA Request</>
+                            <> Send M-PESA Request</>
                           )}
                         </button>
                       </div>
