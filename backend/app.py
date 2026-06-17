@@ -217,8 +217,7 @@ def not_found(e):
 def method_not_allowed(e):
     return jsonify({"error": "Method not allowed on this route."}), 405
 
-# ─── RUN ──────────────────────────────────────────────────────────────────────
-if __name__ == '__main__':
+def main():
     import os
     import sys
     
@@ -239,4 +238,8 @@ if __name__ == '__main__':
         except ImportError:
             print("Waitress package is missing. Falling back to debug-off server.")
             app.run(host='0.0.0.0', port=5000, debug=False)
+
+# ─── RUN ──────────────────────────────────────────────────────────────────────
+if __name__ == '__main__':
+    main()
 
