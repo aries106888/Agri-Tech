@@ -219,7 +219,24 @@ def method_not_allowed(e):
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
-    print("\n ShambaPoint Flask API")
-    print("   Running at: http://localhost:5000/api")
-    print("   Press CTRL+C to stop\n")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    import os
+    import sys
+    
+    is_prod = '--prod' in sys.argv or os.environ.get('FLASK_ENV') == 'production'
+    
+    if is_prod:
+        print("\n ShambaPoint Flask API (Production WSGI - Waitress)")
+        print("   Running at: http://localhost:5000/api")
+        print("   Press CTRL+C to stop\n")
+        try:
+            from waitress import serve
+            serve(app, host='0.0.0.0', port=5000)
+        except ImportError:
+            print("Waitress package is missing. Falling back to debug-off server.")
+            app.run(host='0.0.0.0', port=5000, debug=False)
+    else:
+        print("\n ShambaPoint Flask API (Development Server)")
+        print("   Running at: http://localhost:5000/api")
+        print("   Press CTRL+C to stop\n")
+        app.run(host='0.0.0.0', port=5000, debug=True)
+
