@@ -222,9 +222,14 @@ if __name__ == '__main__':
     import os
     import sys
     
-    is_prod = '--prod' in sys.argv or os.environ.get('FLASK_ENV') == 'production'
+    is_dev = '--dev' in sys.argv or os.environ.get('FLASK_ENV') == 'development'
     
-    if is_prod:
+    if is_dev:
+        print("\n ShambaPoint Flask API (Development Server)")
+        print("   Running at: http://localhost:5000/api")
+        print("   Press CTRL+C to stop\n")
+        app.run(host='0.0.0.0', port=5000, debug=True)
+    else:
         print("\n ShambaPoint Flask API (Production WSGI - Waitress)")
         print("   Running at: http://localhost:5000/api")
         print("   Press CTRL+C to stop\n")
@@ -234,9 +239,4 @@ if __name__ == '__main__':
         except ImportError:
             print("Waitress package is missing. Falling back to debug-off server.")
             app.run(host='0.0.0.0', port=5000, debug=False)
-    else:
-        print("\n ShambaPoint Flask API (Development Server)")
-        print("   Running at: http://localhost:5000/api")
-        print("   Press CTRL+C to stop\n")
-        app.run(host='0.0.0.0', port=5000, debug=True)
 

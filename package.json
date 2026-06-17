@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:backend": "cd backend && python app.py",
+    "dev:backend": "cd backend && python app.py --dev",
+    "start:backend": "cd backend && python app.py",
     "build": "vite build",
     "built": "npm run build",
     "lint": "eslint .",
