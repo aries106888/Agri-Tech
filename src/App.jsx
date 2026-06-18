@@ -1,87 +1,122 @@
 import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-
-// Layouts (small — kept eager)
 import TopNavLayout    from './layouts/TopNavLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 
-// Pages — lazy loaded for code-splitting
-const Landing           = lazy(() => import('./pages/Landing'));
-const Login             = lazy(() => import('./pages/Login'));
-const Signup            = lazy(() => import('./pages/Signup'));
-const Market            = lazy(() => import('./pages/Market'));
-const FarmerDashboard   = lazy(() => import('./pages/FarmerDashboard'));
-const BuyerDashboard    = lazy(() => import('./pages/BuyerDashboard'));
+/* ── Lazy-loaded pages ─────────────────────────────────── */
+const Landing            = lazy(() => import('./pages/Landing'));
+const Login              = lazy(() => import('./pages/Login'));
+const Signup             = lazy(() => import('./pages/Signup'));
+const Market             = lazy(() => import('./pages/Market'));
+const FarmerDashboard    = lazy(() => import('./pages/FarmerDashboard'));
+const BuyerDashboard     = lazy(() => import('./pages/BuyerDashboard'));
 const LogisticsDashboard = lazy(() => import('./pages/LogisticsDashboard'));
-const AdminDashboard    = lazy(() => import('./pages/AdminDashboard'));
+const AdminDashboard     = lazy(() => import('./pages/AdminDashboard'));
+// New pages
+const SmartSecurePay     = lazy(() => import('./pages/SmartSecurePay'));
+const SmartStorage       = lazy(() => import('./pages/SmartStorage'));
+const AIAssistant        = lazy(() => import('./pages/AIAssistant'));
+const MessagesPage       = lazy(() => import('./pages/MessagesPage'));
+const WeatherPage        = lazy(() => import('./pages/WeatherPage'));
+const TransportPage      = lazy(() => import('./pages/TransportPage'));
+const CallFarmers        = lazy(() => import('./pages/CallFarmers'));
+const AnalyticsPage      = lazy(() => import('./pages/AnalyticsPage'));
+const DisputesPage       = lazy(() => import('./pages/DisputesPage'));
+const NotificationsPage  = lazy(() => import('./pages/NotificationsPage'));
+const ReviewsPage        = lazy(() => import('./pages/ReviewsPage'));
 
-// Simple full-screen loading fallback
+/* ── Full-screen loader ────────────────────────────────── */
 const PageLoader = () => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#F0F4F0' }}>
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ width: 40, height: 40, border: '4px solid #2D6A4F', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
-      <p style={{ color: '#2D6A4F', fontWeight: 700, fontSize: 14 }}>Loading…</p>
+  <div className="flex items-center justify-center min-h-screen bg-ag-canvas">
+    <div className="text-center">
+      <div className="w-10 h-10 border-4 border-ag-primary border-t-transparent rounded-full
+        animate-spin mx-auto mb-3" />
+      <p className="text-ag-primary font-bold text-sm">Loading…</p>
     </div>
     <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
   </div>
 );
+
+/* ── Helper: route groups ──────────────────────────────── */
+const dashRoutes = (role, DashComp) => {
+  const base = `/${role}`;
+  return (
+    <Route path={role} element={<DashboardLayout role={role} />}>
+      <Route path="dashboard"    element={<DashComp />} />
+      <Route path="listings"     element={<DashComp />} />
+      <Route path="orders"       element={<DashComp />} />
+      <Route path="payments"     element={<DashComp />} />
+      <Route path="settings"     element={<DashComp />} />
+      <Route path="wallet"       element={<DashComp />} />
+      <Route path="profile"      element={<DashComp />} />
+      <Route path="reports"      element={<DashComp />} />
+      <Route path="deliveries"   element={<DashComp />} />
+      <Route path="trips"        element={<DashComp />} />
+      <Route path="earnings"     element={<DashComp />} />
+      {/* Shared feature routes */}
+      <Route path="securepay"    element={<SmartSecurePay />} />
+      <Route path="storage"      element={<SmartStorage />} />
+      <Route path="ai-assistant" element={<AIAssistant />} />
+      <Route path="messages"     element={<MessagesPage />} />
+      <Route path="weather"      element={<WeatherPage />} />
+      <Route path="transport"    element={<TransportPage />} />
+      <Route path="analytics"    element={<AnalyticsPage />} />
+      <Route path="disputes"     element={<DisputesPage />} />
+      <Route path="notifications" element={<NotificationsPage />} />
+      <Route path="reviews"      element={<ReviewsPage />} />
+      <Route path="*"            element={<Navigate to={`${base}/dashboard`} replace />} />
+    </Route>
+  );
+};
 
 function App() {
   return (
     <Router>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-        {/* ── Public pages with Top Nav ── */}
-        <Route element={<TopNavLayout />}>
-          <Route index         element={<Landing />} />
-          <Route path="login"  element={<Login />} />
-          <Route path="signup" element={<Signup />} />
-          <Route path="market" element={<Market />} />
-        </Route>
+          {/* ── Public / top-nav ── */}
+          <Route element={<TopNavLayout />}>
+            <Route index         element={<Landing />} />
+            <Route path="login"  element={<Login />} />
+            <Route path="signup" element={<Signup />} />
+            <Route path="market" element={<Market />} />
+            <Route path="call-farmers" element={<CallFarmers />} />
+            <Route path="help"   element={<NotificationsPage />} />
+          </Route>
 
-        {/* ── Farmer dashboard with Left Sidebar ── */}
-        <Route path="farmer" element={<DashboardLayout role="farmer" />}>
-          <Route path="dashboard" element={<FarmerDashboard />} />
-          <Route path="listings" element={<FarmerDashboard />} />
-          <Route path="orders" element={<FarmerDashboard />} />
-          <Route path="payments" element={<FarmerDashboard />} />
-          <Route path="settings" element={<FarmerDashboard />} />
-          <Route path="*" element={<Navigate to="dashboard" replace />} />
-        </Route>
+          {/* ── Farmer ── */}
+          {dashRoutes('farmer', FarmerDashboard)}
 
-        {/* ── Buyer dashboard with Left Sidebar ── */}
-        <Route path="buyer" element={<DashboardLayout role="buyer" />}>
-          <Route path="dashboard" element={<BuyerDashboard />} />
-          <Route path="orders" element={<BuyerDashboard />} />
-          <Route path="deliveries" element={<BuyerDashboard />} />
-          <Route path="settings" element={<BuyerDashboard />} />
-          <Route path="*" element={<Navigate to="dashboard" replace />} />
-        </Route>
+          {/* ── Buyer ── */}
+          {dashRoutes('buyer', BuyerDashboard)}
 
-        {/* ── Logistics dashboard with Left Sidebar ── */}
-        <Route path="logistics" element={<DashboardLayout role="logistics" />}>
-          <Route path="dashboard" element={<LogisticsDashboard />} />
-          <Route path="trips" element={<LogisticsDashboard />} />
-          <Route path="deliveries" element={<LogisticsDashboard />} />
-          <Route path="earnings" element={<LogisticsDashboard />} />
-          <Route path="settings" element={<LogisticsDashboard />} />
-          <Route path="*" element={<Navigate to="dashboard" replace />} />
-        </Route>
+          {/* ── Logistics ── */}
+          {dashRoutes('logistics', LogisticsDashboard)}
 
-        {/* ── Admin dashboard with Left Sidebar ── */}
-        <Route path="admin" element={<DashboardLayout role="admin" />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="users" element={<AdminDashboard />} />
-          <Route path="listings" element={<AdminDashboard />} />
-          <Route path="orders" element={<AdminDashboard />} />
-          <Route path="moderation" element={<AdminDashboard />} />
-          <Route path="settings" element={<AdminDashboard />} />
-          <Route path="*" element={<Navigate to="dashboard" replace />} />
-        </Route>
+          {/* ── Admin ── */}
+          <Route path="admin" element={<DashboardLayout role="admin" />}>
+            <Route path="dashboard"    element={<AdminDashboard />} />
+            <Route path="users"        element={<AdminDashboard />} />
+            <Route path="listings"     element={<AdminDashboard />} />
+            <Route path="orders"       element={<AdminDashboard />} />
+            <Route path="moderation"   element={<AdminDashboard />} />
+            <Route path="settings"     element={<AdminDashboard />} />
+            <Route path="panel"        element={<AdminDashboard />} />
+            <Route path="securepay"    element={<SmartSecurePay />} />
+            <Route path="storage"      element={<SmartStorage />} />
+            <Route path="ai-assistant" element={<AIAssistant />} />
+            <Route path="transport"    element={<TransportPage />} />
+            <Route path="analytics"    element={<AnalyticsPage />} />
+            <Route path="disputes"     element={<DisputesPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="reviews"      element={<AdminDashboard />} />
+            <Route path="reports"      element={<AnalyticsPage />} />
+            <Route path="*"            element={<Navigate to="/admin/dashboard" replace />} />
+          </Route>
 
-        {/* ── Catch-all ── */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+          {/* ── Catch-all ── */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </Suspense>
     </Router>
   );

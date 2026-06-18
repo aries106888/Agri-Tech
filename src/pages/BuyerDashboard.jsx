@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   ShoppingBag, Truck, Package, Clock, MapPin, X, CheckCircle, CheckCircle2,
   Plus, Heart, ShoppingCart, Minus, Settings, Map, Trash2, Phone,
-  ArrowRight, ArrowLeft, Loader2
+  ArrowRight, ArrowLeft, Loader2, Activity, ShieldCheck,
+  ThermometerSnowflake, ShieldAlert, Play, Droplets, AlertTriangle
 } from 'lucide-react';
 
 /* ─── produce that actually has images ─── */
@@ -34,6 +35,217 @@ const chipClass = (s) => ({
   pending: 'chip-pending',
   cancelled: 'bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full',
 })[s] || 'chip-pending';
+
+const LiveTrackingDashboard = () => {
+  const [progress, setProgress] = useState(65);
+  const [speed, setSpeed] = useState(72);
+  const [temp, setTemp] = useState(16.5);
+  const [humidity, setHumidity] = useState(55);
+  const [eta, setEta] = useState(45);
+  const [routeStatus, setRouteStatus] = useState('On Schedule');
+  const [simRunning, setSimRunning] = useState(true);
+  const [logs, setLogs] = useState([
+    'GPS Lock established on vehicle KCA 123Z.',
+    'Cold chain temperature sensor: 16.2°C [OK]',
+    'Enroute via Nakuru-Nairobi highway. Speed: 72 km/h'
+  ]);
+  const consoleEndRef = useRef(null);
+
+  useEffect(() => {
+    if (!simRunning) return;
+    const timer = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(timer);
+          setSimRunning(false);
+          setSpeed(0);
+          setEta(0);
+          setLogs(l => [...l, '🚚 Cargo reached destination. Awaiting recipient confirmation.']);
+          return 100;
+        }
+        const nextProgress = Number((prev + 0.5).toFixed(1));
+        const nextEta = Math.max(1, Math.round(eta * (1 - (nextProgress - prev) / (100 - prev))));
+        setEta(nextEta);
+        setSpeed(s => Math.round(s + (Math.random() - 0.5) * 4));
+        setTemp(t => Number((t + (Math.random() - 0.5) * 0.2).toFixed(1)));
+        setHumidity(h => Math.min(100, Math.max(0, h + Math.round((Math.random() - 0.5) * 2))));
+
+        if (Math.random() > 0.7) {
+          const timestamp = new Date().toLocaleTimeString();
+          setLogs(l => [...l.slice(-10), `[${timestamp}] Telemetry update: Lat/Long updated. Signal strength 98%`]);
+        }
+        return nextProgress;
+      });
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [simRunning, eta]);
+
+  useEffect(() => {
+    if (consoleEndRef.current) {
+      consoleEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [logs]);
+
+  const simulateDelay = () => {
+    setRouteStatus('Delayed');
+    setSpeed(12);
+    setEta(prev => prev + 25);
+    const timestamp = new Date().toLocaleTimeString();
+    setLogs(l => [...l, `[${timestamp}] ⚠️ ALERT: Heavy traffic delay near Limuru toll plaza. Speed reduced to 12km/h.`]);
+  };
+
+  const simulateTempSpike = () => {
+    setRouteStatus('Cooling Alert');
+    setTemp(22.8);
+    const timestamp = new Date().toLocaleTimeString();
+    setLogs(l => [...l, `[${timestamp}] 🚨 ALARM: Cargo temperature (22.8°C) exceeds safety limit (20°C)!`]);
+    setTimeout(() => {
+      setLogs(l => [...l, `[${timestamp}] 🔧 SYSTEM: Auxiliary cooling compressor deployed. Temp back to 18.2°C.`]);
+      setTemp(18.2);
+    }, 4000);
+  };
+
+  const instantComplete = () => {
+    setProgress(100);
+    setSpeed(0);
+    setEta(0);
+    setSimRunning(false);
+    const timestamp = new Date().toLocaleTimeString();
+    setLogs(l => [...l, `[${timestamp}] 🟢 Manual override: Shipment arrived at destination. Delivered status saved.`]);
+  };
+
+  return (
+    <div className="flex flex-col gap-6">
+      <h2 className="text-headline-md text-ag-body flex items-center gap-2"><Map className="w-6 h-6 text-ag-primary" /> Real-Time Shipment Tracking</h2>
+      
+      {/* Map Vector Animation */}
+      <div className="bg-slate-900 border border-slate-800 rounded-card p-5 relative overflow-hidden h-44 flex flex-col justify-between text-white shadow-md">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:20px_20px] opacity-30" />
+        <div className="absolute top-1/2 left-10 right-10 -translate-y-1/2 h-1 bg-slate-700 rounded-full">
+          <div className="h-full bg-ag-pay rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+        </div>
+        <div className="absolute top-1/2 left-10 right-10 -translate-y-1/2 flex justify-between">
+          {['Nakuru', 'Gilgil', 'Limuru', 'Nairobi'].map((name, idx) => (
+            <div key={idx} className="relative flex flex-col items-center">
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                (idx === 0 && progress >= 0) || (idx === 1 && progress >= 33) || (idx === 2 && progress >= 66) || (idx === 3 && progress >= 100)
+                  ? 'bg-ag-pay border-white' : 'bg-slate-800 border-slate-600'
+              }`}>
+                {((idx === 0 && progress >= 0) || (idx === 1 && progress >= 33) || (idx === 2 && progress >= 66) || (idx === 3 && progress >= 100)) && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                )}
+              </div>
+              <span className={`absolute top-5 text-[9px] font-bold uppercase tracking-wider ${
+                (idx === 0 && progress >= 0) || (idx === 1 && progress >= 33) || (idx === 2 && progress >= 66) || (idx === 3 && progress >= 100)
+                  ? 'text-white' : 'text-slate-500'
+              }`}>{name}</span>
+            </div>
+          ))}
+        </div>
+        <div
+          className="absolute top-1/2 -translate-y-[18px] transition-all duration-300 flex flex-col items-center"
+          style={{ left: `calc(10px + (100% - 60px) * (${progress} / 100))` }}
+        >
+          <div className="bg-ag-pay text-white p-1.5 rounded-full shadow-lg border border-white flex items-center justify-center">
+            <Truck className="w-4 h-4" />
+          </div>
+          <span className="w-2.5 h-2.5 rounded-full bg-ag-pay animate-ping absolute top-0" />
+        </div>
+        <div className="z-10 flex items-center justify-between">
+          <span className="bg-slate-800/80 px-2.5 py-1 rounded-btn text-[10px] font-bold text-white border border-slate-700 flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-ag-pay" /> Nakuru Farm → Nairobi CBD
+          </span>
+          <span className={`px-2.5 py-1 rounded-btn text-[10px] font-extrabold border uppercase tracking-wider ${
+            routeStatus === 'On Schedule' ? 'bg-green-500/20 border-green-500 text-green-300' :
+            routeStatus === 'Delayed' ? 'bg-amber-500/20 border-amber-500 text-amber-300' :
+            'bg-red-500/20 border-red-500 text-red-300'
+          }`}>{routeStatus}</span>
+        </div>
+        <div className="z-10 flex justify-between items-end">
+          <p className="text-[10px] font-mono text-slate-400">Driver: David Ochieng · Vehicle KCA 123Z</p>
+          <p className="text-sm font-extrabold text-white">{progress}% Completed</p>
+        </div>
+      </div>
+
+      {/* IoT Gauges */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { icon: ThermometerSnowflake, label: 'Cargo Temp', value: `${temp}°C`, indicator: temp > 20 ? 'TEMP ALERT' : 'optimal', color: temp > 20 ? 'text-red-600 bg-red-50' : 'text-blue-600 bg-blue-50' },
+          { icon: Activity, label: 'Speed', value: `${speed} km/h`, indicator: speed === 0 ? 'Stationary' : 'cruising', color: 'text-green-600 bg-green-50' },
+          { icon: Droplets, label: 'Humidity', value: `${humidity}%`, indicator: 'monitored', color: 'text-teal-600 bg-teal-50' },
+          { icon: Clock, label: 'Time to Arrival', value: eta === 0 ? 'Arrived' : `${eta} mins`, indicator: eta === 0 ? 'Discharging' : 'on time', color: 'text-indigo-600 bg-indigo-50' },
+        ].map((g, idx) => (
+          <div key={idx} className="border border-ag-border rounded-card p-3 flex flex-col gap-1.5 bg-white">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-bold text-ag-muted uppercase tracking-wider">{g.label}</span>
+              <g.icon className="w-3.5 h-3.5 text-ag-muted" />
+            </div>
+            <p className="text-lg font-extrabold text-ag-body">{g.value}</p>
+            <span className={`inline-block text-[9px] font-bold uppercase text-center px-1.5 py-0.5 rounded-full ${g.color}`}>
+              {g.indicator}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Simulator Controls & Console Logs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="border border-dashed border-ag-primary-cont bg-ag-primary-cont/5 rounded-card p-4 flex flex-col gap-3">
+          <h4 className="text-xs font-extrabold text-ag-body flex items-center gap-1.5">
+            <Play className="w-4 h-4 text-ag-primary" /> Live Anomaly Simulator Controls
+          </h4>
+          <p className="text-[11px] text-ag-muted">Simulate typical transit issues to verify system warnings and alerts:</p>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={simulateDelay}
+              disabled={progress >= 100}
+              className="bg-white border border-ag-border hover:border-amber-500 text-ag-body font-bold text-xs py-2.5 px-3 rounded-btn flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> Simulate Traffic Delay
+            </button>
+            <button
+              onClick={simulateTempSpike}
+              disabled={progress >= 100}
+              className="bg-white border border-ag-border hover:border-red-500 text-ag-body font-bold text-xs py-2.5 px-3 rounded-btn flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-red-500" /> Simulate Temperature Spike
+            </button>
+            <button
+              onClick={instantComplete}
+              disabled={progress >= 100}
+              className="bg-ag-pay hover:bg-green-700 text-white font-bold text-xs py-2.5 px-3 rounded-btn flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" /> Instant Delivery
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col bg-slate-900 rounded-card p-3 text-xs text-slate-300 font-mono border border-slate-800">
+          <p className="text-[10px] font-bold text-slate-500 mb-1.5 border-b border-slate-800 pb-1 uppercase tracking-wider flex items-center justify-between">
+            <span>Shipment Telemetry Stream</span>
+            <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping" /> Connection Live</span>
+          </p>
+          <div className="h-32 overflow-y-auto flex flex-col gap-1.5">
+            {logs.map((l, idx) => (
+              <p key={idx} className="leading-tight">
+                {l.includes('🚨') ? (
+                  <span className="text-red-400 font-bold">{l}</span>
+                ) : l.includes('⚠️') ? (
+                  <span className="text-amber-400">{l}</span>
+                ) : l.includes('🚚') || l.includes('🟢') ? (
+                  <span className="text-green-400">{l}</span>
+                ) : (
+                  <span className="text-slate-400">{l}</span>
+                )}
+              </p>
+            ))}
+            <div ref={consoleEndRef} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 /* ══════════════════════════════════════════════════════ */
 const BuyerDashboard = () => {
@@ -166,21 +378,7 @@ const BuyerDashboard = () => {
   }
 
   if (currentPath === 'deliveries') {
-    return (
-      <div className="flex flex-col gap-6">
-        <h2 className="text-headline-md text-ag-body flex items-center gap-2"><Map className="w-6 h-6 text-ag-primary" /> Delivery Tracking</h2>
-        <div className="bg-ag-primary-cont border border-ag-primary rounded-card p-6">
-          <p className="text-ag-primary-fixed font-bold text-sm mb-2">1 Active Delivery</p>
-          <p className="text-white text-xs mb-1">Driver: <strong>David Ochieng</strong> (0712 345 678)</p>
-          <p className="text-white text-xs mb-1">Vehicle: <strong>KCA 123Z (Isuzu FRR)</strong></p>
-          <p className="text-white text-xs mb-1">Route: <strong>Nakuru → Nairobi CBD</strong></p>
-          <div className="mt-4 bg-white/10 rounded-btn h-2 w-full overflow-hidden">
-            <div className="bg-ag-primary-fixed h-full w-2/3" />
-          </div>
-          <p className="text-xs font-bold text-white mt-2 text-right">65% complete (ETA: 45 mins)</p>
-        </div>
-      </div>
-    );
+    return <LiveTrackingDashboard />;
   }
 
   if (currentPath === 'settings') {
