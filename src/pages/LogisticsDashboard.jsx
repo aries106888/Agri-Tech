@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Truck, CheckCircle2, Clock, DollarSign, MapPin, X, CheckCircle, Phone, Settings, Map,
@@ -28,10 +28,10 @@ const LiveTrackingModal = ({ trip, onClose }) => {
   const [progress, setProgress]   = useState(37); // 0–100 route progress %
   const [running, setRunning]     = useState(true);
   const [logs, setLogs]           = useState([
-    { time: '09:14', msg: '🚀 Shipment departed Nakuru Market', type: 'info' },
-    { time: '09:52', msg: '✅ Passed Gilgil Weighbridge — 45 km', type: 'success' },
-    { time: '10:18', msg: '🌡️ Cargo temperature optimal: 14.2°C', type: 'info' },
-    { time: '10:41', msg: '📍 Current: 78 km from origin on A104', type: 'info' },
+    { time: '09:14', msg: ' Shipment departed Nakuru Market', type: 'info' },
+    { time: '09:52', msg: ' Passed Gilgil Weighbridge — 45 km', type: 'success' },
+    { time: '10:18', msg: ' Cargo temperature optimal: 14.2°C', type: 'info' },
+    { time: '10:41', msg: ' Current: 78 km from origin on A104', type: 'info' },
   ]);
   const [telemetry, setTelemetry] = useState({ speed: 72, temp: 14.2, humidity: 68, battery: 87, signal: 4 });
   const intervalRef = useRef(null);
@@ -62,9 +62,8 @@ const LiveTrackingModal = ({ trip, onClose }) => {
     const checkpoint = ROUTE_CHECKPOINTS.find(c => !c.reached && checkpointKm >= c.km);
     if (checkpoint) {
       checkpoint.reached = true;
-      const newLog = { time: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }), msg: `✅ Reached checkpoint: ${checkpoint.name}`, type: 'success' };
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLogs(l => [...l, newLog].slice(-20));
+      const newLog = { time: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }), msg: ` Reached checkpoint: ${checkpoint.name}`, type: 'success' };
+      queueMicrotask(() => setLogs(l => [...l, newLog].slice(-20)));
     }
   }, [progress]);
 
@@ -149,7 +148,7 @@ const LiveTrackingModal = ({ trip, onClose }) => {
               <g transform={`translate(${truckX - 10}, ${truckY - 10})`}>
                 <circle cx="10" cy="10" r="12" fill="#d97706" opacity="0.25" className="animate-ping" style={{ animationDuration: '1.5s' }} />
                 <circle cx="10" cy="10" r="9" fill="#d97706" stroke="white" strokeWidth="2" />
-                <text x="10" y="14" textAnchor="middle" fontSize="10">🚛</text>
+                <text x="10" y="14" textAnchor="middle" fontSize="10"></text>
               </g>
 
               {/* Progress km label */}
@@ -202,7 +201,7 @@ const LiveTrackingModal = ({ trip, onClose }) => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-xs font-bold truncate ${isCurrent ? 'text-ag-amber' : passed ? 'text-ag-pay' : 'text-ag-muted'}`}>
-                        {isCurrent && '📍 '}{cp.name}
+                        {isCurrent && ' '}{cp.name}
                       </p>
                     </div>
                     <span className="text-[10px] text-ag-muted font-bold">{cp.km} km</span>
@@ -246,19 +245,19 @@ const LiveTrackingModal = ({ trip, onClose }) => {
                   {running ? <><Pause className="w-4 h-4" /> Pause Simulation</> : <><Play className="w-4 h-4" /> Resume Simulation</>}
                 </button>
                 <button
-                  onClick={() => { addLog('⚠️ Traffic jam detected — rerouting via Nakuru-Naivasha bypass', 'warning'); setTelemetry(t => ({ ...t, speed: 12 })); }}
+                  onClick={() => { addLog(' Traffic jam detected — rerouting via Nakuru-Naivasha bypass', 'warning'); setTelemetry(t => ({ ...t, speed: 12 })); }}
                   className="flex items-center justify-center gap-2 w-full py-2 rounded-lg font-bold text-xs border border-ag-amber text-ag-amber hover:bg-amber-50"
                 >
                   <AlertTriangle className="w-3.5 h-3.5" /> Simulate Traffic Delay
                 </button>
                 <button
-                  onClick={() => { addLog('🚨 ALERT: Cargo temperature exceeded 20°C! Action required.', 'warning'); setTelemetry(t => ({ ...t, temp: 22.1 })); }}
+                  onClick={() => { addLog(' ALERT: Cargo temperature exceeded 20°C! Action required.', 'warning'); setTelemetry(t => ({ ...t, temp: 22.1 })); }}
                   className="flex items-center justify-center gap-2 w-full py-2 rounded-lg font-bold text-xs border border-blue-200 text-blue-600 hover:bg-blue-50"
                 >
                   <Thermometer className="w-3.5 h-3.5" /> Simulate Temp Alert
                 </button>
                 <button
-                  onClick={() => { setProgress(100); addLog('🎉 Delivery completed! Buyer signature obtained.', 'success'); setRunning(false); }}
+                  onClick={() => { setProgress(100); addLog(' Delivery completed! Buyer signature obtained.', 'success'); setRunning(false); }}
                   className="flex items-center justify-center gap-2 w-full py-2 rounded-lg font-bold text-xs bg-ag-pay text-white hover:opacity-90"
                 >
                   <CheckCircle className="w-3.5 h-3.5" /> Simulate Delivery Done

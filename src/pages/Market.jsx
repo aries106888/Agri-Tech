@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -35,8 +35,8 @@ const CROP_IMAGES = {
   Spinach:   '/images/spinach.png',
   Carrots:   '/images/carrots.png',
   Beans:     '/images/beans.png',
-  Pineapple: 'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=500&q=80',
-  Avocado:   'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=500&q=80',
+  Pineapple: '/images/pineapple.png',
+  Avocado:   '/images/avocado.png',
 };
 
 const FALLBACK_PRODUCTS = [
@@ -64,7 +64,7 @@ const makeFarmIcon = (verified) =>
       box-shadow:0 2px 8px rgba(0,0,0,0.35);
       display:flex;align-items:center;justify-content:center;
     ">
-      <span style="transform:rotate(45deg);font-size:15px">${verified ? '🌿' : '🌾'}</span>
+      <span style="transform:rotate(45deg);font-size:11px;font-weight:900;color:white;">${verified ? 'V' : 'U'}</span>
     </div>`,
     iconSize: [36, 36],
     iconAnchor: [18, 36],
@@ -423,15 +423,15 @@ const Market = () => {
                             style={{ width: '100%', height: 110, objectFit: 'cover', borderRadius: 8 }}
                           />
                           <div className="flex items-center gap-1 text-xs text-gray-500">
-                            <span>📍</span><strong>{p.county}</strong>
-                            {p.verified && <span style={{ marginLeft: 4, background: '#D8F3DC', color: '#2D6A4F', borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>✓ Verified</span>}
+                            <MapPin style={{ width:12, height:12, color:'#6b7280', flexShrink:0 }} /><strong>{p.county}</strong>
+                            {p.verified && <span style={{ marginLeft: 4, background: '#D8F3DC', color: '#2D6A4F', borderRadius: 20, padding: '1px 7px', fontSize: 10, fontWeight: 700 }}>Verified</span>}
                           </div>
                           <p style={{ fontWeight: 800, fontSize: 14, margin: 0 }}>{p.name}</p>
                           <p style={{ fontSize: 11, color: '#888', margin: 0 }}>Farmer: {p.farmer}</p>
                           <p style={{ color: '#E9B44C', fontWeight: 800, fontSize: 18, margin: '2px 0' }}>
                             KSh {p.price}<span style={{ fontSize: 11, color: '#aaa', fontWeight: 400 }}>{p.unit}</span>
                           </p>
-                          {p.lowStock && <span style={{ background: '#FFF3CD', color: '#856404', padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, display: 'inline-block' }}>⚠ Low Stock</span>}
+                          {p.lowStock && <span style={{ background: '#FFF3CD', color: '#856404', padding: '2px 8px', borderRadius: 20, fontSize: 10, fontWeight: 700, display: 'inline-block' }}>Low Stock</span>}
                           <button
                             onClick={() => addToCart(p)}
                             style={{
@@ -440,7 +440,7 @@ const Market = () => {
                               display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center'
                             }}
                           >
-                            <span>🛒</span> Add to Cart
+                            Add to Cart
                           </button>
                         </div>
                       </Popup>
@@ -452,9 +452,9 @@ const Market = () => {
               {/* map legend */}
               <div className="absolute bottom-6 left-4 z-10 bg-white/90 backdrop-blur rounded-card p-3 shadow-md text-xs flex flex-col gap-1.5 border border-ag-border">
                 <p className="font-bold text-ag-body mb-1">Legend</p>
-                <div className="flex items-center gap-2"><span className="text-base">🌿</span><span className="text-ag-body font-bold">Verified Farm</span></div>
-                <div className="flex items-center gap-2"><span className="text-base">🌾</span><span className="text-ag-muted">Unverified Farm</span></div>
-                <p className="text-ag-muted mt-1 text-[10px]">Click a pin to view produce & add to cart</p>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-ag-primary inline-block" /><span className="text-ag-body font-bold">Verified Farm</span></div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-ag-amber inline-block" /><span className="text-ag-muted">Unverified Farm</span></div>
+                <p className="text-ag-muted mt-1 text-[10px]">Click a pin to view produce &amp; add to cart</p>
               </div>
 
               {/* listings count overlay */}
@@ -485,19 +485,24 @@ const Market = () => {
                   ))}
                 </div>
               ) : filteredProducts.length === 0 ? (
-                <div className="text-center py-20">
-                  <p className="text-4xl mb-3">🌾</p>
+                <div className="text-center py-20 flex flex-col items-center gap-4">
+                  <Package className="w-16 h-16 text-ag-border" />
                   <p className="text-headline-md text-ag-muted">No listings match your filters</p>
-                  <p className="text-sm text-ag-muted mt-2">Try adjusting your search or clearing some filters.</p>
+                  <p className="text-sm text-ag-muted">Try adjusting your search or clearing some filters.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   {filteredProducts.map(product => (
                     <div key={product.id} className="ag-card p-0 overflow-hidden flex flex-col hover:border-ag-primary transition-colors group">
                       <div className="h-48 relative overflow-hidden">
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={e => { e.target.onerror = null; e.target.src = `https://placehold.co/400x300/e8f5e9/2D6A4F?text=${encodeURIComponent(product.name)}`; }}
+                        />
                         <div className="absolute top-3 left-3 flex gap-2">
-                          {product.verified && <span className="chip-verified">✓ Verified</span>}
+                          {product.verified && <span className="chip-verified">Verified</span>}
                           {product.lowStock && <span className="chip-low-stock">Low Stock</span>}
                         </div>
                       </div>
@@ -621,9 +626,9 @@ const Market = () => {
             <div className="px-6 py-4 border-b border-ag-border flex items-center justify-between bg-ag-primary sticky top-0">
               <div>
                 <h2 className="font-extrabold text-white text-base">
-                  {checkoutStep === 1 && '🛒 Review Order'}
-                  {checkoutStep === 2 && '🚚 Logistics'}
-                  {checkoutStep === 3 && '📱 M-PESA Payment'}
+                  {checkoutStep === 1 && ' Review Order'}
+                  {checkoutStep === 2 && ' Logistics'}
+                  {checkoutStep === 3 && ' M-PESA Payment'}
                 </h2>
                 <p className="text-white/70 text-xs mt-0.5">Step {checkoutStep} of 3</p>
               </div>
@@ -708,7 +713,7 @@ const Market = () => {
                     <div className="bg-ag-primary rounded-card p-4 flex flex-col gap-2">
                       <div className="flex items-center gap-2">
                         <CheckCircle2 className="w-5 h-5 text-white" />
-                        <h4 className="text-white font-extrabold text-sm">Transport Allocated ✅</h4>
+                        <h4 className="text-white font-extrabold text-sm">Transport Allocated </h4>
                       </div>
                       <p className="text-white/80 text-xs">Driver: <strong className="text-white">David Ochieng</strong></p>
                       <p className="text-white/80 text-xs">Vehicle: <strong className="text-white">KCA 123Z – Isuzu FRR</strong></p>
@@ -748,7 +753,7 @@ const Market = () => {
                       <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
                         <CheckCircle2 className="w-10 h-10 text-green-600" />
                       </div>
-                      <h3 className="font-extrabold text-xl text-ag-body">Payment Received! 🎉</h3>
+                      <h3 className="font-extrabold text-xl text-ag-body">Payment Received! </h3>
                       <p className="text-ag-muted text-sm">Your order has been confirmed and transport dispatched.</p>
                       <div className="bg-ag-canvas rounded-card p-4 w-full text-left border border-ag-border">
                         <p className="text-xs text-ag-muted mb-1">Amount Paid</p>
@@ -808,7 +813,7 @@ const Market = () => {
                           {mpesaState === 'sending' ? (
                             <><Loader2 className="w-4 h-4 animate-spin" /> Sending STK Push...</>
                           ) : (
-                            <>📱 Send M-PESA Request</>
+                            <> Send M-PESA Request</>
                           )}
                         </button>
                       </div>

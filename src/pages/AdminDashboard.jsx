@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
   Users, ListOrdered, ShoppingBag, TrendingUp, CheckCircle2, X, Truck,
@@ -505,7 +505,7 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: 'Total Reviews',     value: reviews.length,         icon: Star,      color: 'text-yellow-500' },
-                { label: 'Avg Rating',         value: `${avgRating} ★`,       icon: Award,     color: 'text-ag-pay' },
+                { label: 'Avg Rating',         value: `${avgRating} `,       icon: Award,     color: 'text-ag-pay' },
                 { label: 'Positive Sentiment', value: `${posCount} reviews`,  icon: ThumbsUp,  color: 'text-ag-primary' },
                 { label: 'Flagged Content',    value: `${flagCount} items`,   icon: Flag,      color: 'text-red-500' },
               ].map(({ label, value, icon: Icon, color }) => (
@@ -776,7 +776,7 @@ const AdminDashboard = () => {
                 <div>
                   <p className="font-bold text-ag-body">{selected.reviewer}</p>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${roleColor(selected.fromRole)}`}>{selected.fromRole}</span>
-                  {selected.verified && <span className="ml-2 text-xs text-ag-pay font-bold">✓ Verified</span>}
+                  {selected.verified && <span className="ml-2 text-xs text-ag-pay font-bold"> Verified</span>}
                 </div>
               </div>
               <div className="bg-ag-surface rounded-card p-4">

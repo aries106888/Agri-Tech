@@ -15,15 +15,13 @@ const AdminDashboard     = lazy(() => import('./pages/AdminDashboard'));
 // New pages
 const SmartSecurePay     = lazy(() => import('./pages/SmartSecurePay'));
 const SmartStorage       = lazy(() => import('./pages/SmartStorage'));
-const AIAssistant        = lazy(() => import('./pages/AIAssistant'));
 const MessagesPage       = lazy(() => import('./pages/MessagesPage'));
 const WeatherPage        = lazy(() => import('./pages/WeatherPage'));
 const TransportPage      = lazy(() => import('./pages/TransportPage'));
 const CallFarmers        = lazy(() => import('./pages/CallFarmers'));
 const AnalyticsPage      = lazy(() => import('./pages/AnalyticsPage'));
-const DisputesPage       = lazy(() => import('./pages/DisputesPage'));
-const NotificationsPage  = lazy(() => import('./pages/NotificationsPage'));
 const ReviewsPage        = lazy(() => import('./pages/ReviewsPage'));
+const HelpCenter         = lazy(() => import('./pages/HelpCenter'));
 
 /* ── Full-screen loader ────────────────────────────────── */
 const PageLoader = () => (
@@ -56,14 +54,12 @@ const dashRoutes = (role, DashComp) => {
       {/* Shared feature routes */}
       <Route path="securepay"    element={<SmartSecurePay />} />
       <Route path="storage"      element={<SmartStorage />} />
-      <Route path="ai-assistant" element={<AIAssistant />} />
       <Route path="messages"     element={<MessagesPage />} />
       <Route path="weather"      element={<WeatherPage />} />
       <Route path="transport"    element={<TransportPage />} />
       <Route path="analytics"    element={<AnalyticsPage />} />
-      <Route path="disputes"     element={<DisputesPage />} />
-      <Route path="notifications" element={<NotificationsPage />} />
       <Route path="reviews"      element={<ReviewsPage />} />
+      <Route path="help"         element={<HelpCenter />} />
       <Route path="*"            element={<Navigate to={`${base}/dashboard`} replace />} />
     </Route>
   );
@@ -81,7 +77,6 @@ function App() {
             <Route path="signup" element={<Signup />} />
             <Route path="market" element={<Market />} />
             <Route path="call-farmers" element={<CallFarmers />} />
-            <Route path="help"   element={<NotificationsPage />} />
           </Route>
 
           {/* ── Farmer ── */}
@@ -104,11 +99,8 @@ function App() {
             <Route path="panel"        element={<AdminDashboard />} />
             <Route path="securepay"    element={<SmartSecurePay />} />
             <Route path="storage"      element={<SmartStorage />} />
-            <Route path="ai-assistant" element={<AIAssistant />} />
             <Route path="transport"    element={<TransportPage />} />
             <Route path="analytics"    element={<AnalyticsPage />} />
-            <Route path="disputes"     element={<DisputesPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="reviews"      element={<AdminDashboard />} />
             <Route path="reports"      element={<AnalyticsPage />} />
             <Route path="*"            element={<Navigate to="/admin/dashboard" replace />} />

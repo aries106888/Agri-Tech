@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+﻿import { useState, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, ShieldCheck, AlertCircle } from 'lucide-react';
 import api from '../services/api';
@@ -79,7 +79,7 @@ const Signup = () => {
       {/* Header Brand */}
       <div className="w-full max-w-[560px] mb-8">
         <div className="bg-ag-primary rounded-card p-6 mb-6 flex items-center gap-3">
-          <span className="text-3xl">🌿</span>
+          <span className="text-3xl"></span>
           <div>
             <p className="text-white font-extrabold text-xl">ShambaPoint</p>
             <p className="text-ag-primary-fixed font-bold text-sm">Sell Your Harvest. Get Paid Instantly.</p>
@@ -193,7 +193,7 @@ const Signup = () => {
             <div>
               <label className="block text-sm font-bold text-ag-body mb-1.5">Crop Type</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-outline text-sm">🌾</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-outline text-sm"></span>
                 <select name="cropType" value={form.cropType} onChange={handleChange} className="form-input pl-9 appearance-none bg-ag-card">
                   <option value="">Select primary crop...</option>
                   {CROP_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -241,7 +241,7 @@ const Signup = () => {
 
           {/* Submit — M-PESA Payment Green */}
           <button type="submit" disabled={loading} className={`btn-pay w-full text-base mt-2 ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-            🔒 {loading ? 'Creating account...' : 'Create Account Now →'}
+             {loading ? 'Creating account...' : 'Create Account Now →'}
           </button>
 
           <p className="text-xs text-ag-muted text-center">

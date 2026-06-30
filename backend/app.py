@@ -44,7 +44,7 @@ import logging
 from datetime import datetime
 
 import requests
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
@@ -56,6 +56,11 @@ CORS(app)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 log = logging.getLogger(__name__)
+
+# ─── DIST DIR (React build output) ───────────────────────────────────────────
+# app.py lives in  <project_root>/backend/
+# React builds to <project_root>/dist/
+DIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dist'))
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 MPESA_ENV            = os.getenv('MPESA_ENV', 'sandbox')
@@ -142,18 +147,18 @@ def log_transaction(txn_type, data):
 
 # ─── IN-MEMORY DATA ───────────────────────────────────────────────────────────
 PRODUCTS = [
-    {"id": 1,  "name": "Fresh Yellow Bananas", "price": "60",  "unit": "/kg",    "farmer": "Njoroge K.", "county": "Kisii",       "verified": True,  "lowStock": False},
-    {"id": 2,  "name": "Crisp Red Apples",     "price": "150", "unit": "/kg",    "farmer": "Wanjiku F.", "county": "Meru",        "verified": True,  "lowStock": False},
-    {"id": 3,  "name": "Sweet Ripe Mangoes",   "price": "120", "unit": "/kg",    "farmer": "Mutua J.",   "county": "Machakos",    "verified": False, "lowStock": True },
-    {"id": 4,  "name": "Juicy Oranges",        "price": "80",  "unit": "/kg",    "farmer": "Akinyi O.",  "county": "Kisumu",      "verified": True,  "lowStock": False},
-    {"id": 5,  "name": "Irish Potatoes",       "price": "45",  "unit": "/kg",    "farmer": "Mwangi J.",  "county": "Nakuru",      "verified": True,  "lowStock": False},
-    {"id": 6,  "name": "Grade A Tomatoes",     "price": "80",  "unit": "/kg",    "farmer": "Sarah K.",   "county": "Kiambu",      "verified": True,  "lowStock": True },
-    {"id": 7,  "name": "Sweet Green Maize",    "price": "25",  "unit": "/pc",    "farmer": "Kibet E.",   "county": "Uasin Gishu", "verified": True,  "lowStock": False},
-    {"id": 8,  "name": "Sweet Watermelon",     "price": "120", "unit": "/pc",    "farmer": "Agnes L.",   "county": "Kajiado",     "verified": True,  "lowStock": False},
-    {"id": 9,  "name": "Leafy Spinach",        "price": "10",  "unit": "/bunch", "farmer": "Njoroge T.", "county": "Limuru",      "verified": False, "lowStock": False},
-    {"id": 10, "name": "Sweet Pineapple",      "price": "150", "unit": "/pc",    "farmer": "Maina P.",   "county": "Thika",       "verified": True,  "lowStock": False},
-    {"id": 11, "name": "Organic Tomatoes",     "price": "35",  "unit": "/kg",    "farmer": "David K.",   "county": "Nakuru",      "verified": False, "lowStock": False},
-    {"id": 12, "name": "Ripe Avocados",        "price": "30",  "unit": "/pc",    "farmer": "Wambui A.",  "county": "Kisumu",      "verified": True,  "lowStock": False},
+    {"id": 1,  "name": "Fresh Yellow Bananas", "price": "60",  "unit": "/kg",    "farmer": "Njoroge K.", "county": "Kisii",       "verified": True,  "lowStock": False, "image": "/images/banana.png"},
+    {"id": 2,  "name": "Crisp Red Apples",     "price": "150", "unit": "/kg",    "farmer": "Wanjiku F.", "county": "Meru",        "verified": True,  "lowStock": False, "image": "/images/apple.png"},
+    {"id": 3,  "name": "Sweet Ripe Mangoes",   "price": "120", "unit": "/kg",    "farmer": "Mutua J.",   "county": "Machakos",    "verified": False, "lowStock": True , "image": "/images/mango.png"},
+    {"id": 4,  "name": "Juicy Oranges",        "price": "80",  "unit": "/kg",    "farmer": "Akinyi O.",  "county": "Kisumu",      "verified": True,  "lowStock": False, "image": "/images/orange.png"},
+    {"id": 5,  "name": "Irish Potatoes",       "price": "45",  "unit": "/kg",    "farmer": "Mwangi J.",  "county": "Nakuru",      "verified": True,  "lowStock": False, "image": "/images/potatoes.png"},
+    {"id": 6,  "name": "Grade A Tomatoes",     "price": "80",  "unit": "/kg",    "farmer": "Sarah K.",   "county": "Kiambu",      "verified": True,  "lowStock": True , "image": "/images/tomatoes.png"},
+    {"id": 7,  "name": "Sweet Green Maize",    "price": "25",  "unit": "/pc",    "farmer": "Kibet E.",   "county": "Uasin Gishu", "verified": True,  "lowStock": False, "image": "/images/maize.png"},
+    {"id": 8,  "name": "Sweet Watermelon",     "price": "120", "unit": "/pc",    "farmer": "Agnes L.",   "county": "Kajiado",     "verified": True,  "lowStock": False, "image": "/images/banana.png"},
+    {"id": 9,  "name": "Leafy Spinach",        "price": "10",  "unit": "/bunch", "farmer": "Njoroge T.", "county": "Limuru",      "verified": False, "lowStock": False, "image": "/images/spinach.png"},
+    {"id": 10, "name": "Sweet Pineapple",      "price": "150", "unit": "/pc",    "farmer": "Maina P.",   "county": "Thika",       "verified": True,  "lowStock": False, "image": "/images/pineapple.png"},
+    {"id": 11, "name": "Organic Tomatoes",     "price": "35",  "unit": "/kg",    "farmer": "David K.",   "county": "Nakuru",      "verified": False, "lowStock": False, "image": "/images/tomatoes.png"},
+    {"id": 12, "name": "Ripe Avocados",        "price": "30",  "unit": "/pc",    "farmer": "Wambui A.",  "county": "Kisumu",      "verified": True,  "lowStock": False, "image": "/images/avocado.png"},
 ]
 
 DRIVERS = [
@@ -171,8 +176,28 @@ ORDERS = []
 # ─── ROOT ─────────────────────────────────────────────────────────────────────
 @app.route('/', methods=['GET'])
 def home():
-    from flask import redirect
-    return redirect('/api')
+    return send_from_directory(DIST_DIR, 'index.html')
+
+@app.route('/index.html', methods=['GET'])
+def serve_index_explicit():
+    return send_from_directory(DIST_DIR, 'index.html')
+
+@app.route('/assets/<path:path>', methods=['GET'])
+def serve_assets(path):
+    return send_from_directory(os.path.join(DIST_DIR, 'assets'), path)
+
+@app.route('/<path:path>', methods=['GET'])
+def serve_spa_or_static(path):
+    # API paths that fall through to this catch-all don't exist
+    if path.startswith('api'):
+        return jsonify({"error": "Route not found. Visit /api for available routes."}), 404
+
+    # Serve exact static file if it exists (favicon.svg, icons.svg, images/, etc.)
+    if os.path.exists(os.path.join(DIST_DIR, path)):
+        return send_from_directory(DIST_DIR, path)
+
+    # Fallback to index.html for React SPA client-side routing
+    return send_from_directory(DIST_DIR, 'index.html')
 
 @app.route('/api', methods=['GET'])
 def index():

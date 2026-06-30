@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Archive, Plus, AlertTriangle, CheckCircle, Thermometer,
-  Droplets, Wind, Clock, MapPin, X, TrendingDown, Leaf
+  Droplets, Wind, Clock, MapPin, X, TrendingDown, Leaf, Sparkles
 } from 'lucide-react';
 
 /* ── DATA ──────────────────────────────────────────────── */
@@ -23,37 +23,17 @@ const AI_TIPS = {
 const STORAGE_METHODS = ['Hermetic Bags','Metal Silos','Cold Rooms','Warehouses','Solar Dryers','Refrigerated Storage'];
 
 const MOCK_STORAGE = [
-  {
-    id: 1, produce: 'Maize', qty: 120, unit: 'bags', date: '2026-05-20',
-    moisture: 12.8, temp: 16, humidity: 55, shelfLife: 8, method: 'Hermetic Bags',
-    location: 'Nakuru Warehouse A', status: 'excellent',
-  },
-  {
-    id: 2, produce: 'Beans', qty: 50, unit: 'bags', date: '2026-05-25',
-    moisture: 13.5, temp: 19, humidity: 65, shelfLife: 5, method: 'Metal Silos',
-    location: 'Eldoret Grain Store', status: 'moderate',
-  },
-  {
-    id: 3, produce: 'Tomatoes', qty: 300, unit: 'kg', date: '2026-06-10',
-    moisture: 94, temp: 24, humidity: 85, shelfLife: 1, method: 'Refrigerated Storage',
-    location: 'Nairobi Cold Room B', status: 'high_risk',
-  },
-  {
-    id: 4, produce: 'Potatoes', qty: 800, unit: 'kg', date: '2026-06-01',
-    moisture: 78, temp: 6, humidity: 88, shelfLife: 12, method: 'Cold Rooms',
-    location: 'Limuru Cold Store', status: 'excellent',
-  },
-  {
-    id: 5, produce: 'Onions', qty: 200, unit: 'kg', date: '2026-05-15',
-    moisture: 85, temp: 28, humidity: 72, shelfLife: 3, method: 'Warehouses',
-    location: 'Meru Store 2', status: 'moderate',
-  },
+  { id: 1, produce: 'Maize',    qty: 120, unit: 'bags', date: '2026-05-20', moisture: 12.8, temp: 16, humidity: 55, shelfLife: 8,  method: 'Hermetic Bags',       location: 'Nakuru Warehouse A',  status: 'excellent' },
+  { id: 2, produce: 'Beans',    qty: 50,  unit: 'bags', date: '2026-05-25', moisture: 13.5, temp: 19, humidity: 65, shelfLife: 5,  method: 'Metal Silos',         location: 'Eldoret Grain Store', status: 'moderate'  },
+  { id: 3, produce: 'Tomatoes', qty: 300, unit: 'kg',   date: '2026-06-10', moisture: 94,   temp: 24, humidity: 85, shelfLife: 1,  method: 'Refrigerated Storage', location: 'Nairobi Cold Room B', status: 'high_risk' },
+  { id: 4, produce: 'Potatoes', qty: 800, unit: 'kg',   date: '2026-06-01', moisture: 78,   temp: 6,  humidity: 88, shelfLife: 12, method: 'Cold Rooms',          location: 'Limuru Cold Store',   status: 'excellent' },
+  { id: 5, produce: 'Onions',   qty: 200, unit: 'kg',   date: '2026-05-15', moisture: 85,   temp: 28, humidity: 72, shelfLife: 3,  method: 'Warehouses',          location: 'Meru Store 2',        status: 'moderate'  },
 ];
 
 const statusConfig = {
-  excellent: { label: '🟢 Excellent', color: 'text-ag-risk-low',  bg: 'bg-green-50  border-green-200' },
-  moderate:  { label: '🟡 Moderate',  color: 'text-ag-risk-mid',  bg: 'bg-yellow-50 border-yellow-200' },
-  high_risk: { label: '🔴 High Risk', color: 'text-ag-risk-high', bg: 'bg-red-50    border-red-200' },
+  excellent: { label: '🟢 Excellent', color: 'text-ag-risk-low',  bg: 'bg-green-50  border-green-200', pill: 'bg-green-50 border-green-200 text-green-700' },
+  moderate:  { label: '🟡 Moderate',  color: 'text-ag-risk-mid',  bg: 'bg-yellow-50 border-yellow-200', pill: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+  high_risk: { label: '🔴 High Risk', color: 'text-ag-risk-high', bg: 'bg-red-50    border-red-200', pill: 'bg-red-50 border-red-200 text-red-700' },
 };
 
 /* ── ADD STORAGE MODAL ──────────────────────────────────── */
@@ -66,7 +46,16 @@ const AddStorageModal = ({ onClose, onAdd }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAdd({ ...form, id: Date.now(), shelfLife: 6, status: 'excellent' });
+    onAdd({
+      ...form,
+      id: Date.now(),
+      qty: Number(form.qty) || 0,
+      moisture: form.moisture ? Number(form.moisture) : '',
+      temp: form.temp ? Number(form.temp) : '',
+      humidity: form.humidity ? Number(form.humidity) : '',
+      shelfLife: 6,
+      status: 'excellent'
+    });
     onClose();
   };
 
@@ -81,13 +70,16 @@ const AddStorageModal = ({ onClose, onAdd }) => {
           </h3>
           <button onClick={onClose}><X className="w-5 h-5 text-ag-muted" /></button>
         </div>
+
         <div className="p-6 max-h-[80vh] overflow-y-auto">
+          {/* AI Tip Banner */}
           {tip && (
             <div className="alert-info mb-4 text-xs">
               <Leaf className="w-4 h-4 shrink-0 text-blue-600" />
               <span><strong>AI Tip for {form.produce}:</strong> {tip.tip}</span>
             </div>
           )}
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -160,6 +152,7 @@ export default function SmartStorage() {
 
   const alerts = records.filter(r => r.status !== 'excellent');
   const highRisk = records.filter(r => r.status === 'high_risk');
+  const moderate = records.filter(r => r.status === 'moderate');
 
   return (
     <div className="flex flex-col gap-6 animate-slide-up">
@@ -199,11 +192,11 @@ export default function SmartStorage() {
           </div>
         </div>
       )}
-      {alerts.filter(r => r.status === 'moderate').length > 0 && (
+      {moderate.length > 0 && (
         <div className="alert-warning">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           <span className="text-sm">
-            {alerts.filter(r => r.status === 'moderate').length} record(s) have moderate conditions — monitor closely.
+            {moderate.length} record(s) have moderate conditions — monitor closely.
           </span>
         </div>
       )}
@@ -236,13 +229,13 @@ export default function SmartStorage() {
                     {r.produce.slice(0,2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-extrabold text-ag-body">{r.produce}</p>
+                    <p className="font-bold text-ag-body">{r.produce}</p>
                     <p className="text-xs text-ag-muted">{r.qty} {r.unit} · {r.method}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`font-extrabold text-sm ${cfg.color}`}>{cfg.label}</span>
-                </div>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${cfg.pill}`}>
+                  {cfg.label}
+                </span>
               </div>
 
               {/* Metrics */}
@@ -264,23 +257,21 @@ export default function SmartStorage() {
                 </div>
               </div>
 
-              {/* Footer info */}
-              <div className="flex items-center justify-between text-xs text-ag-muted">
+              {/* Footer */}
+              <div className="flex items-center justify-between text-xs text-ag-muted mb-3">
                 <div className="flex items-center gap-1">
                   <MapPin className="w-3 h-3" /> {r.location}
                 </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span className={r.shelfLife <= 2 ? 'text-red-600 font-bold' : ''}>
-                    {r.shelfLife} months shelf life
-                  </span>
+                <div className={`flex items-center gap-1 font-medium ${r.shelfLife <= 2 ? 'text-red-600 font-bold' : ''}`}>
+                  <Clock className="w-3 h-3" /> {r.shelfLife} months shelf life
                 </div>
               </div>
 
-              {/* AI tip */}
+              {/* AI Tip */}
               {AI_TIPS[r.produce] && (
-                <div className="mt-3 bg-blue-50 border border-blue-100 rounded-btn p-2.5 text-xs text-blue-800">
-                  <span className="font-bold">🤖 AI Tip:</span> {AI_TIPS[r.produce].tip}
+                <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg p-2.5 text-xs text-blue-800">
+                  <Sparkles className="w-3.5 h-3.5 shrink-0 text-blue-400 mt-0.5" />
+                  <span><strong>AI Tip:</strong> {AI_TIPS[r.produce].tip}</span>
                 </div>
               )}
             </div>
@@ -289,43 +280,54 @@ export default function SmartStorage() {
       </div>
 
       {/* ── AI RECOMMENDATIONS PANEL ── */}
-      <div className="ag-card">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-extrabold text-ag-body flex items-center gap-2">
-            <Leaf className="w-5 h-5 text-ag-primary" /> AI Storage Recommendations
-          </h3>
-          <select value={aiProduce} onChange={e => setAiProduce(e.target.value)} className="form-input !w-auto !py-1.5 !text-xs">
+      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <Leaf className="w-4 h-4 text-green-600" />
+            <h3 className="font-bold text-ag-body">AI Storage Recommendations</h3>
+          </div>
+          <select value={aiProduce} onChange={e => setAiProduce(e.target.value)}
+            className="form-input !w-auto !py-1.5 !text-xs">
             {Object.keys(AI_TIPS).map(p => <option key={p}>{p}</option>)}
           </select>
         </div>
+
         {AI_TIPS[aiProduce] && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-ag-primary-fixed rounded-card p-4">
-              <p className="font-bold text-ag-primary mb-1">Recommended Method</p>
-              <p className="text-lg font-extrabold text-ag-primary">{AI_TIPS[aiProduce].method}</p>
+          <div className="p-5 flex flex-col gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="bg-green-50 border border-green-100 rounded-xl p-4">
+                <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">Recommended Method</p>
+                <p className="text-base font-extrabold text-green-800">{AI_TIPS[aiProduce].method}</p>
+              </div>
+              <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                <p className="text-xs font-bold text-ag-muted uppercase tracking-wide mb-1">Storage Guidelines</p>
+                <p className="text-sm text-ag-body">{AI_TIPS[aiProduce].tip}</p>
+              </div>
             </div>
-            <div className="bg-ag-surface rounded-card p-4">
-              <p className="font-bold text-ag-body mb-1">Storage Guidelines</p>
-              <p className="text-sm text-ag-muted">{AI_TIPS[aiProduce].tip}</p>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { icon: TrendingDown, label: 'Losses Prevented', value: '23%',              color: 'text-green-600',  bg: 'bg-green-50'  },
+                { icon: Archive,      label: 'Records Active',   value: records.length,       color: 'text-ag-primary', bg: 'bg-blue-50'   },
+                { icon: AlertTriangle,label: 'Active Alerts',    value: alerts.length, color: 'text-amber-600', bg: 'bg-amber-50' },
+                { icon: Clock,        label: 'Avg Shelf Life',   value: `${records.length ? Math.round(records.reduce((a, r) => a + r.shelfLife, 0) / records.length) : 0}mo`, color: 'text-blue-600', bg: 'bg-blue-50' },
+              ].map(s => {
+                const IconComponent = s.icon;
+                return (
+                  <div key={s.label} className="bg-white border border-gray-100 rounded-xl p-3 flex items-center gap-3">
+                    <div className={`w-8 h-8 ${s.bg} rounded-lg flex items-center justify-center shrink-0`}>
+                      <IconComponent className={`w-4 h-4 ${s.color}`} />
+                    </div>
+                    <div>
+                      <p className={`font-extrabold text-sm ${s.color}`}>{s.value}</p>
+                      <p className="text-[10px] text-ag-muted font-bold uppercase leading-tight">{s.label}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { icon: TrendingDown, label: 'Losses Prevented', value: '23%', color: 'text-green-600' },
-            { icon: Archive,      label: 'Records Active',   value: records.length,   color: 'text-ag-primary' },
-            { icon: AlertTriangle,label: 'Active Alerts',    value: alerts.length,    color: 'text-orange-500' },
-            { icon: Clock,        label: 'Avg Shelf Life',   value: `${Math.round(records.reduce((a,r)=>a+r.shelfLife,0)/records.length)}mo`, color: 'text-blue-600' },
-          ].map(s => (
-            <div key={s.label} className="ag-card !p-3 flex items-center gap-3">
-              <s.icon className={`w-5 h-5 shrink-0 ${s.color}`} />
-              <div>
-                <p className={`font-extrabold ${s.color}`}>{s.value}</p>
-                <p className="text-[10px] text-ag-muted font-bold uppercase">{s.label}</p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       {showAdd && (

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import {
   MessageSquare, Search, Phone, Send,
   CheckCheck, Lock, Unlock
@@ -119,13 +119,13 @@ export default function MessagesPage() {
                   <div className="flex items-center gap-2">
                     <p className="font-extrabold text-ag-body">{selected.name}</p>
                     {selected.verified && (
-                      <span className="chip-verified text-[9px] !px-1.5">✓ Verified</span>
+                      <span className="chip-verified text-[9px] !px-1.5"> Verified</span>
                     )}
                   </div>
                   <p className="text-xs text-ag-muted">
                     {selected.crop} · {selected.county} ·{' '}
                     <span className={selected.online ? 'text-green-500' : 'text-ag-muted'}>
-                      {selected.online ? '🟢 Online' : '⚫ Offline'}
+                      {selected.online ? ' Online' : ' Offline'}
                     </span>
                   </p>
                 </div>
@@ -138,7 +138,7 @@ export default function MessagesPage() {
                   </a>
                   <a href={`https://wa.me/${selected.whatsapp}`} target="_blank" rel="noreferrer"
                     className="btn-ghost !py-2 !px-3 !text-xs text-green-600 border-green-300 hover:bg-green-50">
-                    <span className="text-sm">📱</span> WhatsApp
+                    <span className="text-sm"></span> WhatsApp
                   </a>
                   <a href={`sms:${selected.phone}`}
                     className="btn-ghost !py-2 !px-3 !text-xs">

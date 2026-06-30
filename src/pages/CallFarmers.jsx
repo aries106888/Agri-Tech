@@ -1,15 +1,15 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Phone, MessageSquare, Search, MapPin, Star, CheckCircle, Lock, Unlock } from 'lucide-react';
 
 const COUNTIES = ['All Counties','Nakuru','Nairobi','Kisumu','Eldoret','Meru','Kisii','Machakos','Kiambu','Nyeri','Mombasa'];
 
 const FARMERS = [
-  { id: 1, name: 'James Mwangi', farm: 'Mwangi Organic Farms', county: 'Nakuru', subCounty: 'Rongai', village: 'Menengai', phone: '0712345678', whatsapp: '254712345678', crops: ['Maize','Beans','Wheat'], rating: 4.8, reviews: 42, verified: true, organic: true, avatar: 'JM', languages: ['English','Swahili','Kikuyu'], responseRate: 98, responseTime: '< 1hr' },
-  { id: 2, name: 'Mary Akinyi', farm: 'Akinyi Fresh Produce', county: 'Kisumu', subCounty: 'Kisumu East', village: 'Kolwa', phone: '0723456789', whatsapp: '254723456789', crops: ['Tomatoes','Onions','Spinach'], rating: 4.6, reviews: 28, verified: true, organic: false, avatar: 'MA', languages: ['English','Swahili','Luo'], responseRate: 94, responseTime: '< 2hrs' },
-  { id: 3, name: 'Peter Kibet', farm: 'Kibet Highland Farms', county: 'Eldoret', subCounty: 'Turbo', village: 'Moi\'s Bridge', phone: '0734567890', whatsapp: '254734567890', crops: ['Beans','Maize','Sorghum'], rating: 4.9, reviews: 67, verified: true, organic: true, avatar: 'PK', languages: ['English','Swahili','Kalenjin'], responseRate: 99, responseTime: '< 30min' },
-  { id: 4, name: 'Grace Njoroge', farm: 'Njoroge Vegetable Garden', county: 'Limuru', subCounty: 'Limuru East', village: 'Tigoni', phone: '0745678901', whatsapp: '254745678901', crops: ['Spinach','Kale','Carrots','Potatoes'], rating: 4.7, reviews: 19, verified: true, organic: true, avatar: 'GN', languages: ['English','Swahili','Kikuyu'], responseRate: 91, responseTime: '< 3hrs' },
-  { id: 5, name: 'David Mutua', farm: 'Mutua Orchards', county: 'Machakos', subCounty: 'Kangundo', village: 'Tala', phone: '0756789012', whatsapp: '254756789012', crops: ['Mangoes','Avocados','Oranges'], rating: 4.5, reviews: 34, verified: false, organic: false, avatar: 'DM', languages: ['English','Swahili','Kamba'], responseRate: 86, responseTime: '< 5hrs' },
-  { id: 6, name: 'Fatuma Hassan', farm: 'Hassan Grain Store', county: 'Mombasa', subCounty: 'Likoni', village: 'Shelly Beach', phone: '0767890123', whatsapp: '254767890123', crops: ['Rice','Maize','Cassava'], rating: 4.4, reviews: 11, verified: true, organic: false, avatar: 'FH', languages: ['English','Swahili','Arabic'], responseRate: 88, responseTime: '< 4hrs' },
+  { id: 1, name: 'James Mwangi', farm: 'Mwangi Organic Farms', county: 'Nakuru', subCounty: 'Rongai', village: 'Menengai', phone: '+254712345678', whatsapp: '+254712345678', crops: ['Maize','Beans','Wheat'], rating: 4.8, reviews: 42, verified: true, organic: true, avatar: 'JM', languages: ['English','Swahili','Kikuyu'], responseRate: 98, responseTime: '< 1hr' },
+  { id: 2, name: 'Mary Akinyi', farm: 'Akinyi Fresh Produce', county: 'Kisumu', subCounty: 'Kisumu East', village: 'Kolwa', phone: '+254723456789', whatsapp: '+254723456789', crops: ['Tomatoes','Onions','Spinach'], rating: 4.6, reviews: 28, verified: true, organic: false, avatar: 'MA', languages: ['English','Swahili','Luo'], responseRate: 94, responseTime: '< 2hrs' },
+  { id: 3, name: 'Peter Kibet', farm: 'Kibet Highland Farms', county: 'Eldoret', subCounty: 'Turbo', village: 'Moi\'s Bridge', phone: '+254734567890', whatsapp: '+254734567890', crops: ['Beans','Maize','Sorghum'], rating: 4.9, reviews: 67, verified: true, organic: true, avatar: 'PK', languages: ['English','Swahili','Kalenjin'], responseRate: 99, responseTime: '< 30min' },
+  { id: 4, name: 'Grace Njoroge', farm: 'Njoroge Vegetable Garden', county: 'Limuru', subCounty: 'Limuru East', village: 'Tigoni', phone: '+254745678901', whatsapp: '+254745678901', crops: ['Spinach','Kale','Carrots','Potatoes'], rating: 4.7, reviews: 19, verified: true, organic: true, avatar: 'GN', languages: ['English','Swahili','Kikuyu'], responseRate: 91, responseTime: '< 3hrs' },
+  { id: 5, name: 'David Mutua', farm: 'Mutua Orchards', county: 'Machakos', subCounty: 'Kangundo', village: 'Tala', phone: '+254756789012', whatsapp: '+254756789012', crops: ['Mangoes','Avocados','Oranges'], rating: 4.5, reviews: 34, verified: false, organic: false, avatar: 'DM', languages: ['English','Swahili','Kamba'], responseRate: 86, responseTime: '< 5hrs' },
+  { id: 6, name: 'Fatuma Hassan', farm: 'Hassan Grain Store', county: 'Mombasa', subCounty: 'Likoni', village: 'Shelly Beach', phone: '+254767890123', whatsapp: '+254767890123', crops: ['Rice','Maize','Cassava'], rating: 4.4, reviews: 11, verified: true, organic: false, avatar: 'FH', languages: ['English','Swahili','Arabic'], responseRate: 88, responseTime: '< 4hrs' },
 ];
 
 export default function CallFarmers() {
@@ -29,7 +29,7 @@ export default function CallFarmers() {
     return matchSearch && matchCounty && matchVerified && matchOrganic;
   });
 
-  const maskPhone = phone => privacyMode ? phone.replace(/\d(?=\d{4})/g, '*') : phone;
+  const maskPhone = phone => privacyMode ? phone.slice(0, 4) + '****' + phone.slice(-4) : phone;
 
   return (
     <div className="flex flex-col gap-6 animate-slide-up">
@@ -73,7 +73,7 @@ export default function CallFarmers() {
           <button onClick={() => setOnlyOrganic(v => !v)}
             className={`px-3 py-2 rounded-btn text-xs font-bold transition-colors flex items-center gap-1.5
               ${onlyOrganic ? 'bg-green-600 text-white' : 'bg-ag-surface text-ag-muted hover:bg-ag-border'}`}>
-            🌿 Organic
+             Organic
           </button>
         </div>
       </div>
@@ -94,7 +94,7 @@ export default function CallFarmers() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <p className="font-extrabold text-ag-body">{f.name}</p>
-                  {f.verified && <span className="chip-verified text-[9px]">✓</span>}
+                  {f.verified && <span className="chip-verified text-[9px]"></span>}
                   {f.organic && <span className="chip-organic text-[9px]">Organic</span>}
                 </div>
                 <p className="text-xs text-ag-muted">{f.farm}</p>
@@ -143,12 +143,12 @@ export default function CallFarmers() {
                 className="flex flex-col items-center gap-1 py-2.5 rounded-btn bg-green-50 border border-green-200
                   text-green-700 hover:bg-green-100 transition-colors text-xs font-bold">
                 <Phone className="w-4 h-4" />
-                {maskPhone(f.phone).slice(-7)}
+                {maskPhone(f.phone)}
               </a>
-              <a href={`https://wa.me/${f.whatsapp}`} target="_blank" rel="noreferrer"
+              <a href={`https://wa.me/${f.whatsapp.replace('+', '')}`} target="_blank" rel="noreferrer"
                 className="flex flex-col items-center gap-1 py-2.5 rounded-btn bg-emerald-50 border border-emerald-200
                   text-emerald-700 hover:bg-emerald-100 transition-colors text-xs font-bold">
-                <span className="text-base leading-none">📱</span>
+                <span className="text-base leading-none"></span>
                 WhatsApp
               </a>
               <a href={`sms:${f.phone}`}
@@ -160,7 +160,7 @@ export default function CallFarmers() {
             </div>
 
             <p className="text-[10px] text-ag-muted">
-              🗣 Speaks: {f.languages.join(', ')}
+               Speaks: {f.languages.join(', ')}
             </p>
           </div>
         ))}

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import api from '../services/api';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  ShoppingBag, Truck, Package, Clock, MapPin, X, CheckCircle, CheckCircle2,
+  ShoppingBag, Truck, Package, Clock, MapPin, X, CheckCircle, CheckCircle2, XCircle,
   Plus, Heart, ShoppingCart, Minus, Settings, Map, Trash2, Phone,
   ArrowRight, ArrowLeft, Loader2, Activity, ShieldCheck,
   ThermometerSnowflake, ShieldAlert, Play, Droplets, AlertTriangle
@@ -17,8 +18,8 @@ const SHOP_PRODUCTS = [
   { id: 6, name: 'Organic Spinach', farmer: 'Wanjiru A.', county: 'Kiambu', price: 40, unit: '/bunch', image: '/images/spinach.png', badge: 'LOW STOCK' },
   { id: 7, name: 'Farm Carrots', farmer: 'Kamau D.', county: 'Nyandarua', price: 55, unit: '/kg', image: '/images/carrots.png', badge: null },
   { id: 8, name: 'Yellow Wax Beans', farmer: 'Chebet R.', county: 'Meru', price: 70, unit: '/kg', image: '/images/beans.png', badge: 'VERIFIED' },
-  { id: 9, name: 'Sweet Pineapple', farmer: 'Oduya F.', county: 'Kisumu', price: 90, unit: '/pc', image: 'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=400&q=80', badge: 'VERIFIED' },
-  { id: 10, name: 'Hass Avocado', farmer: 'Njoroge P.', county: "Murang'a", price: 15, unit: '/pc', image: 'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=400&q=80', badge: 'LOW STOCK' },
+  { id: 9, name: 'Sweet Pineapple', farmer: 'Oduya F.', county: 'Kisumu', price: 90, unit: '/pc', image: '/images/pineapple.png', badge: 'VERIFIED' },
+  { id: 10, name: 'Hass Avocado', farmer: 'Njoroge P.', county: "Murang'a", price: 15, unit: '/pc', image: '/images/avocado.png', badge: 'LOW STOCK' },
 ];
 
 const COUNTIES = ['Nairobi', 'Kiambu', 'Nakuru', 'Meru', 'Uasin Gishu', 'Kajiado', 'Kisumu', 'Machakos', 'Nyandarua', 'Kericho'];
@@ -60,7 +61,7 @@ const LiveTrackingDashboard = () => {
           setSimRunning(false);
           setSpeed(0);
           setEta(0);
-          setLogs(l => [...l, '🚚 Cargo reached destination. Awaiting recipient confirmation.']);
+          setLogs(l => [...l, 'Cargo reached destination. Awaiting recipient confirmation.']);
           return 100;
         }
         const nextProgress = Number((prev + 0.5).toFixed(1));
@@ -91,16 +92,16 @@ const LiveTrackingDashboard = () => {
     setSpeed(12);
     setEta(prev => prev + 25);
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(l => [...l, `[${timestamp}] ⚠️ ALERT: Heavy traffic delay near Limuru toll plaza. Speed reduced to 12km/h.`]);
+    setLogs(l => [...l, `[${timestamp}] ALERT: Heavy traffic delay near Limuru toll plaza. Speed reduced to 12km/h.`]);
   };
 
   const simulateTempSpike = () => {
     setRouteStatus('Cooling Alert');
     setTemp(22.8);
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(l => [...l, `[${timestamp}] 🚨 ALARM: Cargo temperature (22.8°C) exceeds safety limit (20°C)!`]);
+    setLogs(l => [...l, `[${timestamp}] ALARM: Cargo temperature (22.8°C) exceeds safety limit (20°C).`]);
     setTimeout(() => {
-      setLogs(l => [...l, `[${timestamp}] 🔧 SYSTEM: Auxiliary cooling compressor deployed. Temp back to 18.2°C.`]);
+      setLogs(l => [...l, `[${timestamp}] SYSTEM: Auxiliary cooling compressor deployed. Temp back to 18.2°C.`]);
       setTemp(18.2);
     }, 4000);
   };
@@ -111,13 +112,13 @@ const LiveTrackingDashboard = () => {
     setEta(0);
     setSimRunning(false);
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(l => [...l, `[${timestamp}] 🟢 Manual override: Shipment arrived at destination. Delivered status saved.`]);
+    setLogs(l => [...l, `[${timestamp}] Manual override: Shipment arrived at destination. Delivered status saved.`]);
   };
 
   return (
     <div className="flex flex-col gap-6">
       <h2 className="text-headline-md text-ag-body flex items-center gap-2"><Map className="w-6 h-6 text-ag-primary" /> Real-Time Shipment Tracking</h2>
-      
+
       {/* Map Vector Animation */}
       <div className="bg-slate-900 border border-slate-800 rounded-card p-5 relative overflow-hidden h-44 flex flex-col justify-between text-white shadow-md">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:20px_20px] opacity-30" />
@@ -127,18 +128,16 @@ const LiveTrackingDashboard = () => {
         <div className="absolute top-1/2 left-10 right-10 -translate-y-1/2 flex justify-between">
           {['Nakuru', 'Gilgil', 'Limuru', 'Nairobi'].map((name, idx) => (
             <div key={idx} className="relative flex flex-col items-center">
-              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
-                (idx === 0 && progress >= 0) || (idx === 1 && progress >= 33) || (idx === 2 && progress >= 66) || (idx === 3 && progress >= 100)
+              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${(idx === 0 && progress >= 0) || (idx === 1 && progress >= 33) || (idx === 2 && progress >= 66) || (idx === 3 && progress >= 100)
                   ? 'bg-ag-pay border-white' : 'bg-slate-800 border-slate-600'
-              }`}>
+                }`}>
                 {((idx === 0 && progress >= 0) || (idx === 1 && progress >= 33) || (idx === 2 && progress >= 66) || (idx === 3 && progress >= 100)) && (
                   <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                 )}
               </div>
-              <span className={`absolute top-5 text-[9px] font-bold uppercase tracking-wider ${
-                (idx === 0 && progress >= 0) || (idx === 1 && progress >= 33) || (idx === 2 && progress >= 66) || (idx === 3 && progress >= 100)
+              <span className={`absolute top-5 text-[9px] font-bold uppercase tracking-wider ${(idx === 0 && progress >= 0) || (idx === 1 && progress >= 33) || (idx === 2 && progress >= 66) || (idx === 3 && progress >= 100)
                   ? 'text-white' : 'text-slate-500'
-              }`}>{name}</span>
+                }`}>{name}</span>
             </div>
           ))}
         </div>
@@ -155,11 +154,10 @@ const LiveTrackingDashboard = () => {
           <span className="bg-slate-800/80 px-2.5 py-1 rounded-btn text-[10px] font-bold text-white border border-slate-700 flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-ag-pay" /> Nakuru Farm → Nairobi CBD
           </span>
-          <span className={`px-2.5 py-1 rounded-btn text-[10px] font-extrabold border uppercase tracking-wider ${
-            routeStatus === 'On Schedule' ? 'bg-green-500/20 border-green-500 text-green-300' :
-            routeStatus === 'Delayed' ? 'bg-amber-500/20 border-amber-500 text-amber-300' :
-            'bg-red-500/20 border-red-500 text-red-300'
-          }`}>{routeStatus}</span>
+          <span className={`px-2.5 py-1 rounded-btn text-[10px] font-extrabold border uppercase tracking-wider ${routeStatus === 'On Schedule' ? 'bg-green-500/20 border-green-500 text-green-300' :
+              routeStatus === 'Delayed' ? 'bg-amber-500/20 border-amber-500 text-amber-300' :
+                'bg-red-500/20 border-red-500 text-red-300'
+            }`}>{routeStatus}</span>
         </div>
         <div className="z-10 flex justify-between items-end">
           <p className="text-[10px] font-mono text-slate-400">Driver: David Ochieng · Vehicle KCA 123Z</p>
@@ -228,11 +226,11 @@ const LiveTrackingDashboard = () => {
           <div className="h-32 overflow-y-auto flex flex-col gap-1.5">
             {logs.map((l, idx) => (
               <p key={idx} className="leading-tight">
-                {l.includes('🚨') ? (
+                {l.includes('ALARM') ? (
                   <span className="text-red-400 font-bold">{l}</span>
-                ) : l.includes('⚠️') ? (
+                ) : l.includes('ALERT') ? (
                   <span className="text-amber-400">{l}</span>
-                ) : l.includes('🚚') || l.includes('🟢') ? (
+                ) : l.includes('Cargo reached') || l.includes('Manual override') ? (
                   <span className="text-green-400">{l}</span>
                 ) : (
                   <span className="text-slate-400">{l}</span>
@@ -263,7 +261,9 @@ const BuyerDashboard = () => {
   const [phone, setPhone] = useState(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}').phone || ''; } catch { return ''; }
   });
-  const [mpesaState, setMpesaState] = useState('idle'); // idle | sending | success
+  const [mpesaState, setMpesaState] = useState('idle'); // idle | sending | polling | success | error
+  const [mpesaMsg, setMpesaMsg] = useState('');
+  const [checkoutReqId, setCheckoutReqId] = useState('');
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -275,7 +275,7 @@ const BuyerDashboard = () => {
         ? prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i)
         : [...prev, { ...product, qty: 1 }];
     });
-    showToast(`✅ ${product.name} added to cart!`);
+    showToast(`${product.name} added to cart.`);
     setCartOpen(true);
   };
 
@@ -291,12 +291,9 @@ const BuyerDashboard = () => {
   const cartTotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
   const logisticsFee = logistics.pickup && logistics.destination ? 1200 : 0;
 
-  /* ── M-PESA simulation ── */
-  const sendMpesa = async () => {
-    setMpesaState('sending');
-    await new Promise(r => setTimeout(r, 2800));
+  /* ── M-PESA STK Push (real Safaricom Daraja sandbox) ── */
+  const handlePaymentSuccess = () => {
     setMpesaState('success');
-    // after success: add orders + clear cart
     setTimeout(() => {
       const newOrders = cartItems.map((item, idx) => ({
         id: Date.now() + idx,
@@ -311,9 +308,75 @@ const BuyerDashboard = () => {
       setModal(null);
       setCheckoutStep(1);
       setMpesaState('idle');
+      setMpesaMsg('');
+      setCheckoutReqId('');
       setLogistics({ pickup: '', destination: '' });
-      showToast(' Payment confirmed! Order placed successfully.');
+      showToast('M-PESA payment confirmed! Order placed successfully.');
     }, 3000);
+  };
+
+  const sendMpesa = async () => {
+    if (!phone) return;
+    setMpesaState('sending');
+    setMpesaMsg('Sending STK Push to your phone...');
+    try {
+      const res = await api.post('/payments/mpesa/stkpush', {
+        phone,
+        amount: cartTotal + logisticsFee,
+        account_reference: 'ShambaPoint',
+        description: `Order: ${cartItems.map(i => i.name).join(', ')}`,
+      });
+      const data = res.data;
+      const checkoutId = data.CheckoutRequestID;
+
+      // Simulated response (no real creds) – still show success flow
+      if (data._note && data._note.includes('Simulated')) {
+        setMpesaMsg('STK Push sent (sandbox simulation). Check your phone...');
+        setCheckoutReqId(checkoutId || '');
+        // Poll for a simulated success after 5s
+        setTimeout(() => handlePaymentSuccess(), 5000);
+        return;
+      }
+
+      // Real sandbox response — poll Daraja query endpoint
+      setMpesaMsg('Check your phone and enter your M-PESA PIN...');
+      setCheckoutReqId(checkoutId);
+      setMpesaState('polling');
+
+      let attempts = 0;
+      const maxAttempts = 20; // poll for up to 60s
+      const poll = setInterval(async () => {
+        attempts++;
+        try {
+          const qRes = await api.post('/payments/mpesa/stkpush/query', {
+            checkout_request_id: checkoutId,
+          });
+          const q = qRes.data;
+          const code = q.ResultCode ?? q.result_code;
+
+          if (code === 0 || code === '0') {
+            clearInterval(poll);
+            handlePaymentSuccess();
+          } else if (code !== undefined && code !== null && code !== '') {
+            // Non-zero result = failed/cancelled
+            clearInterval(poll);
+            setMpesaState('error');
+            setMpesaMsg(`Payment failed: ${q.ResultDesc || q.result_desc || 'Request cancelled or rejected.'}`);
+          } else if (attempts >= maxAttempts) {
+            clearInterval(poll);
+            setMpesaState('error');
+            setMpesaMsg('Payment timed out. Please try again.');
+          } else {
+            setMpesaMsg(`Waiting for PIN entry... (${attempts * 3}s)`);
+          }
+        } catch {
+          // Query API error — keep polling
+        }
+      }, 3000);
+    } catch (err) {
+      setMpesaState('error');
+      setMpesaMsg(err.response?.data?.error || 'Failed to send STK Push. Check phone number and try again.');
+    }
   };
 
   const cancelOrder = (id) => {
@@ -469,7 +532,7 @@ const BuyerDashboard = () => {
                   {product.badge && (
                     <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${product.badge === 'VERIFIED' ? 'chip-verified' : 'chip-low-stock'
                       }`}>
-                      {product.badge === 'VERIFIED' ? '✓ Verified' : 'Low Stock'}
+                      {product.badge === 'VERIFIED' ? 'Verified' : 'Low Stock'}
                     </span>
                   )}
                   {inCart && (
@@ -791,7 +854,7 @@ const BuyerDashboard = () => {
                       <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
                         <CheckCircle2 className="w-10 h-10 text-green-600" />
                       </div>
-                      <h3 className="font-extrabold text-xl text-ag-body">Payment Received! </h3>
+                      <h3 className="font-extrabold text-xl text-ag-body">Payment Received!</h3>
                       <p className="text-ag-muted text-sm">Your order is confirmed and transport dispatched.</p>
                       <div className="bg-ag-canvas rounded-card p-4 w-full text-left border border-ag-border">
                         <p className="text-xs text-ag-muted mb-1">Amount Paid</p>
@@ -799,13 +862,57 @@ const BuyerDashboard = () => {
                         <p className="text-xs text-ag-muted mt-2">M-PESA confirmation sent to {phone}</p>
                       </div>
                     </div>
+                  ) : mpesaState === 'error' ? (
+                    <div className="flex flex-col items-center text-center py-8 gap-4">
+                      <div className="w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
+                        <XCircle className="w-10 h-10 text-red-500" />
+                      </div>
+                      <h3 className="font-extrabold text-xl text-ag-body">Payment Failed</h3>
+                      <p className="text-sm text-ag-muted">{mpesaMsg}</p>
+                      <button
+                        onClick={() => { setMpesaState('idle'); setMpesaMsg(''); }}
+                        className="btn-pay w-full flex items-center justify-center gap-2"
+                      >
+                        Try Again
+                      </button>
+                      <button onClick={() => setCheckoutStep(2)} className="btn-tertiary w-full flex items-center justify-center gap-2">
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                    </div>
+                  ) : (mpesaState === 'sending' || mpesaState === 'polling') ? (
+                    <div className="flex flex-col items-center text-center py-8 gap-4">
+                      <div className="relative w-20 h-20">
+                        <div className="absolute inset-0 rounded-full bg-green-100 animate-ping opacity-60" />
+                        <div className="relative w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+                          <Phone className="w-10 h-10 text-green-600" />
+                        </div>
+                      </div>
+                      <h3 className="font-extrabold text-xl text-ag-body">
+                        {mpesaState === 'sending' ? 'Sending STK Push...' : 'Waiting for PIN...'}
+                      </h3>
+                      <p className="text-sm text-ag-muted">{mpesaMsg}</p>
+                      {checkoutReqId && (
+                        <p className="text-xs text-ag-muted font-mono bg-ag-canvas px-3 py-1 rounded border border-ag-border">
+                          Ref: {checkoutReqId}
+                        </p>
+                      )}
+                      <div className="bg-ag-canvas rounded-card p-4 w-full text-left border border-ag-border text-sm">
+                        <p className="font-bold text-ag-body mb-2">What to do now:</p>
+                        <ol className="list-decimal list-inside text-ag-muted space-y-1 text-xs">
+                          <li>Check your phone for the M-PESA prompt</li>
+                          <li>Enter your 4-digit M-PESA PIN</li>
+                          <li>Do NOT close this window</li>
+                        </ol>
+                      </div>
+                      <Loader2 className="w-5 h-5 animate-spin text-ag-primary" />
+                    </div>
                   ) : (
                     <>
                       <div className="bg-green-50 border border-green-200 rounded-card p-4">
                         <p className="font-bold text-green-800 text-sm flex items-center gap-2">
                           <Phone className="w-4 h-4" /> M-PESA STK Push
                         </p>
-                        <p className="text-xs text-green-700 mt-1">You'll receive a push notification on your phone to enter your M-PESA PIN.</p>
+                        <p className="text-xs text-green-700 mt-1">You will receive a push notification on your phone to enter your M-PESA PIN.</p>
                       </div>
 
                       <div>
@@ -829,7 +936,7 @@ const BuyerDashboard = () => {
                           <span className="font-bold">KSh {cartTotal.toLocaleString()}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-ag-muted">Logistics ({logistics.pickup} → {logistics.destination})</span>
+                          <span className="text-ag-muted">Logistics ({logistics.pickup} to {logistics.destination})</span>
                           <span className="font-bold">KSh {logisticsFee.toLocaleString()}</span>
                         </div>
                         <div className="border-t border-ag-border mt-2 pt-2 flex justify-between font-extrabold text-base text-ag-body">
@@ -844,15 +951,11 @@ const BuyerDashboard = () => {
                         </button>
                         <button
                           id="buyer-mpesa-pay-btn"
-                          disabled={!phone || mpesaState === 'sending'}
+                          disabled={!phone}
                           onClick={sendMpesa}
-                          className={`btn-pay flex-1 flex items-center justify-center gap-2 ${(!phone || mpesaState === 'sending') ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          className={`btn-pay flex-1 flex items-center justify-center gap-2 ${!phone ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
-                          {mpesaState === 'sending' ? (
-                            <><Loader2 className="w-4 h-4 animate-spin" /> Sending STK Push...</>
-                          ) : (
-                            <> Send M-PESA Request</>
-                          )}
+                          Send M-PESA Request
                         </button>
                       </div>
                     </>

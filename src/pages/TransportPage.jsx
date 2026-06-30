@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import {
   Truck, MapPin, Clock, CheckCircle, AlertTriangle,
   Phone, Star, Navigation, Plus, X, User,
@@ -56,7 +56,7 @@ const TrackingModal = ({ delivery, onClose, onStatusChange }) => {
           setSimRunning(false);
           setSpeed(0);
           setEta(0);
-          setLogs(l => [...l, '🚚 Cargo reached destination. Awaiting recipient confirmation.']);
+          setLogs(l => [...l, ' Cargo reached destination. Awaiting recipient confirmation.']);
           onStatusChange(delivery.id, 'Delivered', 5);
           return 100;
         }
@@ -96,7 +96,7 @@ const TrackingModal = ({ delivery, onClose, onStatusChange }) => {
     setSpeed(12); // traffic speed
     setEta(prev => prev + 25); // extend ETA
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(l => [...l, `[${timestamp}] ⚠️ ALERT: Heavy traffic delay near Limuru toll plaza. Speed reduced to 12km/h. ETA updated.`]);
+    setLogs(l => [...l, `[${timestamp}]  ALERT: Heavy traffic delay near Limuru toll plaza. Speed reduced to 12km/h. ETA updated.`]);
   };
 
   // Handle Cold Chain Anomaly
@@ -104,9 +104,9 @@ const TrackingModal = ({ delivery, onClose, onStatusChange }) => {
     setRouteStatus('Cooling Alert');
     setTemp(22.8); // high temp
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(l => [...l, `[${timestamp}] 🚨 ALARM: Cargo temperature (22.8°C) exceeds safety limit (20°C)! Cooling compressor malfunction detected.`]);
+    setLogs(l => [...l, `[${timestamp}]  ALARM: Cargo temperature (22.8°C) exceeds safety limit (20°C)! Cooling compressor malfunction detected.`]);
     setTimeout(() => {
-      setLogs(l => [...l, `[${timestamp}] 🔧 SYSTEM RESPONSE: Auxiliary compressor deployed. Cooling re-stabilized.`]);
+      setLogs(l => [...l, `[${timestamp}]  SYSTEM RESPONSE: Auxiliary compressor deployed. Cooling re-stabilized.`]);
       setTemp(18.2);
     }, 4500);
   };
@@ -118,7 +118,7 @@ const TrackingModal = ({ delivery, onClose, onStatusChange }) => {
     setEta(0);
     setSimRunning(false);
     const timestamp = new Date().toLocaleTimeString();
-    setLogs(l => [...l, `[${timestamp}] 🟢 Manual override: Shipment arrived at destination. Delivered status saved.`]);
+    setLogs(l => [...l, `[${timestamp}]  Manual override: Shipment arrived at destination. Delivered status saved.`]);
     onStatusChange(delivery.id, 'Delivered', 5);
   };
 
@@ -262,11 +262,11 @@ const TrackingModal = ({ delivery, onClose, onStatusChange }) => {
             <div className="h-24 overflow-y-auto flex flex-col gap-1.5">
               {logs.map((l, idx) => (
                 <p key={idx} className="leading-tight">
-                  {l.includes('🚨') || l.includes('ALARM') ? (
+                  {l.includes('') || l.includes('ALARM') ? (
                     <span className="text-red-400 font-bold">{l}</span>
-                  ) : l.includes('⚠️') ? (
+                  ) : l.includes('') ? (
                     <span className="text-amber-400">{l}</span>
-                  ) : l.includes('🚚') || l.includes('🟢') ? (
+                  ) : l.includes('') || l.includes('') ? (
                     <span className="text-green-400">{l}</span>
                   ) : (
                     <span className="text-slate-400">{l}</span>

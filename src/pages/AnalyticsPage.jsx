@@ -60,6 +60,18 @@ export default function AnalyticsPage() {
   const prevMonth    = REVENUE_DATA[REVENUE_DATA.length - 2];
   const growth       = ((lastMonth.revenue - prevMonth.revenue) / prevMonth.revenue * 100).toFixed(1);
 
+  const handleExport = () => {
+    const headers = 'Month,Revenue (KSh),Orders,Active Farmers\n';
+    const rows = REVENUE_DATA.map(r => `${r.month},${r.revenue},${r.orders},${r.farmers}`).join('\n');
+    const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(headers + rows);
+    const link = document.createElement('a');
+    link.setAttribute('href', csvContent);
+    link.setAttribute('download', 'shambapoint_analytics_report.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex flex-col gap-6 animate-slide-up">
 
@@ -81,7 +93,7 @@ export default function AnalyticsPage() {
               </button>
             ))}
           </div>
-          <button className="btn-ghost !py-2">
+          <button onClick={handleExport} className="btn-ghost !py-2">
             <Download className="w-4 h-4" /> Export
           </button>
         </div>
@@ -90,7 +102,7 @@ export default function AnalyticsPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Revenue', value: `KSh ${(totalRevenue/1000).toFixed(0)}K`, icon: DollarSign, change: `+${growth}%`, up: true, color: 'text-ag-pay', bg: 'bg-green-100' },
+          { label: 'Total Revenue', value: `${(totalRevenue/10000).toFixed(1)}k kshs`, icon: DollarSign, change: `+${growth}%`, up: true, color: 'text-ag-pay', bg: 'bg-green-100' },
           { label: 'Total Orders',  value: totalOrders, icon: ShoppingBag, change: '+18% vs prev', up: true, color: 'text-ag-amber', bg: 'bg-amber-100' },
           { label: 'Active Farmers', value: lastMonth.farmers, icon: Users, change: '+14 this month', up: true, color: 'text-ag-primary', bg: 'bg-ag-primary-fixed' },
           { label: 'Avg Order Value', value: `KSh ${avgOrder.toLocaleString()}`, icon: Package, change: '-2% vs prev', up: false, color: 'text-blue-600', bg: 'bg-blue-100' },

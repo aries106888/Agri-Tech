@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import { Leaf, ArrowRight, TrendingUp, Users, DollarSign } from 'lucide-react';
 
 // ---- Sample product data ----
@@ -92,7 +92,7 @@ const Landing = () => {
               {/* Info */}
               <div className="p-4 flex flex-col flex-1">
                 <div className="flex items-center gap-2 text-ag-muted text-xs mb-1">
-                  <span>📍 {crop.county}</span>
+                  <span> {crop.county}</span>
                 </div>
                 <h3 className="font-bold text-ag-body text-base mb-1">{crop.name}</h3>
                 <p className="text-xs text-ag-muted mb-3">Farmer: {crop.farmer}</p>
