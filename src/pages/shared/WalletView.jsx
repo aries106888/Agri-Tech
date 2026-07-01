@@ -3,7 +3,7 @@ import {
   Wallet, ArrowUpRight, ArrowDownLeft, Send, 
   CheckCircle2, XCircle, Clock, AlertCircle, Phone
 } from 'lucide-react';
-import api from '../services/api';
+import api from '../../services/api';
 
 const MOCK_TXNS = {
   farmer: [

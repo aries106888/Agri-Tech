@@ -2,28 +2,28 @@ import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import TopNavLayout    from './layouts/TopNavLayout';
 import DashboardLayout from './layouts/DashboardLayout';
-import ProtectedRoute  from './components/ProtectedRoute';
+import ProtectedRoute  from './routes/ProtectedRoute';
 
 /* ── Lazy-loaded pages ─────────────────────────────────── */
-const Landing            = lazy(() => import('./pages/Landing'));
-const Login              = lazy(() => import('./pages/Login'));
-const Signup             = lazy(() => import('./pages/Signup'));
-const Market             = lazy(() => import('./pages/Market'));
-const FarmerDashboard    = lazy(() => import('./pages/FarmerDashboard'));
-const BuyerDashboard     = lazy(() => import('./pages/BuyerDashboard'));
-const LogisticsDashboard = lazy(() => import('./pages/LogisticsDashboard'));
-const AdminDashboard     = lazy(() => import('./pages/AdminDashboard'));
+const Landing            = lazy(() => import('./pages/landing/Landing'));
+const Login              = lazy(() => import('./pages/auth/Login'));
+const Signup             = lazy(() => import('./pages/auth/Signup'));
+const Market             = lazy(() => import('./pages/market/Market'));
+const FarmerDashboard    = lazy(() => import('./pages/farmer/Dashboard'));
+const BuyerDashboard     = lazy(() => import('./pages/buyer/Dashboard'));
+const LogisticsDashboard = lazy(() => import('./pages/logistics/Dashboard'));
+const AdminDashboard     = lazy(() => import('./pages/admin/Dashboard'));
 // New pages
-const SmartSecurePay     = lazy(() => import('./pages/SmartSecurePay'));
-const SmartStorage       = lazy(() => import('./pages/SmartStorage'));
-const MessagesPage       = lazy(() => import('./pages/MessagesPage'));
-const WeatherPage        = lazy(() => import('./pages/WeatherPage'));
-const TransportPage      = lazy(() => import('./pages/TransportPage'));
-const CallFarmers        = lazy(() => import('./pages/CallFarmers'));
-const AnalyticsPage      = lazy(() => import('./pages/AnalyticsPage'));
-const ReviewsPage        = lazy(() => import('./pages/ReviewsPage'));
-const HelpCenter         = lazy(() => import('./pages/HelpCenter'));
-const FarmerLogin        = lazy(() => import('./pages/FarmerLogin'));
+const SmartSecurePay     = lazy(() => import('./pages/shared/SmartSecurePay'));
+const SmartStorage       = lazy(() => import('./pages/shared/SmartStorage'));
+const MessagesPage       = lazy(() => import('./pages/shared/MessagesPage'));
+const WeatherPage        = lazy(() => import('./pages/shared/WeatherPage'));
+const TransportPage      = lazy(() => import('./pages/shared/TransportPage'));
+const CallFarmers        = lazy(() => import('./pages/shared/CallFarmers'));
+const AnalyticsPage      = lazy(() => import('./pages/admin/Analytics'));
+const ReviewsPage        = lazy(() => import('./pages/shared/ReviewsPage'));
+const HelpCenter         = lazy(() => import('./pages/shared/HelpCenter'));
+const FarmerLogin        = lazy(() => import('./pages/auth/FarmerLogin'));
 
 /* ── Full-screen loader ────────────────────────────────── */
 const PageLoader = () => (

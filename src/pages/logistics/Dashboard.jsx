@@ -1,7 +1,7 @@
 /* ── ShambaPoint Logistics Dashboard ─────────────────────── */
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import WalletView from '../components/WalletView';
+import WalletView from '../shared/WalletView';
 import {
   Truck, CheckCircle2, Clock, TrendingUp, MapPin, X,
   Navigation, Activity, Thermometer, Droplets, Gauge,

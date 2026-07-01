@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import api from '../services/api';
+import api from '../../services/api';
 import { Link, useLocation } from 'react-router-dom';
-import WalletView from '../components/WalletView';
+import WalletView from '../shared/WalletView';
 import {
   ShoppingBag, Truck, Package, Clock, MapPin, X, CheckCircle, CheckCircle2, XCircle,
   Plus, Heart, ShoppingCart, Minus, Settings, Map, Trash2, Phone,

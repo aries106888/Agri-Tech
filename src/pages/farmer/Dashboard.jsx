@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import WalletView from '../components/WalletView';
+import WalletView from '../shared/WalletView';
 import {
   TrendingUp, Package, Clock, BarChart2, Pencil,
   CheckCircle2, Truck, X, CheckCircle, Settings, Wallet, AlertCircle, Phone

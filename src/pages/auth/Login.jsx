@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, Leaf, CheckCircle } from 'lucide-react';
-import api from '../services/api';
+import api from '../../services/api';
 
 const ROLES = [
   { id: 'farmer',    label: 'Farmer',    redirect: '/farmer/dashboard' },
