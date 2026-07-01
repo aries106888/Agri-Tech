@@ -100,6 +100,43 @@ def make_token(email, role):
     raw = f"{email}:{role}:{int(time.time())}"
     return base64.b64encode(raw.encode()).decode()
 
+def decode_token(token_str):
+    try:
+        if token_str.startswith("Bearer "):
+            token_str = token_str[7:]
+        decoded = base64.b64decode(token_str.encode()).decode()
+        email, role, timestamp = decoded.split(':', 2)
+        return {"email": email, "role": role, "timestamp": int(timestamp)}
+    except Exception:
+        return None
+
+from functools import wraps
+
+def require_role(allowed_roles):
+    if isinstance(allowed_roles, str):
+        allowed_roles = [allowed_roles]
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            auth_header = request.headers.get('Authorization')
+            if not auth_header:
+                return jsonify({"error": "Missing authorization token"}), 401
+            
+            token_info = decode_token(auth_header)
+            if not token_info:
+                return jsonify({"error": "Invalid or expired token"}), 401
+            
+            # Check role
+            user_role = token_info.get('role')
+            if user_role not in allowed_roles:
+                return jsonify({"error": "Forbidden: insufficient permissions"}), 403
+            
+            # Attach user info to request
+            request.user = token_info
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
 def get_mpesa_token():
     """Fetch OAuth access token from Safaricom Daraja."""
     try:
@@ -241,6 +278,9 @@ def register():
     valid_roles = ['farmer', 'buyer', 'logistics', 'admin']
     if data['role'] not in valid_roles:
         return jsonify({"error": f"Invalid role. Must be one of: {', '.join(valid_roles)}"}), 422
+
+    if data['role'] == 'admin':
+        return jsonify({"error": "Registration with admin role is forbidden."}), 403
 
     return jsonify({
         "message": "Registration successful",
@@ -747,6 +787,7 @@ def mpesa_balance():
 
 # ─── ADMIN: View All Logged Transactions ──────────────────────────────────────
 @app.route('/api/payments/mpesa/transactions', methods=['GET'])
+@require_role('admin')
 def get_transactions():
     """
     Return all logged M-Pesa transactions (STK Push + B2C callbacks).
@@ -768,6 +809,7 @@ def get_transactions():
 
 # ─── M-Pesa Token Health Check ────────────────────────────────────────────────
 @app.route('/api/payments/mpesa/token', methods=['GET'])
+@require_role('admin')
 def mpesa_token_check():
     """
     Verify M-Pesa credentials are working by fetching a token.

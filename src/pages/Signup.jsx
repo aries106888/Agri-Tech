@@ -1,6 +1,6 @@
-﻿import { useState, Fragment } from 'react';
+import { useState, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, ShieldCheck, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 
 const COUNTIES = ['Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Kiambu','Machakos','Nyeri','Meru','Uasin Gishu','Kajiado','Nyandarua','Kericho','Bomet','Kakamega'];
@@ -10,7 +10,6 @@ const ROLES = [
   { id: 'farmer',    icon: Tractor,    label: 'Farmer',    desc: 'List and sell your crops directly to verified buyers.' },
   { id: 'buyer',     icon: Briefcase,  label: 'Buyer',     desc: 'Source fresh produce directly from verified farms.' },
   { id: 'logistics', icon: Truck,      label: 'Logistics', desc: 'Deliver produce from farms to buyers reliably.' },
-  { id: 'admin',     icon: ShieldCheck,label: 'Admin',     desc: 'Manage the platform, users, and listings.' },
 ];
 
 const STEPS = ['Your Role', 'Your Details', 'Verify'];

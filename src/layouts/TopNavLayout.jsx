@@ -1,10 +1,34 @@
 import { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Leaf, Menu, X } from 'lucide-react';
 
 const TopNavLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const [clickCount, setClickCount] = useState(0);
+  const [clickTimeout, setClickTimeout] = useState(null);
+
+  const handleLogoClick = (e) => {
+    e.preventDefault();
+    if (clickTimeout) {
+      clearTimeout(clickTimeout);
+    }
+    const nextCount = clickCount + 1;
+    if (nextCount >= 5) {
+      setClickCount(0);
+      setClickTimeout(null);
+      navigate('/admin/login');
+    } else {
+      setClickCount(nextCount);
+      const timeout = setTimeout(() => {
+        setClickCount(0);
+        navigate('/');
+      }, 400);
+      setClickTimeout(timeout);
+    }
+  };
 
   const navLinks = [
     { label: 'Home', path: '/' },
@@ -19,7 +43,7 @@ const TopNavLayout = () => {
       <header className="bg-ag-primary sticky top-0 z-50 shadow-sm">
         <div className="max-w-desktop mx-auto px-12 h-16 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 text-white font-extrabold text-xl tracking-tight">
+          <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2 text-white font-extrabold text-xl tracking-tight">
             <Leaf className="w-6 h-6 text-ag-primary-fixed" />
             ShambaPoint
           </Link>

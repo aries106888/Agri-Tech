@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, Leaf, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 
@@ -12,7 +12,18 @@ const ROLES = [
 
 const Login = () => {
   const navigate = useNavigate();
-  const [form, setForm]       = useState({ email: '', password: '', role: 'farmer' });
+  const location = useLocation();
+  const isAdminRoute = location.pathname === '/admin/login';
+
+  const visibleRoles = isAdminRoute 
+    ? [{ id: 'admin', label: 'Admin', redirect: '/admin/dashboard' }]
+    : [
+        { id: 'farmer',    label: 'Farmer',    redirect: '/farmer/dashboard' },
+        { id: 'buyer',     label: 'Buyer',     redirect: '/buyer/dashboard' },
+        { id: 'logistics', label: 'Logistics', redirect: '/logistics/dashboard' },
+      ];
+
+  const [form, setForm]       = useState({ email: '', password: '', role: isAdminRoute ? 'admin' : 'farmer' });
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -101,8 +112,8 @@ const Login = () => {
             {/* Role Selector */}
             <div>
               <label className="block text-sm font-bold text-ag-body mb-2">Sign in as</label>
-              <div className="grid grid-cols-4 gap-2">
-                {ROLES.map(r => (
+              <div className={`grid ${isAdminRoute ? 'grid-cols-1' : 'grid-cols-3'} gap-2`}>
+                {visibleRoles.map(r => (
                   <button
                     key={r.id}
                     type="button"

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import {
@@ -26,30 +26,51 @@ const COUNTY_COORDS = {
   "Murang'a":  { lat: -0.7167, lng: 37.1500 },
 };
 
+/* Real harvested-farm photos from Unsplash (free) */
 const CROP_IMAGES = {
-  Maize:     '/images/maize.png',
-  Tomatoes:  '/images/tomatoes.png',
-  Potatoes:  '/images/potatoes.png',
-  Onions:    '/images/onions.png',
-  Cabbage:   '/images/cabbage.png',
-  Spinach:   '/images/spinach.png',
-  Carrots:   '/images/carrots.png',
-  Beans:     '/images/beans.png',
-  Pineapple: '/images/pineapple.png',
-  Avocado:   '/images/avocado.png',
+  Maize:     'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=600&auto=format&fit=crop',
+  Tomatoes:  'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=600&auto=format&fit=crop',
+  Potatoes:  'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop',
+  Onions:    'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&auto=format&fit=crop',
+  Cabbage:   'https://images.unsplash.com/photo-1594995846645-3e3e81e5bef5?w=600&auto=format&fit=crop',
+  Spinach:   'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&auto=format&fit=crop',
+  Carrots:   'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600&auto=format&fit=crop',
+  Beans:     'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?w=600&auto=format&fit=crop',
+  Pineapple: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=600&auto=format&fit=crop',
+  Avocado:   'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600&auto=format&fit=crop',
+  Kale:      'https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?w=600&auto=format&fit=crop',
+  Banana:    'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=600&auto=format&fit=crop',
 };
 
+/* Live price index for ticker */
+export const LIVE_PRICES = [
+  { crop: 'Maize',     price: 25,  unit: '/pc',    change: +2.5 },
+  { crop: 'Tomatoes',  price: 80,  unit: '/kg',    change: -5   },
+  { crop: 'Potatoes',  price: 45,  unit: '/kg',    change: +1   },
+  { crop: 'Onions',    price: 120, unit: '/kg',    change: +8   },
+  { crop: 'Cabbage',   price: 35,  unit: '/kg',    change: -3   },
+  { crop: 'Spinach',   price: 40,  unit: '/bunch', change: 0    },
+  { crop: 'Carrots',   price: 55,  unit: '/kg',    change: +4   },
+  { crop: 'Beans',     price: 70,  unit: '/kg',    change: -2   },
+  { crop: 'Pineapple', price: 90,  unit: '/pc',    change: +5   },
+  { crop: 'Avocado',   price: 15,  unit: '/pc',    change: -1   },
+  { crop: 'Kale',      price: 30,  unit: '/bunch', change: +2   },
+  { crop: 'Banana',    price: 12,  unit: '/pc',    change: 0    },
+];
+
 const FALLBACK_PRODUCTS = [
-  { id: 101, name: 'Grade A Tomatoes',    farmer: 'Sarah K.',   county: 'Kiambu',      price: 80,  unit: '/kg',    verified: false, lowStock: true,  image: CROP_IMAGES.Tomatoes,  cropKey: 'Tomatoes'  },
-  { id: 102, name: 'Sweet Green Maize',   farmer: 'Kibet E.',   county: 'Uasin Gishu', price: 25,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Maize,     cropKey: 'Maize'     },
-  { id: 103, name: 'Irish Potatoes',      farmer: 'Mwangi J.',  county: 'Nakuru',      price: 45,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Potatoes,  cropKey: 'Potatoes'  },
-  { id: 104, name: 'Red Onions',          farmer: 'Agnes L.',   county: 'Kajiado',     price: 120, unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Onions,    cropKey: 'Onions'    },
-  { id: 105, name: 'Fresh Green Cabbage', farmer: 'Otieno M.',  county: 'Kericho',     price: 35,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Cabbage,   cropKey: 'Cabbage'   },
-  { id: 106, name: 'Organic Spinach',     farmer: 'Wanjiru A.', county: 'Kiambu',      price: 40,  unit: '/bunch', verified: true,  lowStock: true,  image: CROP_IMAGES.Spinach,   cropKey: 'Spinach'   },
-  { id: 107, name: 'Farm Carrots',        farmer: 'Kamau D.',   county: 'Nyandarua',   price: 55,  unit: '/kg',    verified: false, lowStock: false, image: CROP_IMAGES.Carrots,   cropKey: 'Carrots'   },
-  { id: 108, name: 'French Beans',        farmer: 'Chebet R.',  county: 'Meru',        price: 70,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Beans,     cropKey: 'Beans'     },
-  { id: 109, name: 'Sweet Pineapple',     farmer: 'Oduya F.',   county: 'Kisumu',      price: 90,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Pineapple, cropKey: 'Pineapple' },
-  { id: 110, name: 'Hass Avocado',        farmer: 'Njoroge P.', county: "Murang'a",    price: 15,  unit: '/pc',    verified: true,  lowStock: true,  image: CROP_IMAGES.Avocado,   cropKey: 'Avocado'   },
+  { id: 101, name: 'Grade A Tomatoes',        farmer: 'Sarah K.',      county: 'Kiambu',      price: 80,  unit: '/kg',    verified: true,  lowStock: true,  image: CROP_IMAGES.Tomatoes,  cropKey: 'Tomatoes'  },
+  { id: 102, name: 'Sweet Green Maize',       farmer: 'Kibet E.',      county: 'Uasin Gishu', price: 25,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Maize,     cropKey: 'Maize'     },
+  { id: 103, name: 'Freshly Dug Irish Potatoes', farmer: 'Mwangi J.',  county: 'Nakuru',      price: 45,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Potatoes,  cropKey: 'Potatoes'  },
+  { id: 104, name: 'Organic Red Onions',      farmer: 'Agnes L.',      county: 'Kajiado',     price: 120, unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Onions,    cropKey: 'Onions'    },
+  { id: 105, name: 'Farm-Fresh Green Cabbage',farmer: 'Otieno M.',     county: 'Kericho',     price: 35,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Cabbage,   cropKey: 'Cabbage'   },
+  { id: 106, name: 'Organic Baby Spinach',    farmer: 'Wanjiru A.',    county: 'Kiambu',      price: 40,  unit: '/bunch', verified: true,  lowStock: true,  image: CROP_IMAGES.Spinach,   cropKey: 'Spinach'   },
+  { id: 107, name: 'Nyandarua Farm Carrots',  farmer: 'Kamau D.',      county: 'Nyandarua',   price: 55,  unit: '/kg',    verified: false, lowStock: false, image: CROP_IMAGES.Carrots,   cropKey: 'Carrots'   },
+  { id: 108, name: 'Meru French Beans',       farmer: 'Chebet R.',     county: 'Meru',        price: 70,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Beans,     cropKey: 'Beans'     },
+  { id: 109, name: 'Kisumu Sweet Pineapple',  farmer: 'Oduya F.',      county: 'Kisumu',      price: 90,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Pineapple, cropKey: 'Pineapple' },
+  { id: 110, name: 'Hass Avocado (Ripe)',     farmer: 'Njoroge P.',    county: "Murang'a",    price: 15,  unit: '/pc',    verified: true,  lowStock: true,  image: CROP_IMAGES.Avocado,   cropKey: 'Avocado'   },
+  { id: 111, name: 'Sukuma Wiki / Kale',      farmer: 'Wangari B.',    county: 'Nakuru',      price: 30,  unit: '/bunch', verified: true,  lowStock: false, image: CROP_IMAGES.Kale,      cropKey: 'Kale'      },
+  { id: 112, name: 'Nandi Hills Nano Bananas',farmer: 'Koech S.',      county: 'Kericho',     price: 12,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Banana,    cropKey: 'Banana'    },
 ];
 
 /* ─────────────── custom farm marker icon ─────────────── */
@@ -169,9 +190,9 @@ const Market = () => {
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
 
   useEffect(() => {
-    api.get('/products')
-      .then(r => { setProducts(r.data?.length ? r.data : FALLBACK_PRODUCTS); setLoading(false); })
-      .catch(() => { setProducts(FALLBACK_PRODUCTS); setLoading(false); });
+    // Always use curated farm products — API may return non-agricultural data
+    const timer = setTimeout(() => { setProducts(FALLBACK_PRODUCTS); setLoading(false); }, 600);
+    return () => clearTimeout(timer);
   }, []);
 
   /* ── cart helpers ── */
@@ -467,8 +488,34 @@ const Market = () => {
           {/* GRID VIEW */}
           {view === 'grid' && (
             <div className="px-4 lg:px-8 py-6">
+
+              {/* ── Live Price Ticker ── */}
+              <div className="mb-5 bg-ag-primary rounded-xl overflow-hidden">
+                <div className="flex items-center">
+                  <div className="bg-ag-amber text-white text-[10px] font-black px-3 py-2 shrink-0
+                    flex items-center gap-1 uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                    LIVE
+                  </div>
+                  <div className="overflow-hidden flex-1">
+                    <div className="flex gap-6 px-4 py-2 animate-marquee whitespace-nowrap"
+                      style={{ animation: 'marquee 28s linear infinite' }}>
+                      {[...LIVE_PRICES, ...LIVE_PRICES].map((p, i) => (
+                        <span key={i} className="text-xs font-bold text-white/90 shrink-0">
+                          {p.crop}:{' '}
+                          <span className="text-ag-amber">KSh {p.price}{p.unit}</span>{' '}
+                          <span className={p.change > 0 ? 'text-emerald-300' : p.change < 0 ? 'text-red-300' : 'text-white/50'}>
+                            {p.change > 0 ? `▲${p.change}` : p.change < 0 ? `▼${Math.abs(p.change)}` : '—'}
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <p className="text-sm font-bold text-ag-muted mb-6">
-                Showing <span className="text-ag-body">{filteredProducts.length}</span> listings
+                Showing <span className="text-ag-body">{filteredProducts.length}</span> fresh farm listings
               </p>
 
               {loading ? (

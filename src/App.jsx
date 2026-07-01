@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import TopNavLayout    from './layouts/TopNavLayout';
 import DashboardLayout from './layouts/DashboardLayout';
+import ProtectedRoute  from './components/ProtectedRoute';
 
 /* ── Lazy-loaded pages ─────────────────────────────────── */
 const Landing            = lazy(() => import('./pages/Landing'));
@@ -22,6 +23,7 @@ const CallFarmers        = lazy(() => import('./pages/CallFarmers'));
 const AnalyticsPage      = lazy(() => import('./pages/AnalyticsPage'));
 const ReviewsPage        = lazy(() => import('./pages/ReviewsPage'));
 const HelpCenter         = lazy(() => import('./pages/HelpCenter'));
+const FarmerLogin        = lazy(() => import('./pages/FarmerLogin'));
 
 /* ── Full-screen loader ────────────────────────────────── */
 const PageLoader = () => (
@@ -57,7 +59,6 @@ const dashRoutes = (role, DashComp) => {
       <Route path="messages"     element={<MessagesPage />} />
       <Route path="weather"      element={<WeatherPage />} />
       <Route path="transport"    element={<TransportPage />} />
-      <Route path="analytics"    element={<AnalyticsPage />} />
       <Route path="reviews"      element={<ReviewsPage />} />
       <Route path="help"         element={<HelpCenter />} />
       <Route path="*"            element={<Navigate to={`${base}/dashboard`} replace />} />
@@ -77,33 +78,43 @@ function App() {
             <Route path="signup" element={<Signup />} />
             <Route path="market" element={<Market />} />
             <Route path="call-farmers" element={<CallFarmers />} />
+            <Route path="farmer/login" element={<FarmerLogin />} />
+            <Route path="admin/login"  element={<Login />} />
           </Route>
 
           {/* ── Farmer ── */}
-          {dashRoutes('farmer', FarmerDashboard)}
+          <Route element={<ProtectedRoute allowedRoles={['farmer']} />}>
+            {dashRoutes('farmer', FarmerDashboard)}
+          </Route>
 
           {/* ── Buyer ── */}
-          {dashRoutes('buyer', BuyerDashboard)}
+          <Route element={<ProtectedRoute allowedRoles={['buyer']} />}>
+            {dashRoutes('buyer', BuyerDashboard)}
+          </Route>
 
           {/* ── Logistics ── */}
-          {dashRoutes('logistics', LogisticsDashboard)}
+          <Route element={<ProtectedRoute allowedRoles={['logistics']} />}>
+            {dashRoutes('logistics', LogisticsDashboard)}
+          </Route>
 
           {/* ── Admin ── */}
-          <Route path="admin" element={<DashboardLayout role="admin" />}>
-            <Route path="dashboard"    element={<AdminDashboard />} />
-            <Route path="users"        element={<AdminDashboard />} />
-            <Route path="listings"     element={<AdminDashboard />} />
-            <Route path="orders"       element={<AdminDashboard />} />
-            <Route path="moderation"   element={<AdminDashboard />} />
-            <Route path="settings"     element={<AdminDashboard />} />
-            <Route path="panel"        element={<AdminDashboard />} />
-            <Route path="securepay"    element={<SmartSecurePay />} />
-            <Route path="storage"      element={<SmartStorage />} />
-            <Route path="transport"    element={<TransportPage />} />
-            <Route path="analytics"    element={<AnalyticsPage />} />
-            <Route path="reviews"      element={<AdminDashboard />} />
-            <Route path="reports"      element={<AnalyticsPage />} />
-            <Route path="*"            element={<Navigate to="/admin/dashboard" replace />} />
+          <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+            <Route path="admin" element={<DashboardLayout role="admin" />}>
+              <Route path="dashboard"    element={<AdminDashboard />} />
+              <Route path="users"        element={<AdminDashboard />} />
+              <Route path="listings"     element={<AdminDashboard />} />
+              <Route path="orders"       element={<AdminDashboard />} />
+              <Route path="moderation"   element={<AdminDashboard />} />
+              <Route path="settings"     element={<AdminDashboard />} />
+              <Route path="panel"        element={<AdminDashboard />} />
+              <Route path="securepay"    element={<SmartSecurePay />} />
+              <Route path="storage"      element={<SmartStorage />} />
+              <Route path="transport"    element={<TransportPage />} />
+              <Route path="analytics"    element={<AnalyticsPage />} />
+              <Route path="reviews"      element={<AdminDashboard />} />
+              <Route path="reports"      element={<AnalyticsPage />} />
+              <Route path="*"            element={<Navigate to="/admin/dashboard" replace />} />
+            </Route>
           </Route>
 
           {/* ── Catch-all ── */}

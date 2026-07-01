@@ -237,3 +237,9 @@
 
 /* ── RECHARTS TOOLTIP FIX ──────────────────────────────── */
 .recharts-tooltip-wrapper { outline: none !important; }
+
+/* ── MARQUEE (live price ticker) ───────────────────────── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
