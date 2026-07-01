@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import {
   Users, ListOrdered, ShoppingBag, TrendingUp, CheckCircle2, X, Truck,
@@ -255,10 +255,46 @@ const AdminDashboard = () => {
   });
 
   const stats = [
-    { icon: TrendingUp,  label: 'Total Volume (30d)',  value: 'KES 4.2M',                color: 'text-ag-pay' },
-    { icon: Users,       label: 'Registered Users',    value: users.length + 1240,        color: 'text-ag-primary' },
-    { icon: ListOrdered, label: 'Pending Listings',    value: listings.length,            color: 'text-ag-amber' },
-    { icon: ShoppingBag, label: 'Orders This Month',   value: orders.length + 889,        color: 'text-blue-600' },
+    {
+      icon: TrendingUp,
+      label: 'Total Volume (30d)',
+      value: 'KES 4.2M',
+      trend: '+12.4%',
+      trendUp: true,
+      color: 'text-emerald-600',
+      bgColor: 'bg-emerald-50',
+      gradient: 'from-emerald-500/10 to-teal-500/5'
+    },
+    {
+      icon: Users,
+      label: 'Registered Users',
+      value: (users.length + 1240).toLocaleString(),
+      trend: '+8.3%',
+      trendUp: true,
+      color: 'text-blue-600',
+      bgColor: 'bg-blue-50',
+      gradient: 'from-blue-500/10 to-indigo-500/5'
+    },
+    {
+      icon: ListOrdered,
+      label: 'Pending Listings',
+      value: listings.length,
+      trend: '-14.2%',
+      trendUp: false,
+      color: 'text-amber-600',
+      bgColor: 'bg-amber-50',
+      gradient: 'from-amber-500/10 to-orange-500/5'
+    },
+    {
+      icon: ShoppingBag,
+      label: 'Orders This Month',
+      value: (orders.length + 889).toLocaleString(),
+      trend: '+4.7%',
+      trendUp: true,
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-50',
+      gradient: 'from-indigo-500/10 to-purple-500/5'
+    },
   ];
 
   return (
@@ -271,47 +307,73 @@ const AdminDashboard = () => {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {stats.map(({ icon: Icon, label, value, color }) => (
-          <div key={label} className="ag-card flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-widest text-ag-muted">{label}</span>
-              <div className="w-9 h-9 bg-ag-surface rounded-btn flex items-center justify-center">
-                <Icon className={`w-4 h-4 ${color}`} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+        {stats.map(({ icon: Icon, label, value, trend, trendUp, color, bgColor, gradient }) => (
+          <div
+            key={label}
+            className="relative overflow-hidden bg-white border border-gray-100 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+          >
+            {/* Soft decorative background gradient block */}
+            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${gradient} rounded-bl-full opacity-50 pointer-events-none`} />
+
+            <div className="flex items-start justify-between relative z-10">
+              <div className="space-y-1">
+                <span className="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider">{label}</span>
+                <p className="text-2xl font-black text-gray-900 tracking-tight">{value}</p>
+              </div>
+              <div className={`w-11 h-11 ${bgColor} rounded-xl flex items-center justify-center shadow-inner`}>
+                <Icon className={`w-5 h-5 ${color}`} />
               </div>
             </div>
-            <p className="text-2xl font-extrabold text-ag-body">{value}</p>
+
+            <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-gray-50 text-xs relative z-10">
+              <span className={`font-extrabold px-1.5 py-0.5 rounded-md ${trendUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                {trend}
+              </span>
+              <span className="text-gray-400 font-medium">vs last month</span>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Tab bar */}
-      <div className="bg-white border border-ag-border rounded-card overflow-hidden">
-        <div className="flex border-b border-ag-border overflow-x-auto">
-          {TABS.map(tab => (
-            <Link
-              key={tab.path}
-              to={`/admin/${tab.path}`}
-              className={`px-5 py-4 text-sm font-bold transition-colors whitespace-nowrap flex items-center gap-2 ${
-                currentPath === tab.path
-                  ? 'text-ag-primary border-b-2 border-ag-primary bg-ag-primary-fixed/30'
-                  : 'text-ag-muted hover:text-ag-body'
-              }`}
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-              {tab.label === 'Listings' && listings.length > 0 && (
-                <span className="bg-ag-amber text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{listings.length}</span>
-              )}
-              {tab.label === 'Users' && users.filter(u=>u.status==='pending_kyc').length > 0 && (
-                <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{users.filter(u=>u.status==='pending_kyc').length}</span>
-              )}
-              {tab.label === 'Reviews' && flagCount > 0 && (
-                <span className="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{flagCount}</span>
-              )}
-            </Link>
-          ))}
+      <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden p-2">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+          {TABS.map(tab => {
+            const isActive = currentPath === tab.path;
+            return (
+              <Link
+                key={tab.path}
+                to={`/admin/${tab.path}`}
+                className={`px-5 py-3 text-sm font-extrabold rounded-xl transition-all duration-200 whitespace-nowrap flex items-center gap-2.5 ${
+                  isActive
+                    ? 'bg-ag-primary text-white shadow-md shadow-ag-primary/20 scale-100'
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                }`}
+              >
+                <tab.icon className={`w-4.5 h-4.5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                <span>{tab.label}</span>
+                
+                {tab.label === 'Listings' && listings.length > 0 && (
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-white text-ag-primary' : 'bg-amber-100 text-amber-700 animate-pulse'}`}>
+                    {listings.length}
+                  </span>
+                )}
+                {tab.label === 'Users' && users.filter(u=>u.status==='pending_kyc').length > 0 && (
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-white text-ag-primary' : 'bg-rose-100 text-rose-600 animate-pulse'}`}>
+                    {users.filter(u=>u.status==='pending_kyc').length}
+                  </span>
+                )}
+                {tab.label === 'Reviews' && flagCount > 0 && (
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-white text-ag-primary' : 'bg-rose-100 text-rose-600'}`}>
+                    {flagCount}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
+      </div>
 
         {/* ── TAB: Overview ── */}
         {currentPath === 'dashboard' && (
@@ -733,7 +795,7 @@ const AdminDashboard = () => {
             </div>
           </div>
         )}
-      </div>
+
 
       {/* ── MODAL: User Profile ── */}
       {modal === 'user' && selected && (
