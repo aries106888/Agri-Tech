@@ -10,7 +10,7 @@ import api from '../../services/api';
 
 /* ─────────────────────────── constants ─────────────────────────── */
 const COUNTIES = ['Nairobi','Kiambu','Nakuru','Meru','Uasin Gishu','Kajiado','Nyandarua','Kericho','Kakamega','Kisumu'];
-const CROP_TYPES = ['Maize','Tomatoes','Potatoes','Onions','Cabbage','Spinach','Carrots','Beans','Pineapple','Avocado'];
+const CROP_TYPES = ['Maize','Tomatoes','Potatoes','Onions','Cabbage','Spinach','Carrots','Beans','Pineapple','Avocado','Banana','Apple','Mango','Orange'];
 
 const COUNTY_COORDS = {
   Nairobi:     { lat: -1.2864, lng: 36.8172 },
@@ -26,20 +26,23 @@ const COUNTY_COORDS = {
   "Murang'a":  { lat: -0.7167, lng: 37.1500 },
 };
 
-/* Real harvested-farm photos from Unsplash (free) */
+/* Curated local high quality images */
 const CROP_IMAGES = {
-  Maize:     'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=600&auto=format&fit=crop',
-  Tomatoes:  'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=600&auto=format&fit=crop',
-  Potatoes:  'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop',
-  Onions:    'https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&auto=format&fit=crop',
-  Cabbage:   'https://images.unsplash.com/photo-1594995846645-3e3e81e5bef5?w=600&auto=format&fit=crop',
-  Spinach:   'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&auto=format&fit=crop',
-  Carrots:   'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600&auto=format&fit=crop',
-  Beans:     'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?w=600&auto=format&fit=crop',
-  Pineapple: 'https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=600&auto=format&fit=crop',
-  Avocado:   'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600&auto=format&fit=crop',
-  Kale:      'https://images.unsplash.com/photo-1524179091875-bf99a9a6af57?w=600&auto=format&fit=crop',
-  Banana:    'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=600&auto=format&fit=crop',
+  Maize:     '/images/maize.png',
+  Tomatoes:  '/images/tomatoes.png',
+  Potatoes:  '/images/potatoes.png',
+  Onions:    '/images/onions.png',
+  Cabbage:   '/images/cabbage.png',
+  Spinach:   '/images/spinach.png',
+  Carrots:   '/images/carrots.png',
+  Beans:     '/images/beans.png',
+  Pineapple: '/images/pineapple.png',
+  Avocado:   '/images/avocado.png',
+  Kale:      '/images/spinach.png',
+  Banana:    '/images/banana.png',
+  Apple:     '/images/apple.png',
+  Mango:     '/images/mango.png',
+  Orange:    '/images/orange.png',
 };
 
 /* Live price index for ticker */
@@ -56,6 +59,9 @@ export const LIVE_PRICES = [
   { crop: 'Avocado',   price: 15,  unit: '/pc',    change: -1   },
   { crop: 'Kale',      price: 30,  unit: '/bunch', change: +2   },
   { crop: 'Banana',    price: 12,  unit: '/pc',    change: 0    },
+  { crop: 'Apple',     price: 150, unit: '/kg',    change: +5   },
+  { crop: 'Mango',     price: 40,  unit: '/pc',    change: -2   },
+  { crop: 'Orange',    price: 90,  unit: '/kg',    change: +1   },
 ];
 
 const FALLBACK_PRODUCTS = [
@@ -71,6 +77,9 @@ const FALLBACK_PRODUCTS = [
   { id: 110, name: 'Hass Avocado (Ripe)',     farmer: 'Njoroge P.',    county: "Murang'a",    price: 15,  unit: '/pc',    verified: true,  lowStock: true,  image: CROP_IMAGES.Avocado,   cropKey: 'Avocado'   },
   { id: 111, name: 'Sukuma Wiki / Kale',      farmer: 'Wangari B.',    county: 'Nakuru',      price: 30,  unit: '/bunch', verified: true,  lowStock: false, image: CROP_IMAGES.Kale,      cropKey: 'Kale'      },
   { id: 112, name: 'Nandi Hills Nano Bananas',farmer: 'Koech S.',      county: 'Kericho',     price: 12,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Banana,    cropKey: 'Banana'    },
+  { id: 113, name: 'Crisp Red Apples',        farmer: 'Njoroge P.',    county: 'Nyeri',       price: 150, unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Apple,     cropKey: 'Apple'     },
+  { id: 114, name: 'Sweet Kent Mangoes',      farmer: 'Muthoni K.',    county: 'Meru',        price: 40,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Mango,     cropKey: 'Mango'     },
+  { id: 115, name: 'Juicy Seedless Oranges',  farmer: 'Kariuki J.',    county: 'Machakos',    price: 90,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Orange,    cropKey: 'Orange'    },
 ];
 
 /* ─────────────── custom farm marker icon ─────────────── */
