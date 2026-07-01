@@ -498,31 +498,6 @@ const Market = () => {
           {view === 'grid' && (
             <div className="px-4 lg:px-8 py-6">
 
-              {/* ── Live Price Ticker ── */}
-              <div className="mb-5 bg-ag-primary rounded-xl overflow-hidden">
-                <div className="flex items-center">
-                  <div className="bg-ag-amber text-white text-[10px] font-black px-3 py-2 shrink-0
-                    flex items-center gap-1 uppercase tracking-wider">
-                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                    LIVE
-                  </div>
-                  <div className="overflow-hidden flex-1">
-                    <div className="flex gap-6 px-4 py-2 animate-marquee whitespace-nowrap"
-                      style={{ animation: 'marquee 28s linear infinite' }}>
-                      {[...LIVE_PRICES, ...LIVE_PRICES].map((p, i) => (
-                        <span key={i} className="text-xs font-bold text-white/90 shrink-0">
-                          {p.crop}:{' '}
-                          <span className="text-ag-amber">KSh {p.price}{p.unit}</span>{' '}
-                          <span className={p.change > 0 ? 'text-emerald-300' : p.change < 0 ? 'text-red-300' : 'text-white/50'}>
-                            {p.change > 0 ? `▲${p.change}` : p.change < 0 ? `▼${Math.abs(p.change)}` : '—'}
-                          </span>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <p className="text-sm font-bold text-ag-muted mb-6">
                 Showing <span className="text-ag-body">{filteredProducts.length}</span> fresh farm listings
               </p>
