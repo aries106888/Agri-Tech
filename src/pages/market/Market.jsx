@@ -7,6 +7,7 @@ import {
   ArrowRight, ArrowLeft, Package, Truck
 } from 'lucide-react';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 /* ─────────────────────────── constants ─────────────────────────── */
 const COUNTIES = ['Nairobi','Kiambu','Nakuru','Meru','Uasin Gishu','Kajiado','Nyandarua','Kericho','Kakamega','Kisumu'];
@@ -159,6 +160,7 @@ const SidebarContent = ({ pendingFilters, setPending, toggleFilter, applyFilters
 
 /* ══════════════════════════ MAIN COMPONENT ══════════════════════════ */
 const Market = () => {
+  const { user, role } = useAuth();
   const [products, setProducts]         = useState([]);
   const [loading, setLoading]           = useState(true);
   const [view, setView]                 = useState('grid'); // 'grid' | 'map'
@@ -174,9 +176,8 @@ const Market = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [logistics, setLogistics]       = useState({ pickup: '', destination: '' });
-  const [phone, setPhone]               = useState(() => {
-    try { return JSON.parse(localStorage.getItem('spUser') || '{}').phone || ''; } catch { return ''; }
-  });
+  // Phone pre-populated from AuthContext — no direct localStorage read needed
+  const [phone, setPhone]               = useState(user?.phone || '');
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
 
   useEffect(() => {
@@ -282,7 +283,16 @@ const Market = () => {
     }, 3500);
   };
 
-  const openCheckout = () => { setCheckoutOpen(true); setCheckoutStep(1); setCartOpen(false); };
+  const openCheckout = () => {
+    // RBAC: only buyers can initiate M-Pesa checkout from the marketplace
+    if (role && role !== 'buyer') {
+      alert('Purchases in the marketplace are for Buyers only. Please log in with your Buyer account, or create one at /signup.');
+      return;
+    }
+    setCheckoutOpen(true);
+    setCheckoutStep(1);
+    setCartOpen(false);
+  };
 
   /* ══════════════════ JSX ══════════════════ */
   return (
