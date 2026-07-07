@@ -45,25 +45,6 @@ const CROP_IMAGES = {
   Orange:    '/images/orange.png',
 };
 
-/* Live price index for ticker */
-export const LIVE_PRICES = [
-  { crop: 'Maize',     price: 25,  unit: '/pc',    change: +2.5 },
-  { crop: 'Tomatoes',  price: 80,  unit: '/kg',    change: -5   },
-  { crop: 'Potatoes',  price: 45,  unit: '/kg',    change: +1   },
-  { crop: 'Onions',    price: 120, unit: '/kg',    change: +8   },
-  { crop: 'Cabbage',   price: 35,  unit: '/kg',    change: -3   },
-  { crop: 'Spinach',   price: 40,  unit: '/bunch', change: 0    },
-  { crop: 'Carrots',   price: 55,  unit: '/kg',    change: +4   },
-  { crop: 'Beans',     price: 70,  unit: '/kg',    change: -2   },
-  { crop: 'Pineapple', price: 90,  unit: '/pc',    change: +5   },
-  { crop: 'Avocado',   price: 15,  unit: '/pc',    change: -1   },
-  { crop: 'Kale',      price: 30,  unit: '/bunch', change: +2   },
-  { crop: 'Banana',    price: 12,  unit: '/pc',    change: 0    },
-  { crop: 'Apple',     price: 150, unit: '/kg',    change: +5   },
-  { crop: 'Mango',     price: 40,  unit: '/pc',    change: -2   },
-  { crop: 'Orange',    price: 90,  unit: '/kg',    change: +1   },
-];
-
 const FALLBACK_PRODUCTS = [
   { id: 101, name: 'Grade A Tomatoes',        farmer: 'Sarah K.',      county: 'Kiambu',      price: 80,  unit: '/kg',    verified: true,  lowStock: true,  image: CROP_IMAGES.Tomatoes,  cropKey: 'Tomatoes'  },
   { id: 102, name: 'Sweet Green Maize',       farmer: 'Kibet E.',      county: 'Uasin Gishu', price: 25,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Maize,     cropKey: 'Maize'     },
@@ -194,7 +175,7 @@ const Market = () => {
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [logistics, setLogistics]       = useState({ pickup: '', destination: '' });
   const [phone, setPhone]               = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user') || '{}').phone || ''; } catch { return ''; }
+    try { return JSON.parse(localStorage.getItem('spUser') || '{}').phone || ''; } catch { return ''; }
   });
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
 

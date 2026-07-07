@@ -183,6 +183,35 @@ export default function HelpCenter() {
         </div>
       </div>
 
+      {/* ── EMERGENCY RAPID RESPONSE ── */}
+      <div className="relative overflow-hidden bg-red-50 border border-red-100 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-red-500/10 to-transparent rounded-bl-full pointer-events-none" />
+        <div className="flex items-start gap-4">
+          <div className="relative w-11 h-11 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+            <span className="w-2 h-2 bg-red-600 rounded-full animate-ping absolute" />
+            <Phone className="w-5 h-5 text-red-600 relative z-10" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Emergency Hotline</span>
+              <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-[11px] text-red-600 font-extrabold">Rapid Response Dispatch</span>
+            </div>
+            <h3 className="font-extrabold text-gray-900 text-sm mt-1">Direct Dispatch, Vehicle Breakdown & Escrow Disputes</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Call immediately for active road accidents, vehicle failures during transit, or SecurePay security alerts.</p>
+          </div>
+        </div>
+        <div className="w-full md:w-auto relative z-10">
+          <a
+            href="tel:+254700999111"
+            className="w-full md:w-auto flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm px-5 py-3 rounded-xl shadow-lg shadow-red-600/10 transition-colors"
+          >
+            <Phone className="w-4 h-4" />
+            Call +254 700 999 111
+          </a>
+        </div>
+      </div>
+
       {/* ── CONTACT CARDS ── */}
       <div>
         <h2 className="font-extrabold text-ag-body mb-4 flex items-center gap-2">

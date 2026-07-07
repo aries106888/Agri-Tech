@@ -1,5 +1,5 @@
-﻿import { Link } from 'react-router-dom';
-import { Leaf, ArrowRight, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, TrendingUp, Users, DollarSign } from 'lucide-react';
 
 // ---- Sample product data ----
 const featuredCrops = [
@@ -111,11 +111,9 @@ const Landing = () => {
       {/* ===== FOOTER ===== */}
       <footer className="bg-ag-primary">
         <div className="max-w-desktop mx-auto px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2 text-white font-extrabold text-lg">
-            <Leaf className="w-5 h-5 text-ag-primary-fixed" />
-            ShambaPoint
+          <div className="flex flex-col gap-2">
+            <p className="text-white/40 text-xs">© {new Date().getFullYear()} ShambaPoint Kenya. All rights reserved.</p>
           </div>
-          <p className="text-white/40 text-xs">© {new Date().getFullYear()} ShambaPoint Kenya. All rights reserved.</p>
         </div>
       </footer>
     </div>

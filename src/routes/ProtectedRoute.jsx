@@ -1,30 +1,24 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const token = localStorage.getItem('token');
-  const storedUser = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('user')) || null;
-    } catch {
-      return null;
-    }
-  })();
+  const { user, role, loading } = useAuth();
+  const location = useLocation();
 
-  if (!token || !storedUser) {
-    // Unauthenticated -> Redirect to login
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return null;
   }
 
-  if (allowedRoles && !allowedRoles.includes(storedUser.role)) {
-    // Authenticated but wrong role -> Redirect to their respective dashboard
-    const roleRedirects = {
-      farmer: '/farmer/dashboard',
-      buyer: '/buyer/dashboard',
-      logistics: '/logistics/dashboard',
-      admin: '/admin/dashboard',
-    };
-    const target = roleRedirects[storedUser.role] || '/';
-    return <Navigate to={target} replace />;
+  if (!user) {
+    // Unauthenticated -> Redirect to correct login page, preserving path
+    const isTryingAdmin = allowedRoles && allowedRoles.includes('admin');
+    const redirectTarget = isTryingAdmin ? '/admin/login' : '/login';
+    return <Navigate to={redirectTarget} state={{ from: location }} replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    // Authenticated but wrong role -> Redirect to Unauthorized page
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // Permitted -> Render children

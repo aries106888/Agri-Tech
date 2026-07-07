@@ -14,24 +14,24 @@ export const registerUser = (payload) =>
 
 /** Persist auth data to localStorage */
 export const persistAuth = ({ token, user }) => {
-  localStorage.setItem('token', token);
-  localStorage.setItem('user', JSON.stringify(user));
+  localStorage.setItem('spToken', token);
+  localStorage.setItem('spUser', JSON.stringify(user));
 };
 
 /** Clear all auth data from localStorage */
 export const clearAuth = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
+  localStorage.removeItem('spToken');
+  localStorage.removeItem('spUser');
 };
 
 /** Returns the currently stored user object or null */
 export const getStoredUser = () => {
   try {
-    return JSON.parse(localStorage.getItem('user')) || null;
+    return JSON.parse(localStorage.getItem('spUser')) || null;
   } catch {
     return null;
   }
 };
 
 /** Returns the currently stored JWT token or null */
-export const getStoredToken = () => localStorage.getItem('token') || null;
+export const getStoredToken = () => localStorage.getItem('spToken') || null;

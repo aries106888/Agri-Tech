@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Leaf, Menu, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const TopNavLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, role } = useAuth();
 
   const [clickCount, setClickCount] = useState(0);
   const [clickTimeout, setClickTimeout] = useState(null);
@@ -33,9 +35,19 @@ const TopNavLayout = () => {
   const navLinks = [
     { label: 'Home', path: '/' },
     { label: 'Marketplace', path: '/market' },
-    { label: 'Login', path: '/login' },
-    { label: 'Sign Up', path: '/signup' },
   ];
+
+  if (user && role) {
+    if (role === 'admin') {
+      navLinks.push({ label: 'Admin Portal', path: '/admin/dashboard' });
+    } else {
+      navLinks.push({ label: 'Dashboard', path: `/${role}/dashboard` });
+    }
+  } else {
+    navLinks.push({ label: 'Login', path: '/login' });
+    navLinks.push({ label: 'Sign Up', path: '/signup' });
+    navLinks.push({ label: 'Admin Portal', path: '/admin/login' });
+  }
 
   return (
     <div className="min-h-screen bg-ag-canvas flex flex-col">

@@ -1,29 +1,22 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const AdminRoute = () => {
-  const token = localStorage.getItem('token');
-  const storedUser = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('user')) || null;
-    } catch {
-      return null;
-    }
-  })();
+  const { user, role, loading } = useAuth();
+  const location = useLocation();
 
-  if (!token || !storedUser) {
-    // Unauthenticated -> Redirect to login
-    return <Navigate to="/login" replace />;
+  if (loading) {
+    return null;
   }
 
-  if (storedUser.role !== 'admin') {
-    // Authenticated but not Admin -> Redirect to their respective dashboard
-    const roleRedirects = {
-      farmer: '/farmer/dashboard',
-      buyer: '/buyer/dashboard',
-      logistics: '/logistics/dashboard',
-    };
-    const target = roleRedirects[storedUser.role] || '/';
-    return <Navigate to={target} replace />;
+  if (!user) {
+    // Unauthenticated -> Redirect to admin login
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
+
+  if (role !== 'admin') {
+    // Authenticated but not Admin -> Redirect to Unauthorized
+    return <Navigate to="/unauthorized" replace />;
   }
 
   // Permitted -> Render children

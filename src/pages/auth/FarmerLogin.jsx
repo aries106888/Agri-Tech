@@ -1,16 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, Leaf, CheckCircle, Tractor, ArrowRight } from 'lucide-react';
-import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
+/**
+ * FarmerLogin — dedicated login portal for farmers.
+ * Auth via Flask POST /api/auth/login with role='farmer'.
+ * If the returned user.role is not 'farmer', the session is cleared
+ * and an inline error is shown — no navigation occurs.
+ */
 const FarmerLogin = () => {
   const navigate = useNavigate();
+  const { signIn, signOut, user, role } = useAuth();
+
   const [form, setForm]       = useState({ email: '', password: '' });
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  // Reactive redirect once AuthContext has a farmer session
+  useEffect(() => {
+    if (user && role) {
+      if (role !== 'farmer') {
+        navigate('/unauthorized', { replace: true });
+        return;
+      }
+      navigate('/farmer/dashboard', { replace: true });
+    }
+  }, [user, role, navigate]);
+
+  const handleChange = (e) =>
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,25 +44,28 @@ const FarmerLogin = () => {
 
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { ...form, role: 'farmer' });
-      const { token, user } = res.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setSuccess(`Welcome back, ${user.name}! Redirecting to Farmer Portal...`);
-      setTimeout(() => navigate('/farmer/dashboard'), 800);
-    } catch (err) {
-      const isExpectedBackendError = err.response && (err.response.status === 400 || err.response.status === 401);
-      
-      if (!isExpectedBackendError) {
-        // local dev / fallback login
-        const user = { name: form.email.split('@')[0], role: 'farmer', email: form.email };
-        localStorage.setItem('token', btoa(form.email + ':farmer'));
-        localStorage.setItem('user', JSON.stringify(user));
-        setSuccess(`Welcome back, ${user.name}! Redirecting to Farmer Portal...`);
-        setTimeout(() => navigate('/farmer/dashboard'), 800);
-      } else {
-        setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+      const { data, error: signInError } = await signIn({
+        email:    form.email,
+        password: form.password,
+        role:     'farmer', // hardcoded — this portal is farmer-only
+      });
+
+      if (signInError) {
+        setError(signInError.message || 'Login failed. Please check your credentials.');
+        return;
       }
+
+      // Validate the server confirmed farmer role
+      if (data?.user?.role !== 'farmer') {
+        signOut();
+        setError('This portal is for farmers only. Please use the correct login page for your role.');
+        return;
+      }
+
+      setSuccess('Welcome back! Redirecting to your Farmer Portal…');
+      // Navigation handled by the useEffect above
+    } catch (err) {
+      setError(err.message || 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -69,7 +92,6 @@ const FarmerLogin = () => {
           <h1 className="text-headline-lg text-ag-body mb-1">Grower Sign In</h1>
           <p className="text-ag-muted text-sm mb-8">Access your products, orders, and earnings</p>
 
-          {/* Success Banner */}
           {success && (
             <div className="flex items-center gap-3 bg-green-50 border border-green-300 rounded-btn px-4 py-3 mb-6">
               <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
@@ -77,7 +99,6 @@ const FarmerLogin = () => {
             </div>
           )}
 
-          {/* Error Banner */}
           {error && (
             <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-btn px-4 py-3 mb-6">
               <AlertCircle className="w-4 h-4 text-ag-error shrink-0" />
@@ -86,12 +107,12 @@ const FarmerLogin = () => {
           )}
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            {/* Email */}
             <div>
               <label className="block text-sm font-bold text-ag-body mb-1.5">Email Address</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ag-outline" />
                 <input
+                  id="farmer-email"
                   name="email"
                   type="email"
                   value={form.email}
@@ -104,12 +125,12 @@ const FarmerLogin = () => {
               </div>
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-bold text-ag-body mb-1.5">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ag-outline" />
                 <input
+                  id="farmer-password"
                   name="password"
                   type="password"
                   value={form.password}
@@ -122,16 +143,15 @@ const FarmerLogin = () => {
               </div>
             </div>
 
-            {/* Submit */}
             <button
+              id="farmer-login-submit-btn"
               type="submit"
               disabled={loading}
-              className={`btn-primary w-full text-base mt-2 flex items-center justify-center gap-2 ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
+              className={`btn-primary w-full text-base mt-2 flex items-center justify-center gap-2
+                ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Verifying Grower Account...' : (
-                <>
-                  Access Farmer Dashboard <ArrowRight className="w-4 h-4" />
-                </>
+              {loading ? 'Verifying Grower Account…' : (
+                <>Access Farmer Dashboard <ArrowRight className="w-4 h-4" /></>
               )}
             </button>
 

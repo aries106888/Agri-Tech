@@ -1,5 +1,14 @@
 /* ── Admin: Orders Tab ───────────────────────────────────── */
-import { chipByStatus } from '../../components/admin/AdminHelpers';
+const chipByStatus = (s) => ({
+  active:      'chip-verified',
+  pending_kyc: 'chip-pending',
+  completed:   'chip-completed',
+  in_transit:  'chip-transit',
+  pending:     'chip-pending',
+  suspended:   'chip-sold-out',
+  available:   'chip-verified',
+  on_trip:     'chip-transit',
+})[s] || 'chip-pending';
 
 const OrdersTab = ({ orders, onUpdateStatus }) => (
   <div className="divide-y divide-ag-border">

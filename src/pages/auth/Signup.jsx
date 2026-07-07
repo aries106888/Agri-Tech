@@ -1,7 +1,7 @@
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, AlertCircle } from 'lucide-react';
-import api from '../../services/api';
+import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, AlertCircle, CheckCircle } from 'lucide-react';
+import { useAuth, ROLE_REDIRECTS } from '../../contexts/AuthContext';
 
 const COUNTIES = ['Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Kiambu','Machakos','Nyeri','Meru','Uasin Gishu','Kajiado','Nyandarua','Kericho','Bomet','Kakamega'];
 const CROP_TYPES = ['Maize','Tomatoes','Potatoes','Onions','Cabbage','Spinach','Carrots','Beans','Pineapple','Avocado'];
@@ -16,11 +16,19 @@ const STEPS = ['Your Role', 'Your Details', 'Verify'];
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { signUp, user, role } = useAuth();
   const [step] = useState(0);
   const [selectedRole, setSelectedRole] = useState('farmer');
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Reactive redirect based on authenticated user state
+  useEffect(() => {
+    if (user && role) {
+      navigate(ROLE_REDIRECTS[role] || '/', { replace: true });
+    }
+  }, [user, role, navigate]);
   const [form, setForm] = useState({ name: '', email: '', phone: '', county: '', cropType: '', businessName: '', password: '', confirmPassword: '', agree: false });
 
   const handleChange = (e) => {
@@ -36,6 +44,10 @@ const Signup = () => {
       setError('Please fill in all required fields.');
       return;
     }
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -46,28 +58,26 @@ const Signup = () => {
     }
     setLoading(true);
     try {
-      const res = await api.post('/auth/register', {
-        name:         form.name,
-        email:        form.email,
-        phone:        form.phone,
-        county:       form.county,
-        password:     form.password,
-        role:         selectedRole,
-        cropType:     form.cropType,
-        businessName: form.businessName,
+      const { error: signUpError } = await signUp({
+        email:    form.email,
+        password: form.password,
+        name:     form.name,
+        phone:    form.phone,
+        county:   form.county,
+        role:     selectedRole,
       });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user',  JSON.stringify(res.data.user));
-      setSuccess('Account created successfully! Taking you to login...');
-      setTimeout(() => navigate('/login'), 1500);
-    } catch (err) {
-      // Fallback: if Flask offline or on GitHub pages (404), still proceed to login
-      if (!err.response || err.response?.status >= 500 || err.response?.status === 404) {
-        setSuccess('Account created! Please log in to continue.');
-        setTimeout(() => navigate('/login'), 1500);
-      } else {
-        setError(err.response?.data?.error || 'Registration failed. Please try again.');
+
+      if (signUpError) {
+        setError(signUpError.message || 'Registration failed. Please try again.');
+        return;
       }
+
+      // Flask auth returns a token immediately on 201 — no email confirmation step.
+      // AuthContext.signUp already called applySession(), so user+role are set.
+      // The useEffect above watching user+role handles the navigation.
+      setSuccess('Account created! Taking you to your dashboard…');
+    } catch (err) {
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -110,8 +120,9 @@ const Signup = () => {
 
         {/* Success Banner */}
         {success && (
-          <div className="flex items-center gap-3 bg-green-50 border border-green-300 rounded-btn px-4 py-3 mb-6">
-            <span className="text-green-600 font-bold text-sm">{success}</span>
+          <div className="flex items-start gap-3 bg-green-50 border border-green-300 rounded-btn px-4 py-3 mb-6">
+            <CheckCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+            <span className="text-green-700 font-bold text-sm">{success}</span>
           </div>
         )}
 

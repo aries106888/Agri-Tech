@@ -40,7 +40,7 @@ const WalletView = ({ role = 'farmer' }) => {
   const [amount, setAmount] = useState('');
   const [phone, setPhone] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('user') || '{}').phone || '';
+      return JSON.parse(localStorage.getItem('spUser') || '{}').phone || '';
     } catch {
       return '';
     }

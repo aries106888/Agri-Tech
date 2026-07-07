@@ -1,19 +1,15 @@
 import axios from 'axios';
 
 /**
- * Centralized Axios instance for all Flask API calls.
- * baseURL '/api' — Vite proxy forwards to http://localhost:5000 in dev.
- *
- * Auth: reads JWT from localStorage key 'spToken' (written by AuthContext).
- * On 401: clears credentials and fires 'shambapoint:signout' so AuthContext
- *         can clear React state reactively — no window.location.href needed.
+ * lib/axios.js — secondary Axios instance (used by legacy dashboard components).
+ * Reads JWT from the same canonical key as services/api.js ('spToken').
+ * Supabase token references have been removed.
  */
-
 const api = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
   timeout: 10000,
-  withCredentials: true, // required for Flask CORS supports_credentials=True
+  withCredentials: true,
 });
 
 // ─── REQUEST: inject JWT ──────────────────────────────────────────────────────
@@ -33,10 +29,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Clear credentials from storage
       localStorage.removeItem('spToken');
       localStorage.removeItem('spUser');
-      // Notify AuthContext to clear React state — ProtectedRoute then redirects
       window.dispatchEvent(new CustomEvent('shambapoint:signout'));
     }
     return Promise.reject(error);

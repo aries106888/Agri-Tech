@@ -1,7 +1,7 @@
 /* ── ShambaPoint — Logistics & Transport Page ─────────────── */
 import { useState } from 'react';
 import {
-  Truck, MapPin, Clock, CheckCircle, AlertTriangle,
+  Truck, MapPin, Clock, CheckCircle,
   Plus, X, Navigation, Target, ChevronRight, Package
 } from 'lucide-react';
 
@@ -128,13 +128,18 @@ export default function TransportPage() {
           { label: 'Delivered',        value: counts.delivered,  icon: CheckCircle,   dot: 'bg-emerald-500' },
           { label: 'Pending',          value: counts.pending,    icon: Clock,         dot: 'bg-amber-400' },
         ].map(({ label, value, icon: Icon, dot }) => (
-          <div key={label} className="bg-white rounded-2xl border border-ag-border p-5 flex flex-col gap-2
+          <div key={label} className="bg-white rounded-2xl border border-ag-border p-5 flex items-center justify-between
             hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2">
-              {dot && <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />}
-              <p className="text-xs font-bold text-ag-muted">{label}</p>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                {dot && <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />}
+                <p className="text-xs font-bold text-ag-muted">{label}</p>
+              </div>
+              <p className="text-4xl font-black text-ag-body">{value}</p>
             </div>
-            <p className="text-4xl font-black text-ag-body">{value}</p>
+            <div className="w-10 h-10 bg-ag-canvas rounded-xl flex items-center justify-center text-ag-primary shrink-0">
+              <Icon className="w-5 h-5" />
+            </div>
           </div>
         ))}
       </div>

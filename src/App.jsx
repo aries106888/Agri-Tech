@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import TopNavLayout    from './layouts/TopNavLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute  from './routes/ProtectedRoute';
+import { useAuth }     from './contexts/AuthContext';
 
 /* ── Lazy-loaded pages ─────────────────────────────────── */
 const Landing            = lazy(() => import('./pages/landing/Landing'));
@@ -24,6 +25,7 @@ const AnalyticsPage      = lazy(() => import('./pages/admin/Analytics'));
 const ReviewsPage        = lazy(() => import('./pages/shared/ReviewsPage'));
 const HelpCenter         = lazy(() => import('./pages/shared/HelpCenter'));
 const FarmerLogin        = lazy(() => import('./pages/auth/FarmerLogin'));
+const Unauthorized       = lazy(() => import('./pages/shared/Unauthorized'));
 
 /* ── Full-screen loader ────────────────────────────────── */
 const PageLoader = () => (
@@ -67,6 +69,12 @@ const dashRoutes = (role, DashComp) => {
 };
 
 function App() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
   return (
     <Router>
       <Suspense fallback={<PageLoader />}>
@@ -116,6 +124,8 @@ function App() {
               <Route path="*"            element={<Navigate to="/admin/dashboard" replace />} />
             </Route>
           </Route>
+
+          <Route path="unauthorized" element={<Unauthorized />} />
 
           {/* ── Catch-all ── */}
           <Route path="*" element={<Navigate to="/" replace />} />

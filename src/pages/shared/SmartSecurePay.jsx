@@ -91,7 +91,7 @@ const FeedbackModal = ({ receiptNo, farmer, crop, amount, onClose, onSubmit }) =
   const handleSubmit = () => {
     setSubmitting(true);
     const payload = { receiptNo, farmer, crop, amount, rating, sentiment, comment, tags, anonymous, submittedAt: new Date().toISOString() };
-    fetch('http://localhost:5000/api/feedback', {
+    fetch('/api/feedback', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     }).catch(() => {}).finally(() => { setSubmitting(false); setStep(3); onSubmit(payload); });
   };

@@ -260,7 +260,7 @@ const BuyerDashboard = () => {
   const [logistics, setLogistics] = useState({ pickup: '', destination: '' });
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [phone, setPhone] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user') || '{}').phone || ''; } catch { return ''; }
+    try { return JSON.parse(localStorage.getItem('spUser') || '{}').phone || ''; } catch { return ''; }
   });
   const [mpesaState, setMpesaState] = useState('idle'); // idle | sending | polling | success | error
   const [mpesaMsg, setMpesaMsg] = useState('');

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import WalletView from '../shared/WalletView';
 import {
   TrendingUp, Package, Clock, BarChart2, Pencil,
@@ -33,6 +33,7 @@ const statusChip = (status) => {
 
 const FarmerDashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname.split('/').pop();
   const [walletBalance, setWalletBalance] = useState(34200);
   const [listings] = useState(INITIAL_LISTINGS);
@@ -217,7 +218,7 @@ const FarmerDashboard = () => {
 
       {/* Wallet quick link for dashboard – navigates to /payments */}
       <div className="ag-card flex items-center justify-between gap-4 cursor-pointer hover:border-ag-primary transition-colors group"
-        onClick={() => window.location.href = `/${location.pathname.split('/')[1]}/payments`}
+        onClick={() => navigate(`/${location.pathname.split('/')[1]}/payments`)}
       >
         <div className="flex items-center gap-4">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background:'linear-gradient(135deg,#16a34a,#15803d)' }}>

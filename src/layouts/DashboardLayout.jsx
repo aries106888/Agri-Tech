@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Leaf, LayoutDashboard, Store, Package, ShoppingBag, Shield, Wallet,
   CreditCard, Truck, Archive, Phone, MessageSquare, CloudSun,
@@ -323,10 +324,8 @@ const DashboardLayout = ({ role = 'farmer' }) => {
   const navItems = ALL_NAV[role] || ALL_NAV.farmer;
   const meta     = ROLE_META[role] || ROLE_META.farmer;
 
-  const storedUser = (() => {
-    try { return JSON.parse(localStorage.getItem('user')) || {}; } catch { return {}; }
-  })();
-  const userName  = storedUser.name || 'James Mwangi';
+  const { signOut, user: authUser } = useAuth();
+  const userName  = authUser?.name || 'Guest';
   const userInit  = userName.slice(0, 2).toUpperCase();
 
   useEffect(() => {
@@ -344,9 +343,8 @@ const DashboardLayout = ({ role = 'farmer' }) => {
   }, [location.pathname]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/');
+    signOut();          // clears spToken + spUser via AuthContext
+    navigate('/login', { replace: true });
   };
 
 

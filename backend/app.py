@@ -37,6 +37,8 @@ Endpoints:
 import os
 import json
 import base64
+import hmac
+import hashlib
 import random
 import string
 import time
@@ -48,11 +50,24 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from dotenv import load_dotenv
 
+# Optional MySQL — install with: pip install PyMySQL
+try:
+    import pymysql
+    MYSQL_AVAILABLE = True
+except ImportError:
+    MYSQL_AVAILABLE = False
+
 # ─── LOAD ENV ─────────────────────────────────────────────────────────────────
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
-CORS(app)
+
+# ─── CORS ────────────────────────────────────────────────────────────────────
+# ALLOWED_ORIGINS env var: comma-separated list of origins, e.g.:
+#   http://localhost:5173,https://shambapoint.co.ke
+_raw_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:5000')
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(',') if o.strip()]
+CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 log = logging.getLogger(__name__)
@@ -68,13 +83,13 @@ CONSUMER_KEY         = os.getenv('MPESA_CONSUMER_KEY', '')
 CONSUMER_SECRET      = os.getenv('MPESA_CONSUMER_SECRET', '')
 SHORTCODE            = os.getenv('MPESA_SHORTCODE', '174379')
 PASSKEY              = os.getenv('MPESA_PASSKEY', '')
-CALLBACK_URL         = os.getenv('MPESA_CALLBACK_URL', 'https://yourdomain.com/api/mpesa/callback')
+CALLBACK_URL         = os.getenv('MPESA_CALLBACK_URL', 'http://127.0.0.1:5000/api/payments/mpesa/callback')
 
 B2C_SHORTCODE        = os.getenv('MPESA_B2C_SHORTCODE', '600000')
 B2C_INITIATOR_NAME   = os.getenv('MPESA_B2C_INITIATOR_NAME', 'testapi')
 B2C_SECURITY_CRED    = os.getenv('MPESA_B2C_SECURITY_CREDENTIAL', '')
-B2C_RESULT_URL       = os.getenv('MPESA_B2C_RESULT_URL', 'https://yourdomain.com/api/mpesa/b2c/result')
-B2C_TIMEOUT_URL      = os.getenv('MPESA_B2C_TIMEOUT_URL', 'https://yourdomain.com/api/mpesa/b2c/timeout')
+B2C_RESULT_URL       = os.getenv('MPESA_B2C_RESULT_URL', 'http://127.0.0.1:5000/api/payments/mpesa/b2c/result')
+B2C_TIMEOUT_URL      = os.getenv('MPESA_B2C_TIMEOUT_URL', 'http://127.0.0.1:5000/api/payments/mpesa/b2c/timeout')
 
 # Daraja base URLs
 if MPESA_ENV == 'production':
@@ -92,47 +107,133 @@ TXN_STATUS_URL   = f'{BASE_URL}/mpesa/transactionstatus/v1/query'
 # In-memory transaction store (replace with DB in production)
 MPESA_TRANSACTIONS = []  # All STK & B2C callbacks logged here
 
+# In-memory stores for new endpoints (replace with DB in production)
+FARMER_PRODUCTS = {}   # farmer_id (str) -> list of product dicts
+BUYER_ORDERS    = {}   # buyer_id (str) -> list of order dicts
+DELIVERIES      = []   # all delivery records
+ADMIN_USERS     = []   # users created by admin
+
+# ─── AUTH / DB CONFIG ─────────────────────────────────────────────────────────────────────
+# Roles allowed through the public /api/auth/register endpoint.
+# Admin accounts MUST be created by an existing Admin via POST /api/admin/users.
+PUBLIC_SIGNUP_ROLES = {'farmer', 'buyer', 'logistics'}
+
+JWT_SECRET  = os.getenv('JWT_SECRET', 'shambapoint-dev-secret-CHANGE-IN-PRODUCTION')
+JWT_EXPIRY  = 60 * 60 * 24 * 7  # 7 days in seconds
+
+DB_HOST     = os.getenv('DB_HOST', '127.0.0.1')
+DB_USER     = os.getenv('DB_USER', 'shambapoint_app')
+DB_PASSWORD = os.getenv('DB_PASSWORD', 'shamba_secure_pass_123!')
+DB_NAME     = os.getenv('DB_NAME', 'shambapoint')
+
+# ─── IN-MEMORY USER STORE (dev only — replace with MySQL in production) ────────
+# key: email (lowercase) -> { id, name, email, phone, role, password_hash, county }
+USERS_DB: dict = {}
+
 # ─── HELPERS ──────────────────────────────────────────────────────────────────
 def random_id(length=8):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
-def make_token(email, role):
-    raw = f"{email}:{role}:{int(time.time())}"
-    return base64.b64encode(raw.encode()).decode()
+# ── HMAC-SHA256 signed token (stdlib only — no PyJWT dependency) ────────────────────
+
+def make_token(user_id, role, name):
+    """
+    Token format: base64url(payload).hmac_sha256_hex
+    Payload: { user_id, role (lowercase), name, exp }
+    """
+    payload = json.dumps({
+        'user_id': user_id,
+        'role':    role,   # always lowercase: 'farmer'|'buyer'|'logistics'|'admin'
+        'name':    name,
+        'exp':     int(time.time()) + JWT_EXPIRY,
+    }, separators=(',', ':')).encode()
+    b64 = base64.urlsafe_b64encode(payload).rstrip(b'=').decode()
+    sig = hmac.new(JWT_SECRET.encode(), b64.encode(), hashlib.sha256).hexdigest()
+    return f"{b64}.{sig}"
+
 
 def decode_token(token_str):
+    """Verify HMAC signature and expiry. Returns payload dict or None."""
     try:
-        if token_str.startswith("Bearer "):
+        if token_str.startswith('Bearer '):
             token_str = token_str[7:]
-        decoded = base64.b64decode(token_str.encode()).decode()
-        email, role, timestamp = decoded.split(':', 2)
-        return {"email": email, "role": role, "timestamp": int(timestamp)}
+        parts = token_str.split('.')
+        if len(parts) != 2:
+            return None
+        b64, sig = parts
+        expected = hmac.new(JWT_SECRET.encode(), b64.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected):
+            return None
+        padding = (4 - len(b64) % 4) % 4
+        payload = json.loads(base64.urlsafe_b64decode(b64 + '=' * padding).decode())
+        if payload.get('exp', 0) < int(time.time()):
+            return None   # expired
+        return payload
     except Exception:
         return None
 
+
+# ── PBKDF2-HMAC-SHA256 password hashing (stdlib only — no bcrypt needed) ────────────
+
+def hash_password(password):
+    salt = os.urandom(16)
+    dk   = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 200_000)
+    return salt.hex() + ':' + dk.hex()
+
+
+def check_password(password, stored_hash):
+    """Constant-time verification."""
+    try:
+        salt_hex, dk_hex = stored_hash.split(':', 1)
+        dk = hashlib.pbkdf2_hmac(
+            'sha256', password.encode('utf-8'), bytes.fromhex(salt_hex), 200_000
+        )
+        return hmac.compare_digest(dk.hex(), dk_hex)
+    except Exception:
+        return False
+
+
+# ── MySQL connection ─────────────────────────────────────────────────────────────────────────
+
+def get_db():
+    """Return a PyMySQL DictCursor connection. Use `with conn:` in callers."""
+    if not MYSQL_AVAILABLE:
+        raise RuntimeError(
+            'PyMySQL not installed. Run: pip install PyMySQL  '
+            'then restart the Flask server.'
+        )
+    return pymysql.connect(
+        host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME,
+        cursorclass=pymysql.cursors.DictCursor,
+        charset='utf8mb4', connect_timeout=5, autocommit=False,
+    )
+
+
 from functools import wraps
 
-def require_role(allowed_roles):
-    if isinstance(allowed_roles, str):
-        allowed_roles = [allowed_roles]
+def require_role(*roles):
+    """
+    Decorator: validates HMAC token and enforces one of the listed roles.
+    Role comparison is case-insensitive.
+    Sets request.current_user = {user_id, role, name} on success.
+    """
+    allowed = {r.lower() for r in roles}
+
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             auth_header = request.headers.get('Authorization')
             if not auth_header:
                 return jsonify({"error": "Missing authorization token"}), 401
-            
+
             token_info = decode_token(auth_header)
             if not token_info:
                 return jsonify({"error": "Invalid or expired token"}), 401
-            
-            # Check role
-            user_role = token_info.get('role')
-            if user_role not in allowed_roles:
+
+            if token_info.get('role', '').lower() not in allowed:
                 return jsonify({"error": "Forbidden: insufficient permissions"}), 403
-            
-            # Attach user info to request
-            request.user = token_info
+
+            request.current_user = token_info
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -275,23 +376,37 @@ def register():
         if not data.get(field):
             return jsonify({"error": f"Missing required field: {field}"}), 422
 
-    valid_roles = ['farmer', 'buyer', 'logistics', 'admin']
-    if data['role'] not in valid_roles:
+    role = data['role'].lower().strip()
+    valid_roles = ['farmer', 'buyer', 'logistics']
+    if role not in valid_roles:
         return jsonify({"error": f"Invalid role. Must be one of: {', '.join(valid_roles)}"}), 422
 
-    if data['role'] == 'admin':
-        return jsonify({"error": "Registration with admin role is forbidden."}), 403
+    # Password strength
+    if len(data['password']) < 8:
+        return jsonify({"error": "Password must be at least 8 characters."}), 422
 
+    email = data['email'].strip().lower()
+    if email in USERS_DB:
+        return jsonify({"error": "An account with this email already exists."}), 409
+
+    uid = random.randint(10000, 99999)
+    user = {
+        "id":            uid,
+        "name":          data['name'].strip(),
+        "email":         email,
+        "phone":         data.get('phone', '').strip(),
+        "role":          role,
+        "county":        data.get('county', '').strip(),
+        "password_hash": hash_password(data['password']),
+    }
+    USERS_DB[email] = user
+    log.info(f"[Auth] New user registered: {email} ({role})")
+
+    public_user = {k: v for k, v in user.items() if k != 'password_hash'}
     return jsonify({
         "message": "Registration successful",
-        "user": {
-            "id":    random.randint(1000, 9999),
-            "name":  data['name'],
-            "email": data['email'],
-            "phone": data['phone'],
-            "role":  data['role'],
-        },
-        "token": make_token(data['email'], data['role'])
+        "user":    public_user,
+        "token":   make_token(str(uid), role, user['name'])
     }), 201
 
 
@@ -301,46 +416,135 @@ def login():
     if not data.get('email') or not data.get('password'):
         return jsonify({"error": "Email and password are required"}), 422
 
+    email = data['email'].strip().lower()
+    role  = data.get('role', 'buyer').lower().strip()
+
+    user = USERS_DB.get(email)
+    if user:
+        # Registered user — verify password hash
+        if not check_password(data['password'], user['password_hash']):
+            log.warning(f"[Auth] Failed login attempt for {email}")
+            return jsonify({"error": "Invalid email or password."}), 401
+        # Confirm the role matches what was registered
+        if user['role'] != role:
+            return jsonify({"error": f"This account is registered as '{user['role']}', not '{role}'."}), 403
+        user_id   = str(user['id'])
+        user_name = user['name']
+        user_role = user['role']
+        public_user = {k: v for k, v in user.items() if k != 'password_hash'}
+    else:
+        # Fallback demo mode: no registered user found — allow dev login with any password
+        # In production, remove this fallback and connect MySQL.
+        log.warning(f"[Auth] Demo login for unregistered user: {email}")
+        user_id   = str(random.randint(10000, 99999))
+        user_name = email.split('@')[0].replace('.', ' ').title()
+        user_role = role
+        public_user = {
+            "id":    user_id,
+            "name":  user_name,
+            "email": email,
+            "role":  user_role,
+        }
+
     role_map = {
         'farmer':    '/farmer/dashboard',
         'buyer':     '/buyer/dashboard',
         'logistics': '/logistics/dashboard',
         'admin':     '/admin/dashboard',
     }
-    role     = data.get('role', 'buyer')
-    redirect = role_map.get(role, '/buyer/dashboard')
-
+    redirect_url = role_map.get(user_role, '/buyer/dashboard')
+    log.info(f"[Auth] Login successful: {email} ({user_role})")
     return jsonify({
         "message":  "Login successful",
-        "token":    make_token(data['email'], role),
-        "user": {
-            "id":    random.randint(1000, 9999),
-            "name":  data['email'].split('@')[0].title(),
-            "email": data['email'],
-            "role":  role,
-        },
-        "redirect": redirect
+        "token":    make_token(user_id, user_role, user_name),
+        "user":     public_user,
+        "redirect": redirect_url
     })
 
 # ─── PRODUCTS ─────────────────────────────────────────────────────────────────
 @app.route('/api/products', methods=['GET'])
 def get_products():
+    farmer_id = request.args.get('farmer_id')
+    if farmer_id:
+        # Return only this farmer's products
+        mine = FARMER_PRODUCTS.get(str(farmer_id), [])
+        return jsonify(mine)
     return jsonify(PRODUCTS)
 
 @app.route('/api/products/<int:product_id>', methods=['GET'])
 def get_product(product_id):
+    # Check global list and all farmer lists
     product = next((p for p in PRODUCTS if p['id'] == product_id), None)
+    if not product:
+        for prods in FARMER_PRODUCTS.values():
+            product = next((p for p in prods if p['id'] == product_id), None)
+            if product:
+                break
     if not product:
         return jsonify({"error": "Product not found"}), 404
     return jsonify(product)
 
+@app.route('/api/products', methods=['POST'])
+@require_role('farmer', 'admin')
+def create_product():
+    """Farmer creates a new product listing."""
+    data = request.get_json() or {}
+    required = ['name', 'price', 'quantity']
+    for field in required:
+        if not data.get(field):
+            return jsonify({"error": f"Missing required field: {field}"}), 422
+
+    farmer_id = str(request.current_user.get('user_id', 0))
+    farmer_name = request.current_user.get('name', 'Farmer')
+    product_id = int(time.time() * 1000) % 1000000  # pseudo-unique id
+    product = {
+        "id":         product_id,
+        "farmer_id":  farmer_id,
+        "farmer":     farmer_name,
+        "name":       data['name'],
+        "price":      str(data['price']),
+        "quantity":   str(data['quantity']),
+        "unit":       data.get('unit', '/kg'),
+        "county":     data.get('county', ''),
+        "status":     data.get('status', 'Available'),
+        "image_url":  data.get('image_url', ''),
+        "verified":   False,
+        "lowStock":   False,
+        "created_at": datetime.utcnow().isoformat() + 'Z',
+    }
+    if farmer_id not in FARMER_PRODUCTS:
+        FARMER_PRODUCTS[farmer_id] = []
+    FARMER_PRODUCTS[farmer_id].append(product)
+    return jsonify({"message": "Product created", "product": product}), 201
+
+@app.route('/api/products/<int:product_id>', methods=['PUT'])
+@require_role('farmer', 'admin')
+def update_product(product_id):
+    """Farmer edits one of their product listings."""
+    data = request.get_json() or {}
+    farmer_id = str(request.current_user.get('user_id', 0))
+    products = FARMER_PRODUCTS.get(farmer_id, [])
+    product = next((p for p in products if p['id'] == product_id), None)
+    if not product:
+        return jsonify({"error": "Product not found or not owned by you"}), 404
+
+    for field in ('name', 'price', 'quantity', 'unit', 'county', 'status', 'image_url'):
+        if field in data:
+            product[field] = str(data[field]) if field in ('price', 'quantity') else data[field]
+    return jsonify({"message": "Product updated", "product": product})
+
 # ─── ORDERS ───────────────────────────────────────────────────────────────────
 @app.route('/api/orders', methods=['GET'])
 def get_orders():
-    return jsonify(ORDERS if ORDERS else [
+    buyer_id = request.args.get('buyer_id')
+    if buyer_id:
+        mine = BUYER_ORDERS.get(str(buyer_id), [])
+        return jsonify(mine)
+    fallback = ORDERS if ORDERS else [
         {"order_id": "A1B2C3D4", "buyer": "John Kamau",   "status": "delivered", "total": 1540},
         {"order_id": "E5F6G7H8", "buyer": "Grace Atieno", "status": "pending",   "total": 860},
-    ])
+    ]
+    return jsonify(fallback)
 
 @app.route('/api/orders', methods=['POST'])
 def create_order():
@@ -348,15 +552,85 @@ def create_order():
     if not data.get('items') or not data.get('buyer_name'):
         return jsonify({"error": "items and buyer_name are required"}), 422
 
+    buyer_id = str(data.get('buyer_id', 'anon'))
     order = {
-        "order_id": random_id(),
-        "buyer":    data['buyer_name'],
-        "items":    data['items'],
-        "status":   "pending",
-        "total":    data.get('total', 0),
+        "order_id":  random_id(),
+        "buyer_id":  buyer_id,
+        "buyer":     data['buyer_name'],
+        "items":     data['items'],
+        "status":    "pending",
+        "total":     data.get('total', 0),
+        "created_at": datetime.utcnow().isoformat() + 'Z',
     }
     ORDERS.append(order)
+    if buyer_id not in BUYER_ORDERS:
+        BUYER_ORDERS[buyer_id] = []
+    BUYER_ORDERS[buyer_id].append(order)
+    # Auto-create a pending delivery record for this order
+    delivery = {
+        "id":              random_id(6),
+        "order_id":        order["order_id"],
+        "driver_id":       None,
+        "status":          "Pending",
+        "tracking_details": None,
+        "buyer":           data['buyer_name'],
+        "items":           data['items'],
+        "total":           data.get('total', 0),
+        "created_at":      datetime.utcnow().isoformat() + 'Z',
+    }
+    DELIVERIES.append(delivery)
     return jsonify({"message": "Order placed successfully", **order}), 201
+
+# ─── DELIVERIES ───────────────────────────────────────────────────────────────
+@app.route('/api/deliveries', methods=['GET'])
+@require_role('logistics', 'admin')
+def get_deliveries():
+    """List deliveries. Optional filters: driver_id, status."""
+    driver_id = request.args.get('driver_id')
+    status    = request.args.get('status')
+
+    result = DELIVERIES
+    if driver_id:
+        result = [d for d in result if str(d.get('driver_id', '')) == str(driver_id)]
+    if status:
+        result = [d for d in result if d.get('status', '').lower() == status.lower()]
+
+    # Return demo data if empty so the Android app always shows something
+    if not result and not driver_id and not status:
+        result = [
+            {"id": "DLV001", "order_id": "A1B2C3D4", "driver_id": None,
+             "status": "Pending",   "buyer": "John Kamau",   "total": 1540,
+             "tracking_details": None, "items": "2x Bananas, 1x Tomatoes",
+             "created_at": datetime.utcnow().isoformat() + 'Z'},
+            {"id": "DLV002", "order_id": "E5F6G7H8", "driver_id": None,
+             "status": "In Transit", "buyer": "Grace Atieno", "total": 860,
+             "tracking_details": "Picked up from Kiambu", "items": "3x Apples",
+             "created_at": datetime.utcnow().isoformat() + 'Z'},
+        ]
+    return jsonify(result)
+
+@app.route('/api/deliveries/<delivery_id>', methods=['PATCH'])
+@require_role('logistics', 'admin')
+def update_delivery(delivery_id):
+    """Logistics driver updates delivery status or assigns themselves."""
+    data = request.get_json() or {}
+    delivery = next((d for d in DELIVERIES if d['id'] == delivery_id), None)
+    if not delivery:
+        return jsonify({"error": "Delivery not found"}), 404
+
+    valid_statuses = {'Pending', 'Picked Up', 'In Transit', 'Delivered'}
+    new_status = data.get('status')
+    if new_status and new_status not in valid_statuses:
+        return jsonify({"error": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"}), 422
+
+    if new_status:
+        delivery['status'] = new_status
+    if 'driver_id' in data:
+        delivery['driver_id'] = data['driver_id']
+    if 'tracking_details' in data:
+        delivery['tracking_details'] = data['tracking_details']
+
+    return jsonify({"message": "Delivery updated", "delivery": delivery})
 
 # ─── LOGISTICS ────────────────────────────────────────────────────────────────
 @app.route('/api/logistics', methods=['GET'])
@@ -384,6 +658,54 @@ def request_logistics():
         "status":         "allocated",
     }), 201
 
+# ─── ADMIN USERS ─────────────────────────────────────────────────────────────
+@app.route('/api/admin/users', methods=['GET'])
+@require_role('admin')
+def admin_list_users():
+    """
+    Return all registered users (from in-memory ADMIN_USERS store).
+    In a full DB integration this would SELECT * FROM users.
+    """
+    all_users = [
+        # Seed demo users so the Admin dashboard always shows something
+        {"id": 1, "name": "Alice Farmer",    "email": "alice@farm.ke",    "phone": "+254712000001", "role": "Farmer",    "county": "Kiambu",   "status": "active"},
+        {"id": 2, "name": "Bob Buyer",       "email": "bob@buy.ke",      "phone": "+254712000002", "role": "Buyer",     "county": "Nairobi",  "status": "active"},
+        {"id": 3, "name": "Carol Driver",    "email": "carol@log.ke",    "phone": "+254712000003", "role": "Logistics", "county": "Nakuru",   "status": "active"},
+    ] + ADMIN_USERS
+    return jsonify({"users": all_users, "total": len(all_users)})
+
+@app.route('/api/admin/users', methods=['POST'])
+@require_role('admin')
+def admin_create_user():
+    """
+    Admin creates a new user (including another Admin).
+    Body: { name, email, phone, password, role }
+    """
+    data = request.get_json() or {}
+    required = ['name', 'email', 'phone', 'password', 'role']
+    for field in required:
+        if not data.get(field):
+            return jsonify({"error": f"Missing required field: {field}"}), 422
+
+    valid_roles = ['Farmer', 'Buyer', 'Logistics', 'Admin']
+    if data['role'] not in valid_roles:
+        return jsonify({"error": f"Invalid role. Must be one of: {', '.join(valid_roles)}"}), 422
+
+    user = {
+        "id":         int(time.time() * 1000) % 1000000,
+        "name":       data['name'],
+        "email":      data['email'],
+        "phone":      data['phone'],
+        "role":       data['role'],
+        "county":     data.get('county', ''),
+        "status":     "active",
+        "created_by": request.current_user.get('user_id'),
+        "created_at": datetime.utcnow().isoformat() + 'Z',
+    }
+    ADMIN_USERS.append(user)
+    token = make_token(user['id'], data['role'].lower(), data['name'])
+    return jsonify({"message": "User created successfully", "user": user, "token": token}), 201
+
 # ─── CART ─────────────────────────────────────────────────────────────────────
 @app.route('/api/cart', methods=['POST'])
 def add_to_cart():
@@ -392,6 +714,43 @@ def add_to_cart():
         return jsonify({"error": "productId is required"}), 422
     return jsonify({"message": "Item added to cart", "productId": data['productId']})
 
+
+# ─── FEEDBACK ─────────────────────────────────────────────────────────────────
+FEEDBACK_STORE = []  # In-memory; replace with DB in production
+
+@app.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    """
+    Accept secure transaction feedback from SmartSecurePay.
+    Body: { receiptNo, farmer, crop, amount, rating, sentiment, comment, tags, anonymous }
+    """
+    data = request.get_json() or {}
+    if not data.get('receiptNo') or not data.get('rating'):
+        return jsonify({"error": "receiptNo and rating are required"}), 422
+
+    # Basic sanitization — strip strings, cap values
+    try:
+        rating = max(1, min(5, int(data['rating'])))
+    except (TypeError, ValueError):
+        return jsonify({"error": "rating must be an integer 1–5"}), 422
+
+    record = {
+        'id':          random_id(10),
+        'receiptNo':   str(data['receiptNo'])[:30],
+        'farmer':      str(data.get('farmer', ''))[:100],
+        'crop':        str(data.get('crop', ''))[:100],
+        'amount':      data.get('amount'),
+        'rating':      rating,
+        'sentiment':   str(data.get('sentiment', ''))[:20],
+        'comment':     str(data.get('comment', ''))[:500],
+        'tags':        data.get('tags', [])[:10] if isinstance(data.get('tags'), list) else [],
+        'anonymous':   bool(data.get('anonymous', False)),
+        'submittedAt': data.get('submittedAt', datetime.utcnow().isoformat() + 'Z'),
+        'timestamp':   datetime.utcnow().isoformat() + 'Z',
+    }
+    FEEDBACK_STORE.append(record)
+    log.info(f"[Feedback] Receipt {record['receiptNo']} — rating {rating}/5")
+    return jsonify({"message": "Feedback submitted successfully", "id": record['id']}), 201
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  M-PESA DARAJA API
@@ -524,8 +883,10 @@ def mpesa_stk_query():
 
 
 # ─── STK PUSH CALLBACK (Safaricom → server) ───────────────────────────────────
-@app.route('/api/payments/mpesa/callback', methods=['POST'])
+@app.route('/api/payments/mpesa/callback', methods=['GET', 'POST'])
 def mpesa_callback():
+    if request.method == 'GET':
+        return jsonify({"status": "ready", "message": "M-Pesa STK Push Callback endpoint is online."}), 200
     """
     Safaricom calls this URL after the customer completes (or cancels) payment.
     Log the result and return 200 immediately.
@@ -650,8 +1011,10 @@ def mpesa_b2c():
 
 
 # ─── B2C RESULT CALLBACK (Safaricom → server) ─────────────────────────────────
-@app.route('/api/payments/mpesa/b2c/result', methods=['POST'])
+@app.route('/api/payments/mpesa/b2c/result', methods=['GET', 'POST'])
 def mpesa_b2c_result():
+    if request.method == 'GET':
+        return jsonify({"status": "ready", "message": "M-Pesa B2C Result Callback endpoint is online."}), 200
     """Safaricom B2C result callback."""
     body = request.get_json(force=True) or {}
     log.info(f"[B2C Result] {json.dumps(body)}")
@@ -691,8 +1054,10 @@ def mpesa_b2c_result():
 
 
 # ─── B2C TIMEOUT CALLBACK ─────────────────────────────────────────────────────
-@app.route('/api/payments/mpesa/b2c/timeout', methods=['POST'])
+@app.route('/api/payments/mpesa/b2c/timeout', methods=['GET', 'POST'])
 def mpesa_b2c_timeout():
+    if request.method == 'GET':
+        return jsonify({"status": "ready", "message": "M-Pesa B2C Timeout Callback endpoint is online."}), 200
     """Safaricom B2C timeout callback."""
     body = request.get_json(force=True) or {}
     log.warning(f"[B2C Timeout] {json.dumps(body)}")

@@ -3,9 +3,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import WalletView from '../shared/WalletView';
 import {
-  Truck, CheckCircle2, Clock, TrendingUp, MapPin, X,
+  CheckCircle2, TrendingUp, MapPin, X,
   Navigation, Activity, Thermometer, Droplets, Gauge,
-  Play, Pause, AlertTriangle, Package, Radio, Signal,
+  Play, Pause, Package, Radio, Signal,
   Battery, ChevronRight, Eye, Target
 } from 'lucide-react';
 
