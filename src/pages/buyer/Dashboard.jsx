@@ -254,7 +254,7 @@ const BuyerDashboard = () => {
   const [orders, setOrders] = useState(INITIAL_ORDERS);
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [modal, setModal] = useState(null); // 'checkout' | 'cancel'
+  const [modal, setModal] = useState(null); // 'checkout' | 'cancel' | 'recurring'
   const [selected, setSelected] = useState(null);
   const [toast, setToast] = useState('');
   const [logistics, setLogistics] = useState({ pickup: '', destination: '' });
@@ -265,6 +265,13 @@ const BuyerDashboard = () => {
   const [mpesaState, setMpesaState] = useState('idle'); // idle | sending | polling | success | error
   const [mpesaMsg, setMpesaMsg] = useState('');
   const [checkoutReqId, setCheckoutReqId] = useState('');
+
+  // Recurring order state
+  const [recurringStep, setRecurringStep] = useState(1); // 1=config, 2=confirm, 3=success
+  const [recurringForm, setRecurringForm] = useState({
+    crop: '', qty: 10, unit: 'kg', frequency: 'weekly', deliveryDay: 'Monday',
+    startDate: '', phone: '', county: '', notes: ''
+  });
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -622,14 +629,27 @@ const BuyerDashboard = () => {
       </div>
 
       {/* Recurring order promo */}
-      <div className="bg-ag-primary-cont border border-ag-primary rounded-card p-5 flex flex-col gap-3">
-        <div className="flex items-center gap-2">
-          <Heart className="w-5 h-5 text-ag-primary-fixed" />
-          <p className="text-ag-primary-fixed font-bold text-sm">Need Regular Supply?</p>
+      <div className="rounded-card p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+        style={{ background: 'linear-gradient(135deg, #012D1D 0%, #1B4332 60%, #904D00 100%)', border: '1px solid #2d6a4f' }}>
+        <div className="flex-1 flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <Heart className="w-5 h-5 text-ag-amber-cont shrink-0" />
+            <p className="text-white font-extrabold text-sm">Need Regular Supply?</p>
+          </div>
+          <p className="text-ag-primary-fixed text-xs leading-relaxed">
+            Set up weekly recurring orders from your favourite farmers and <strong className="text-ag-amber-cont">save 5% per order</strong>.
+          </p>
+          <div className="flex flex-wrap gap-3 mt-1 text-[10px] text-white/70">
+            <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3 text-ag-pay" /> Auto-scheduled weekly</span>
+            <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3 text-ag-pay" /> Priority dispatch</span>
+            <span className="flex items-center gap-1"><CheckCircle className="w-3 h-3 text-ag-pay" /> Lock-in farm pricing</span>
+          </div>
         </div>
-        <p className="text-white/60 text-xs">Set up weekly recurring orders from your favourite farmers and save 5% per order.</p>
-        <button onClick={() => showToast('Recurring order feature coming soon!')} className="btn-primary !min-h-0 !py-2.5 !text-sm w-fit">
-          Set Up Recurring Order
+        <button
+          onClick={() => { setRecurringStep(1); setModal('recurring'); }}
+          className="shrink-0 bg-ag-amber-cont hover:bg-amber-400 text-white font-extrabold text-sm px-5 py-3 rounded-btn transition-all duration-200 shadow-md hover:shadow-lg whitespace-nowrap"
+        >
+          Set Up Recurring Order →
         </button>
       </div>
 
@@ -981,6 +1001,283 @@ const BuyerDashboard = () => {
             <div className="flex gap-3">
               <button onClick={() => setModal(null)} className="btn-secondary flex-1 !min-h-0 !py-3 !text-sm">Keep It</button>
               <button onClick={() => cancelOrder(selected.id)} className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-btn text-sm">Cancel Order</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════ RECURRING ORDER MODAL ══════════════ */}
+      {modal === 'recurring' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-card w-full max-w-lg overflow-hidden flex flex-col max-h-[94vh]">
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-ag-border flex items-center justify-between sticky top-0"
+              style={{ background: 'linear-gradient(135deg, #012D1D 0%, #1B4332 80%, #904D00 100%)' }}>
+              <div>
+                <h2 className="font-extrabold text-white text-base flex items-center gap-2">
+                  <Heart className="w-4 h-4 text-ag-amber-cont" />
+                  {recurringStep === 1 && 'Set Up Recurring Order'}
+                  {recurringStep === 2 && 'Review & Confirm'}
+                  {recurringStep === 3 && 'Order Scheduled!'}
+                </h2>
+                {recurringStep < 3 && (
+                  <p className="text-white/60 text-xs mt-0.5">Step {recurringStep} of 2 — Auto-renews every {recurringForm.frequency}</p>
+                )}
+              </div>
+              <button onClick={() => setModal(null)} className="text-white/70 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Progress bar */}
+            {recurringStep < 3 && (
+              <div className="flex h-1">
+                <div className="h-full bg-ag-amber-cont transition-all duration-500" style={{ width: `${(recurringStep / 2) * 100}%` }} />
+                <div className="flex-1 bg-ag-border" />
+              </div>
+            )}
+
+            <div className="p-6 overflow-y-auto flex flex-col gap-4">
+
+              {/* ── STEP 1: Configure ── */}
+              {recurringStep === 1 && (
+                <>
+                  {/* Savings callout */}
+                  <div className="bg-amber-50 border border-amber-200 rounded-card p-3 flex items-start gap-2">
+                    <Heart className="w-4 h-4 text-ag-amber mt-0.5 shrink-0" />
+                    <p className="text-xs text-amber-800">
+                      <strong>You save 5% automatically</strong> on every recurring delivery — that's
+                      {' '}<strong className="text-ag-amber">KSh {Math.round(recurringForm.qty * 45 * 0.05)}/order</strong> on current prices.
+                    </p>
+                  </div>
+
+                  {/* Crop */}
+                  <div>
+                    <label className="block text-sm font-bold text-ag-body mb-1.5">Produce / Crop *</label>
+                    <select
+                      value={recurringForm.crop}
+                      onChange={e => setRecurringForm(f => ({ ...f, crop: e.target.value }))}
+                      className="form-input"
+                    >
+                      <option value="">Select a crop...</option>
+                      {SHOP_PRODUCTS.map(p => (
+                        <option key={p.id} value={p.name}>{p.name} — KSh {p.price}{p.unit}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Qty + Unit */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-bold text-ag-body mb-1.5">Quantity *</label>
+                      <input
+                        type="number" min={1} max={10000}
+                        value={recurringForm.qty}
+                        onChange={e => setRecurringForm(f => ({ ...f, qty: Number(e.target.value) }))}
+                        className="form-input"
+                        placeholder="e.g. 50"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-ag-body mb-1.5">Unit</label>
+                      <select
+                        value={recurringForm.unit}
+                        onChange={e => setRecurringForm(f => ({ ...f, unit: e.target.value }))}
+                        className="form-input"
+                      >
+                        {['kg', 'bags', 'crates', 'pieces', 'bunches'].map(u => <option key={u}>{u}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Frequency + Day */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-bold text-ag-body mb-1.5">Frequency *</label>
+                      <select
+                        value={recurringForm.frequency}
+                        onChange={e => setRecurringForm(f => ({ ...f, frequency: e.target.value }))}
+                        className="form-input"
+                      >
+                        {['weekly', 'bi-weekly', 'monthly'].map(fr => <option key={fr}>{fr}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-ag-body mb-1.5">Delivery Day</label>
+                      <select
+                        value={recurringForm.deliveryDay}
+                        onChange={e => setRecurringForm(f => ({ ...f, deliveryDay: e.target.value }))}
+                        className="form-input"
+                      >
+                        {['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(d => <option key={d}>{d}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Delivery County */}
+                  <div>
+                    <label className="block text-sm font-bold text-ag-body mb-1.5">Delivery County *</label>
+                    <select
+                      value={recurringForm.county}
+                      onChange={e => setRecurringForm(f => ({ ...f, county: e.target.value }))}
+                      className="form-input"
+                    >
+                      <option value="">Select county...</option>
+                      {COUNTIES.map(c => <option key={c}>{c}</option>)}
+                    </select>
+                  </div>
+
+                  {/* M-PESA Phone */}
+                  <div>
+                    <label className="block text-sm font-bold text-ag-body mb-1.5">M-PESA Phone for Auto-Billing</label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ag-outline" />
+                      <input
+                        type="tel"
+                        value={recurringForm.phone || phone}
+                        onChange={e => setRecurringForm(f => ({ ...f, phone: e.target.value }))}
+                        placeholder="07XX XXX XXX"
+                        className="form-input pl-10"
+                      />
+                    </div>
+                    <p className="text-[10px] text-ag-muted mt-1">An STK push will be sent on each delivery date. You can cancel anytime.</p>
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <label className="block text-sm font-bold text-ag-body mb-1.5">Special Instructions (optional)</label>
+                    <textarea
+                      value={recurringForm.notes}
+                      onChange={e => setRecurringForm(f => ({ ...f, notes: e.target.value }))}
+                      placeholder="e.g. Deliver before 8am, call on arrival…"
+                      rows={2}
+                      className="form-input resize-none"
+                    />
+                  </div>
+
+                  <button
+                    disabled={!recurringForm.crop || !recurringForm.qty || !recurringForm.county}
+                    onClick={() => setRecurringStep(2)}
+                    className={`btn-pay w-full flex items-center justify-center gap-2 ${
+                      (!recurringForm.crop || !recurringForm.qty || !recurringForm.county) ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    Review Order <ArrowRight className="w-4 h-4" />
+                  </button>
+                </>
+              )}
+
+              {/* ── STEP 2: Confirm ── */}
+              {recurringStep === 2 && (() => {
+                const matchedProduct = SHOP_PRODUCTS.find(p => p.name === recurringForm.crop);
+                const unitPrice = matchedProduct?.price ?? 0;
+                const grossCost = unitPrice * recurringForm.qty;
+                const discount = Math.round(grossCost * 0.05);
+                const netCost = grossCost - discount;
+
+                return (
+                  <>
+                    <div className="bg-ag-canvas border border-ag-border rounded-card divide-y divide-ag-border">
+                      {[
+                        { label: 'Produce', value: recurringForm.crop },
+                        { label: 'Quantity', value: `${recurringForm.qty} ${recurringForm.unit}` },
+                        { label: 'Frequency', value: recurringForm.frequency.charAt(0).toUpperCase() + recurringForm.frequency.slice(1) },
+                        { label: 'Delivery Day', value: `Every ${recurringForm.deliveryDay}` },
+                        { label: 'Delivery County', value: recurringForm.county },
+                        { label: 'M-PESA Phone', value: recurringForm.phone || phone },
+                      ].map(({ label, value }) => (
+                        <div key={label} className="flex justify-between items-center px-4 py-3 text-sm">
+                          <span className="text-ag-muted font-bold">{label}</span>
+                          <span className="text-ag-body font-extrabold text-right max-w-[55%]">{value || '—'}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Savings calculator */}
+                    <div className="rounded-card p-4 flex flex-col gap-1.5"
+                      style={{ background: 'linear-gradient(135deg, #012D1D, #1B4332)' }}>
+                      <p className="text-white/70 text-xs font-bold uppercase tracking-wider mb-1">Cost Summary (per delivery)</p>
+                      <div className="flex justify-between text-sm text-white/80">
+                        <span>Gross price</span>
+                        <span className="line-through text-white/40">KSh {grossCost.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-ag-amber-cont">
+                        <span>5% recurring discount</span>
+                        <span>− KSh {discount.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between font-extrabold text-lg text-white border-t border-white/20 pt-2 mt-1">
+                        <span>You pay</span>
+                        <span>KSh {netCost.toLocaleString()}</span>
+                      </div>
+                      {recurringForm.notes && (
+                        <p className="text-white/50 text-[10px] mt-1">Note: {recurringForm.notes}</p>
+                      )}
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-200 rounded-card p-3 text-xs text-blue-800">
+                      <strong>How it works:</strong> On each {recurringForm.deliveryDay}, ShambaPoint will automatically
+                      send an M-PESA STK push to <strong>{recurringForm.phone || phone}</strong>. Confirm your PIN and
+                      your produce will be dispatched same day. Cancel anytime from your Orders tab.
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button onClick={() => setRecurringStep(1)} className="btn-tertiary flex-1 flex items-center justify-center gap-2">
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <button
+                        onClick={() => {
+                          setRecurringStep(3);
+                          showToast(`Recurring ${recurringForm.crop} order scheduled every ${recurringForm.frequency}!`);
+                        }}
+                        className="btn-pay flex-1 flex items-center justify-center gap-2"
+                      >
+                        Confirm & Schedule
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
+
+              {/* ── STEP 3: Success ── */}
+              {recurringStep === 3 && (() => {
+                const matchedProduct = SHOP_PRODUCTS.find(p => p.name === recurringForm.crop);
+                const unitPrice = matchedProduct?.price ?? 0;
+                const netCost = Math.round(unitPrice * recurringForm.qty * 0.95);
+                return (
+                  <div className="flex flex-col items-center text-center py-6 gap-4">
+                    <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle2 className="w-10 h-10 text-ag-pay" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-xl text-ag-body">Recurring Order Scheduled!</h3>
+                      <p className="text-ag-muted text-sm mt-1">Your {recurringForm.frequency} supply of <strong>{recurringForm.crop}</strong> is confirmed.</p>
+                    </div>
+                    <div className="bg-ag-canvas border border-ag-border rounded-card p-4 w-full text-left flex flex-col gap-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ag-muted">Next delivery</span>
+                        <span className="font-bold text-ag-body">This {recurringForm.deliveryDay}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ag-muted">Amount (with 5% off)</span>
+                        <span className="font-extrabold text-ag-primary">KSh {netCost.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ag-muted">Auto-billed to</span>
+                        <span className="font-bold text-ag-body">{recurringForm.phone || phone}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1 w-full text-xs text-ag-muted">
+                      <p className="flex items-center gap-1.5 justify-center"><CheckCircle className="w-3.5 h-3.5 text-ag-pay" /> STK push will be sent every {recurringForm.deliveryDay} morning</p>
+                      <p className="flex items-center gap-1.5 justify-center"><CheckCircle className="w-3.5 h-3.5 text-ag-pay" /> Cancel anytime from <strong>My Orders → Recurring</strong></p>
+                    </div>
+                    <button onClick={() => setModal(null)} className="btn-primary w-full">
+                      Done
+                    </button>
+                  </div>
+                );
+              })()}
+
             </div>
           </div>
         </div>

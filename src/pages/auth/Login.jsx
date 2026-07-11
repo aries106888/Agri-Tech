@@ -36,12 +36,15 @@ const Login = () => {
       if (isAdminRoute && role !== 'admin') return;
 
       const from = location.state?.from?.pathname;
-      const isValidReturn =
+      const isValidReturn = Boolean(
         from &&
-        (role === 'admin'     && from.startsWith('/admin'))    ||
-        (role === 'farmer'    && from.startsWith('/farmer'))   ||
-        (role === 'buyer'     && from.startsWith('/buyer'))    ||
-        (role === 'logistics' && from.startsWith('/logistics'));
+        (
+          (role === 'admin'     && from.startsWith('/admin')) ||
+          (role === 'farmer'    && from.startsWith('/farmer')) ||
+          (role === 'buyer'     && from.startsWith('/buyer')) ||
+          (role === 'logistics' && from.startsWith('/logistics'))
+        )
+      );
 
       navigate(isValidReturn ? from : (ROLE_REDIRECTS[role] || '/'), { replace: true });
     }

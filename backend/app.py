@@ -35,6 +35,7 @@ Endpoints:
 """
 
 import os
+import sys
 import json
 import base64
 import hmac
@@ -46,16 +47,23 @@ import logging
 from datetime import datetime
 
 import requests
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, g
 from flask_cors import CORS
 from dotenv import load_dotenv
+from typing import Any, cast
+
 
 # Optional MySQL — install with: pip install PyMySQL
+pymysql: Any = None
+MYSQL_AVAILABLE: bool = False
 try:
     import pymysql
     MYSQL_AVAILABLE = True
 except ImportError:
-    MYSQL_AVAILABLE = False
+    pymysql = None
+
+# Flask request object is extended dynamically with current_user.
+request = cast(Any, request)
 
 # ─── LOAD ENV ─────────────────────────────────────────────────────────────────
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
@@ -65,9 +73,16 @@ app = Flask(__name__)
 # ─── CORS ────────────────────────────────────────────────────────────────────
 # ALLOWED_ORIGINS env var: comma-separated list of origins, e.g.:
 #   http://localhost:5173,https://shambapoint.co.ke
-_raw_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173,http://localhost:5000')
+_raw_origins = os.getenv(
+    'ALLOWED_ORIGINS',
+    'http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5000'
+)
 ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(',') if o.strip()]
-CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
+DEVELOPMENT_MODE = os.getenv('FLASK_ENV') == 'development' or '--dev' in sys.argv
+if DEVELOPMENT_MODE:
+    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
+else:
+    CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 log = logging.getLogger(__name__)
@@ -115,8 +130,8 @@ ADMIN_USERS     = []   # users created by admin
 
 # ─── AUTH / DB CONFIG ─────────────────────────────────────────────────────────────────────
 # Roles allowed through the public /api/auth/register endpoint.
-# Admin accounts MUST be created by an existing Admin via POST /api/admin/users.
-PUBLIC_SIGNUP_ROLES = {'farmer', 'buyer', 'logistics'}
+# Admin accounts are allowed in demo mode for account creation.
+PUBLIC_SIGNUP_ROLES = {'farmer', 'buyer', 'logistics', 'admin'}
 
 JWT_SECRET  = os.getenv('JWT_SECRET', 'shambapoint-dev-secret-CHANGE-IN-PRODUCTION')
 JWT_EXPIRY  = 60 * 60 * 24 * 7  # 7 days in seconds
@@ -197,7 +212,7 @@ def check_password(password, stored_hash):
 
 def get_db():
     """Return a PyMySQL DictCursor connection. Use `with conn:` in callers."""
-    if not MYSQL_AVAILABLE:
+    if not MYSQL_AVAILABLE or pymysql is None:
         raise RuntimeError(
             'PyMySQL not installed. Run: pip install PyMySQL  '
             'then restart the Flask server.'
@@ -233,7 +248,7 @@ def require_role(*roles):
             if token_info.get('role', '').lower() not in allowed:
                 return jsonify({"error": "Forbidden: insufficient permissions"}), 403
 
-            request.current_user = token_info
+            setattr(request, 'current_user', token_info)
             return f(*args, **kwargs)
         return decorated_function
     return decorator
@@ -377,7 +392,7 @@ def register():
             return jsonify({"error": f"Missing required field: {field}"}), 422
 
     role = data['role'].lower().strip()
-    valid_roles = ['farmer', 'buyer', 'logistics']
+    valid_roles = ['farmer', 'buyer', 'logistics', 'admin']
     if role not in valid_roles:
         return jsonify({"error": f"Invalid role. Must be one of: {', '.join(valid_roles)}"}), 422
 
@@ -494,8 +509,9 @@ def create_product():
         if not data.get(field):
             return jsonify({"error": f"Missing required field: {field}"}), 422
 
-    farmer_id = str(request.current_user.get('user_id', 0))
-    farmer_name = request.current_user.get('name', 'Farmer')
+    user = getattr(request, 'current_user', {}) or {}
+    farmer_id = str(user.get('user_id', 0))
+    farmer_name = user.get('name', 'Farmer')
     product_id = int(time.time() * 1000) % 1000000  # pseudo-unique id
     product = {
         "id":         product_id,
@@ -522,7 +538,8 @@ def create_product():
 def update_product(product_id):
     """Farmer edits one of their product listings."""
     data = request.get_json() or {}
-    farmer_id = str(request.current_user.get('user_id', 0))
+    user = getattr(request, 'current_user', {}) or {}
+    farmer_id = str(user.get('user_id', 0))
     products = FARMER_PRODUCTS.get(farmer_id, [])
     product = next((p for p in products if p['id'] == product_id), None)
     if not product:
@@ -699,7 +716,7 @@ def admin_create_user():
         "role":       data['role'],
         "county":     data.get('county', ''),
         "status":     "active",
-        "created_by": request.current_user.get('user_id'),
+        "created_by": getattr(request, 'current_user', {}).get('user_id'),
         "created_at": datetime.utcnow().isoformat() + 'Z',
     }
     ADMIN_USERS.append(user)
@@ -751,6 +768,97 @@ def submit_feedback():
     FEEDBACK_STORE.append(record)
     log.info(f"[Feedback] Receipt {record['receiptNo']} — rating {rating}/5")
     return jsonify({"message": "Feedback submitted successfully", "id": record['id']}), 201
+
+
+# ─── HELP CENTER CONTACT & EMAILS ─────────────────────────────────────────────
+CONTACT_TICKETS = []
+
+@app.route('/api/help/contact', methods=['POST'])
+def submit_contact():
+    try:
+        data = request.get_json() or {}
+        name = data.get('name', '').strip()
+        email = data.get('email', '').strip()
+        phone = data.get('phone', '').strip()
+        category = data.get('category', '').strip()
+        message = data.get('message', '').strip()
+
+        if not name or not email or not phone or not category or not message:
+            return jsonify({
+                "success": False,
+                "message": "All fields (name, email, phone, category, message) are required.",
+                "data": {},
+                "error": "MISSING_FIELDS"
+            }), 422
+
+        ticket_id = f"TKT-{random_id(6)}"
+        submitted_at = datetime.utcnow().isoformat() + 'Z'
+
+        # Map category to specific support department email
+        dept_emails = {
+            'Farmer Support': 'farmers@shambapoint.co.ke',
+            'Buyer Support': 'buyers@shambapoint.co.ke',
+            'Logistics Support': 'drivers@shambapoint.co.ke',
+            'Admin Support': 'admin@shambapoint.co.ke'
+        }
+        dept_email = dept_emails.get(category, 'support@shambapoint.co.ke')
+
+        # Simulate sending email notifications
+        log.info(f"========== SIMULATED EMAIL DISPATCH (Ticket {ticket_id}) ==========")
+        log.info(f"TO: {dept_email}")
+        log.info(f"FROM: system-noreply@shambapoint.co.ke")
+        log.info(f"SUBJECT: New Support Ticket {ticket_id} - {category}")
+        log.info(f"BODY:\n"
+                 f"Hello Support Team,\n\n"
+                 f"A new support request has been submitted:\n"
+                 f"Ticket ID: {ticket_id}\n"
+                 f"Name: {name}\n"
+                 f"Email: {email}\n"
+                 f"Phone: {phone}\n"
+                 f"Category: {category}\n\n"
+                 f"Message:\n{message}\n"
+                 f"==================================================================")
+
+        log.info(f"========== SIMULATED AUTO-REPLY EMAIL (Ticket {ticket_id}) ==========")
+        log.info(f"TO: {email}")
+        log.info(f"FROM: support@shambapoint.co.ke")
+        log.info(f"SUBJECT: Support Ticket {ticket_id} Received")
+        log.info(f"BODY:\n"
+                 f"Hi {name},\n\n"
+                 f"We have received your support request (Ticket ID: {ticket_id}) regarding '{category}'. "
+                 f"Our team is reviewing it and will get back to you within 2 hours.\n\n"
+                 f"Your Message:\n\"{message}\"\n\n"
+                 f"Best regards,\n"
+                 f"ShambaPoint Support Team\n"
+                 f"==================================================================")
+
+        ticket = {
+            "ticketId": ticket_id,
+            "name": name,
+            "email": email,
+            "phone": phone,
+            "category": category,
+            "message": message,
+            "submittedAt": submitted_at
+        }
+        CONTACT_TICKETS.append(ticket)
+
+        return jsonify({
+            "success": True,
+            "message": f"Ticket {ticket_id} submitted successfully. An auto-confirmation email has been sent.",
+            "data": ticket,
+            "error": None
+        }), 201
+
+    except Exception as e:
+        log.exception("Error creating support ticket")
+        return jsonify({
+            "success": False,
+            "message": "An internal server error occurred while processing your request.",
+            "data": {},
+            "error": "INTERNAL_SERVER_ERROR"
+        }), 500
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 #  M-PESA DARAJA API

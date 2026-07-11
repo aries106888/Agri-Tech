@@ -1,9 +1,11 @@
 /* ── ShambaPoint Help Center (Role-Specific) ─────────────── */
 import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 import {
   HelpCircle, Phone, Search, ChevronDown, ChevronUp,
-  MessageSquare, Mail, Clock, CheckCircle2,
-  Leaf, ShoppingBag, Truck, Shield, BookOpen, ArrowRight
+  MessageSquare, Mail, Clock, CheckCircle2, AlertTriangle,
+  Leaf, ShoppingBag, Truck, Shield, BookOpen, ArrowRight, User
 } from 'lucide-react';
 
 /* ── Role-specific config ─────────────────────────────────── */
@@ -14,10 +16,17 @@ const ROLE_CONFIG = {
     color: 'from-ag-primary to-emerald-800',
     accent: 'text-ag-primary',
     badge: 'bg-emerald-100 text-ag-primary',
+    quickDial: {
+      label: 'Farmer Hotline',
+      number: '+254700111222',
+      display: '+254 700 111 222',
+      whatsapp: '254700111222',
+      note: '24/7 — Listings, payments, quality disputes',
+    },
     contacts: [
-      { label: 'Farmer Hotline (24/7)',    number: '+254 700 111 222', icon: Phone,   note: 'Crop listings, quality disputes, payments' },
-      { label: 'Agronomy Advisory Line',   number: '+254 711 333 444', icon: Phone,   note: 'Planting advice, pest control, weather alerts' },
-      { label: 'Farmer WhatsApp Group',    number: '+254 722 555 666', icon: MessageSquare, note: 'Peer support & market tips' },
+      { label: 'Farmer Hotline (24/7)',    number: '+254 700 111 222', icon: Phone,   note: 'Crop listings, quality disputes, payments', wa: '254700111222' },
+      { label: 'Agronomy Advisory Line',   number: '+254 711 333 444', icon: Phone,   note: 'Planting advice, pest control, weather alerts', wa: '254711333444' },
+      { label: 'Farmer WhatsApp Group',    number: '+254 722 555 666', icon: MessageSquare, note: 'Peer support & market tips', wa: '254722555666' },
       { label: 'Email Support',            number: 'farmers@shambapoint.co.ke', icon: Mail, note: 'Non-urgent queries, documents, KYC' },
     ],
     faqs: [
@@ -34,10 +43,17 @@ const ROLE_CONFIG = {
     color: 'from-blue-800 to-blue-950',
     accent: 'text-blue-700',
     badge: 'bg-blue-100 text-blue-700',
+    quickDial: {
+      label: 'Buyer Support Desk',
+      number: '+254700222333',
+      display: '+254 700 222 333',
+      whatsapp: '254700222333',
+      note: '24/7 — Orders, deliveries, refunds',
+    },
     contacts: [
-      { label: 'Buyer Support Desk (24/7)',   number: '+254 700 222 333', icon: Phone,   note: 'Orders, deliveries, refunds' },
-      { label: 'Corporate Procurement Line',  number: '+254 711 444 555', icon: Phone,   note: 'Bulk orders, contracts, invoicing' },
-      { label: 'Quality Assurance Team',      number: '+254 722 666 777', icon: Phone,   note: 'Grade disputes, produce inspection requests' },
+      { label: 'Buyer Support Desk (24/7)',   number: '+254 700 222 333', icon: Phone,   note: 'Orders, deliveries, refunds', wa: '254700222333' },
+      { label: 'Corporate Procurement Line',  number: '+254 711 444 555', icon: Phone,   note: 'Bulk orders, contracts, invoicing', wa: '254711444555' },
+      { label: 'Quality Assurance Team',      number: '+254 722 666 777', icon: Phone,   note: 'Grade disputes, produce inspection requests', wa: '254722666777' },
       { label: 'Email Support',               number: 'buyers@shambapoint.co.ke', icon: Mail, note: 'Non-urgent queries, documentation' },
     ],
     faqs: [
@@ -54,10 +70,17 @@ const ROLE_CONFIG = {
     color: 'from-amber-700 to-amber-900',
     accent: 'text-ag-amber',
     badge: 'bg-amber-100 text-amber-700',
+    quickDial: {
+      label: 'Driver Operations',
+      number: '+254700333444',
+      display: '+254 700 333 444',
+      whatsapp: '254700333444',
+      note: '24/7 — Trip assignments, emergencies',
+    },
     contacts: [
-      { label: 'Driver Operations (24/7)',   number: '+254 700 333 444', icon: Phone,   note: 'Trip assignments, route changes, emergencies' },
-      { label: 'Fleet Manager Direct Line',  number: '+254 711 555 666', icon: Phone,   note: 'Vehicle breakdowns, replacements' },
-      { label: 'Earnings & Payments',        number: '+254 722 777 888', icon: Phone,   note: 'Wallet issues, M-PESA payouts, disputes' },
+      { label: 'Driver Operations (24/7)',   number: '+254 700 333 444', icon: Phone,   note: 'Trip assignments, route changes, emergencies', wa: '254700333444' },
+      { label: 'Fleet Manager Direct Line',  number: '+254 711 555 666', icon: Phone,   note: 'Vehicle breakdowns, replacements', wa: '254711555666' },
+      { label: 'Earnings & Payments',        number: '+254 722 777 888', icon: Phone,   note: 'Wallet issues, M-PESA payouts, disputes', wa: '254722777888' },
       { label: 'Email Support',              number: 'drivers@shambapoint.co.ke', icon: Mail, note: 'Documents, vehicle registration, KYC' },
     ],
     faqs: [
@@ -74,10 +97,17 @@ const ROLE_CONFIG = {
     color: 'from-purple-800 to-purple-950',
     accent: 'text-purple-700',
     badge: 'bg-purple-100 text-purple-700',
+    quickDial: {
+      label: 'Platform Engineering',
+      number: '+254700999000',
+      display: '+254 700 999 000',
+      whatsapp: '254700999000',
+      note: '24/7 — System issues, outages, API errors',
+    },
     contacts: [
-      { label: 'Platform Engineering',      number: '+254 700 999 000', icon: Phone,   note: 'System issues, outages, API errors' },
-      { label: 'Compliance & Legal',        number: '+254 711 000 111', icon: Phone,   note: 'KYC escalations, legal holds, sanctions' },
-      { label: 'Operations Centre',         number: '+254 722 111 222', icon: Phone,   note: 'Fraud alerts, escalations, live disputes' },
+      { label: 'Platform Engineering',      number: '+254 700 999 000', icon: Phone,   note: 'System issues, outages, API errors', wa: '254700999000' },
+      { label: 'Compliance & Legal',        number: '+254 711 000 111', icon: Phone,   note: 'KYC escalations, legal holds, sanctions', wa: '254711000111' },
+      { label: 'Operations Centre',         number: '+254 722 111 222', icon: Phone,   note: 'Fraud alerts, escalations, live disputes', wa: '254722111222' },
       { label: 'Admin Email',               number: 'admin@shambapoint.co.ke', icon: Mail, note: 'Reports, audit requests, data exports' },
     ],
     faqs: [
@@ -125,13 +155,28 @@ const FaqItem = ({ faq, accent }) => {
 ══════════════════════════════════════════════════════════ */
 export default function HelpCenter() {
   const [search, setSearch] = useState('');
-  const [ticketSent, setTicketSent] = useState(false);
-  const [ticketMsg, setTicketMsg] = useState('');
+  
+  const { role, user } = useAuth();
+  
+  // Derive initial form values from user/role — no useEffect needed because
+  // user and role are synchronously available from AuthContext (localStorage init).
+  const resolveCategory = (r) =>
+    r === 'farmer' ? 'Farmer Support' :
+    r === 'buyer'  ? 'Buyer Support' :
+    r === 'logistics' ? 'Logistics Support' :
+    r === 'admin' ? 'Admin Support' : 'General Inquiry';
 
-  /* Detect role from localStorage */
-  const role = (() => {
-    try { return JSON.parse(localStorage.getItem('user') || '{}').role || 'farmer'; } catch { return 'farmer'; }
-  })();
+  const [formData, setFormData] = useState(() => ({
+    name:     user?.name  || '',
+    email:    user?.email || '',
+    phone:    user?.phone || '',
+    category: resolveCategory(role),
+    message:  ''
+  }));
+
+  const [ticketLoading, setTicketLoading] = useState(false);
+  const [ticketSuccess, setTicketSuccess] = useState(null);
+  const [ticketError, setTicketError] = useState(null);
 
   const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.farmer;
   const Icon = cfg.icon;
@@ -141,10 +186,42 @@ export default function HelpCenter() {
     ? allFaqs.filter(f => f.q.toLowerCase().includes(search.toLowerCase()) || f.a.toLowerCase().includes(search.toLowerCase()))
     : allFaqs;
 
-  const submitTicket = () => {
-    if (!ticketMsg.trim()) return;
-    setTicketSent(true);
-    setTicketMsg('');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const submitTicket = async (e) => {
+    if (e) e.preventDefault();
+    if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.message.trim()) {
+      setTicketError('All fields are required.');
+      return;
+    }
+
+    setTicketLoading(true);
+    setTicketError(null);
+    setTicketSuccess(null);
+
+    try {
+      const response = await api.post('/help/contact', formData);
+      if (response.data?.success) {
+        setTicketSuccess(response.data.message || 'Ticket submitted successfully!');
+        setFormData(prev => ({
+          ...prev,
+          message: '' // Only clear message, keep user info
+        }));
+      } else {
+        setTicketError(response.data?.message || 'Failed to submit support ticket.');
+      }
+    } catch (err) {
+      console.error('Error submitting support ticket:', err);
+      setTicketError(err.response?.data?.message || 'A network error occurred. Please try again.');
+    } finally {
+      setTicketLoading(false);
+    }
   };
 
   return (
@@ -183,6 +260,43 @@ export default function HelpCenter() {
         </div>
       </div>
 
+      {/* ── QUICK DIAL STRIP (role-specific primary number) ── */}
+      <div className="bg-white border-2 border-ag-primary/20 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-ag-primary/10 rounded-xl flex items-center justify-center shrink-0">
+            <Phone className="w-6 h-6 text-ag-primary" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-ag-primary mb-0.5">
+              📞 Your Primary Support Line
+            </p>
+            <a
+              href={`tel:${cfg.quickDial.number}`}
+              className="text-2xl font-black text-ag-body hover:text-ag-primary transition-colors tracking-tight"
+            >
+              {cfg.quickDial.display}
+            </a>
+            <p className="text-xs text-ag-muted mt-0.5">{cfg.quickDial.label} — {cfg.quickDial.note}</p>
+          </div>
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <a
+            href={`tel:${cfg.quickDial.number}`}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-ag-primary hover:bg-emerald-800 text-white font-extrabold text-sm px-5 py-3 rounded-xl transition-colors shadow-md shadow-ag-primary/20"
+          >
+            <Phone className="w-4 h-4" /> Call Now
+          </a>
+          <a
+            href={`https://wa.me/${cfg.quickDial.whatsapp}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b558] text-white font-extrabold text-sm px-5 py-3 rounded-xl transition-colors shadow-md shadow-green-600/20"
+          >
+            <MessageSquare className="w-4 h-4" /> WhatsApp
+          </a>
+        </div>
+      </div>
+
       {/* ── EMERGENCY RAPID RESPONSE ── */}
       <div className="relative overflow-hidden bg-red-50 border border-red-100 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-red-500/10 to-transparent rounded-bl-full pointer-events-none" />
@@ -201,13 +315,21 @@ export default function HelpCenter() {
             <p className="text-xs text-gray-500 mt-0.5">Call immediately for active road accidents, vehicle failures during transit, or SecurePay security alerts.</p>
           </div>
         </div>
-        <div className="w-full md:w-auto relative z-10">
+        <div className="w-full md:w-auto relative z-10 flex gap-2">
           <a
             href="tel:+254700999111"
-            className="w-full md:w-auto flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm px-5 py-3 rounded-xl shadow-lg shadow-red-600/10 transition-colors"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm px-5 py-3 rounded-xl shadow-lg shadow-red-600/10 transition-colors"
           >
             <Phone className="w-4 h-4" />
-            Call +254 700 999 111
+            +254 700 999 111
+          </a>
+          <a
+            href="https://wa.me/254700999111"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b558] text-white font-extrabold text-sm px-5 py-3 rounded-xl transition-colors"
+          >
+            <MessageSquare className="w-4 h-4" /> WhatsApp
           </a>
         </div>
       </div>
@@ -215,15 +337,14 @@ export default function HelpCenter() {
       {/* ── CONTACT CARDS ── */}
       <div>
         <h2 className="font-extrabold text-ag-body mb-4 flex items-center gap-2">
-          <Phone className="w-4 h-4 text-ag-primary" /> Contact Us
+          <Phone className="w-4 h-4 text-ag-primary" /> All Contact Numbers
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {cfg.contacts.map((c, i) => {
             const CIcon = c.icon;
             const isMail = c.icon === Mail;
             return (
-              <div key={i} className="bg-white border border-ag-border rounded-2xl p-5
-                hover:shadow-md transition-shadow flex items-start gap-4">
+              <div key={i} className="bg-white border border-ag-border rounded-2xl p-5 hover:shadow-md transition-shadow flex items-start gap-4">
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${cfg.badge}`}>
                   <CIcon className="w-5 h-5" />
                 </div>
@@ -239,6 +360,17 @@ export default function HelpCenter() {
                     </a>
                   )}
                   <p className="text-xs text-ag-muted mt-1">{c.note}</p>
+                  {/* WhatsApp quick link for phone contacts */}
+                  {!isMail && c.wa && (
+                    <a
+                      href={`https://wa.me/${c.wa}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 mt-2 text-[10px] font-black uppercase tracking-wider text-[#25D366] hover:underline"
+                    >
+                      <MessageSquare className="w-3 h-3" /> WhatsApp
+                    </a>
+                  )}
                 </div>
               </div>
             );
@@ -280,40 +412,138 @@ export default function HelpCenter() {
         )}
       </div>
 
-      {/* ── SUPPORT TICKET ── */}
+      {/* ── SUPPORT TICKET FORM ── */}
       <div className="bg-white border border-ag-border rounded-2xl p-6">
         <h2 className="font-extrabold text-ag-body mb-1 flex items-center gap-2">
           <MessageSquare className="w-4 h-4 text-ag-primary" /> Submit a Support Ticket
         </h2>
-        <p className="text-xs text-ag-muted mb-4">Didn't find your answer? We'll get back to you within 2 hours.</p>
+        <p className="text-xs text-ag-muted mb-4">Didn't find your answer? We'll get back to you within 2 hours via SMS and email.</p>
 
-        {ticketSent ? (
-          <div className="flex flex-col items-center gap-3 py-6 text-center">
-            <CheckCircle2 className="w-12 h-12 text-ag-pay" />
-            <p className="font-extrabold text-ag-body">Ticket submitted!</p>
-            <p className="text-sm text-ag-muted">Our {cfg.label} team will contact you soon.</p>
-            <button onClick={() => setTicketSent(false)} className="btn-secondary !min-h-0 !py-2 !text-xs mt-2">
-              Submit another
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <textarea
-              value={ticketMsg}
-              onChange={e => setTicketMsg(e.target.value)}
-              rows={4}
-              placeholder="Describe your issue in detail — include your Order ID or Phone number if relevant..."
-              className="form-input resize-none text-sm"
-            />
-            <button
-              onClick={submitTicket}
-              disabled={!ticketMsg.trim()}
-              className="btn-primary w-fit disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Send Ticket <ArrowRight className="w-4 h-4" />
-            </button>
+        {/* Success Alert */}
+        {ticketSuccess && (
+          <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-ag-primary shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-ag-body text-sm">Ticket Submitted Successfully</p>
+              <p className="text-xs text-ag-muted mt-0.5">{ticketSuccess}</p>
+            </div>
           </div>
         )}
+
+        {/* Error Alert */}
+        {ticketError && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-red-800 text-sm">Error Submitting Ticket</p>
+              <p className="text-xs text-red-600 mt-0.5">{ticketError}</p>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={submitTicket} className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Name */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ticket-name" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+                <User className="w-3.5 h-3.5" /> Full Name
+              </label>
+              <input
+                id="ticket-name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="e.g. John Kamau"
+                className="form-input text-sm"
+                required
+              />
+            </div>
+
+            {/* Email */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ticket-email" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5" /> Email Address
+              </label>
+              <input
+                id="ticket-email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="e.g. john@kamau.com"
+                className="form-input text-sm"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Phone */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ticket-phone" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+                <Phone className="w-3.5 h-3.5" /> Phone Number
+              </label>
+              <input
+                id="ticket-phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="e.g. +254 712 345 678"
+                className="form-input text-sm"
+                required
+              />
+            </div>
+
+            {/* Category */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ticket-category" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+                <HelpCircle className="w-3.5 h-3.5" /> Category / Department
+              </label>
+              <select
+                id="ticket-category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="form-input text-sm py-[9px]"
+                required
+              >
+                <option value="Farmer Support">Farmer Support & Listings</option>
+                <option value="Buyer Support">Buyer Support & SecurePay</option>
+                <option value="Logistics Support">Logistics Support & Dispatch</option>
+                <option value="Admin Support">Technical & Admin Issues</option>
+                <option value="General Inquiry">General Marketplace Inquiry</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Message */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="ticket-message" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+              <MessageSquare className="w-3.5 h-3.5" /> Message Details
+            </label>
+            <textarea
+              id="ticket-message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Describe your issue in detail — include your Order ID or receipt number if relevant..."
+              className="form-input resize-none text-sm"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={ticketLoading || !formData.name.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.message.trim()}
+            className="btn-primary w-fit flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {ticketLoading ? 'Sending Ticket...' : 'Send Ticket'}
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -6,15 +6,17 @@ import {
   CheckCircle2, TrendingUp, MapPin, X,
   Navigation, Activity, Thermometer, Droplets, Gauge,
   Play, Pause, Package, Radio, Signal,
-  Battery, ChevronRight, Eye, Target
+  Battery, ChevronRight, Eye, Target,
+  ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, ClipboardList,
+  Wallet, Banknote, Clock, AlertTriangle
 } from 'lucide-react';
 
 /* ── DATA ──────────────────────────────────────────────────── */
 const LIVE_OPS = [
   { id: 1, cargo: 'Irish Potatoes', weight: '120kg', from: 'Nakuru', to: 'Nairobi CBD',  status: 'in_transit', driver: 'John Kamau',     action: 'track' },
   { id: 2, cargo: 'Tomatoes',       weight: '80kg',  from: 'Kiambu', to: 'Westlands',    status: 'completed',  driver: 'Janet Wanjiku',  action: 'view'  },
-  { id: 3, cargo: 'Red Onions',     weight: '200kg', from: 'Kajiado', to: 'Mombasa Rd', status: 'pending',    driver: 'Unknown',        action: 'view'  },
-  { id: 4, cargo: 'Cabbage',        weight: '150kg', from: 'Nyeri',  to: 'Thika',        status: 'delayed',    driver: 'Peter Njoroge',  action: 'track' },
+  { id: 3, cargo: 'Red Onions',     weight: '200kg', from: 'Kajiado', to: 'Mombasa Rd',  status: 'pending',    driver: 'Unassigned',     action: 'view'  },
+  { id: 4, cargo: 'Cabbage',        weight: '150kg', from: 'Nyeri',  to: 'Thika',         status: 'delayed',    driver: 'Peter Njoroge',  action: 'track' },
 ];
 
 const ROUTE_CHECKPOINTS = [
@@ -34,9 +36,9 @@ const STATUS_CONFIG = {
 
 /* ── LIVE TRACKING MODAL ───────────────────────────────────── */
 const LiveTrackingModal = ({ cargo, onClose }) => {
-  const [progress, setProgress] = useState(37);
-  const [running, setRunning]   = useState(true);
-  const [telemetry, setTelemetry] = useState({ speed: 72, temp: 14.2, humidity: 68, battery: 87, signal: 4 });
+  const [progress, setProgress]     = useState(37);
+  const [running, setRunning]       = useState(true);
+  const [telemetry, setTelemetry]   = useState({ speed: 72, temp: 14.2, humidity: 68, battery: 87, signal: 4 });
   const [logs, setLogs] = useState([
     { time: '09:14', msg: 'Shipment departed Nakuru Market', type: 'info' },
     { time: '09:52', msg: 'Passed Gilgil Weighbridge — 45 km', type: 'success' },
@@ -44,7 +46,7 @@ const LiveTrackingModal = ({ cargo, onClose }) => {
     { time: '10:41', msg: 'Current: 78 km from origin on A104', type: 'info' },
   ]);
   const intervalRef = useRef(null);
-  const logRef = useRef(null);
+  const logRef      = useRef(null);
 
   useEffect(() => {
     if (!running) return;
@@ -66,7 +68,11 @@ const LiveTrackingModal = ({ cargo, onClose }) => {
     ROUTE_CHECKPOINTS.forEach(cp => {
       const pct = (cp.km / 165) * 100;
       if (Math.abs(progress - pct) < 0.5) {
-        setLogs(l => [...l, { time: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }), msg: `Reached ${cp.name} — ${cp.km} km`, type: 'success' }]);
+        setLogs(l => [...l, {
+          time: new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }),
+          msg: `Reached ${cp.name} — ${cp.km} km`,
+          type: 'success',
+        }]);
       }
     });
   }, [progress]);
@@ -167,6 +173,113 @@ const LiveTrackingModal = ({ cargo, onClose }) => {
 };
 
 /* ══════════════════════════════════════════════════════════
+   WALLET CARD (matches screenshot design)
+══════════════════════════════════════════════════════════ */
+const WalletCard = ({ onAction }) => {
+  const WALLET = {
+    available:  14700,
+    thisMonth:  10700,
+    pending:     1200,
+    withdrawn:   6200,
+  };
+  const fmt = (n) => `KSh ${n.toLocaleString('en-KE', { minimumFractionDigits: 2 })}`;
+
+  return (
+    <div className="rounded-2xl overflow-hidden shadow-xl"
+      style={{ background: 'linear-gradient(135deg, #1B4332 0%, #1e5738 50%, #14532d 100%)' }}>
+
+      {/* Main row: balance left, overview right */}
+      <div className="flex flex-col xl:flex-row">
+
+        {/* ── LEFT: Balance + Actions ─────────────────── */}
+        <div className="flex-1 p-7 relative">
+          {/* decorative rings */}
+          <div className="absolute top-4 right-8 w-40 h-40 border border-white/10 rounded-full pointer-events-none" />
+          <div className="absolute -bottom-10 -right-4 w-64 h-64 border border-white/5 rounded-full pointer-events-none" />
+
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-emerald-400 mb-1">
+            Wallet Balance
+          </p>
+          <p className="text-[2.6rem] font-black text-white leading-none mb-1 tracking-tight">
+            {fmt(WALLET.available)}
+          </p>
+          <p className="text-sm text-emerald-300/80 mb-6">Available balance</p>
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-2.5 mb-6">
+            {[
+              { label: 'Add Funds', Icon: ArrowDownToLine },
+              { label: 'Withdraw',  Icon: ArrowUpFromLine  },
+              { label: 'Transfer',  Icon: ArrowLeftRight   },
+              { label: 'History',   Icon: ClipboardList    },
+            ].map(({ label, Icon }) => (
+              <button
+                key={label}
+                onClick={() => onAction(label)}
+                className="flex items-center gap-2 text-white text-xs font-bold px-4 py-2.5 rounded-xl
+                  border border-white/20 bg-white/10 hover:bg-white/20 active:scale-95
+                  transition-all backdrop-blur-sm"
+              >
+                <Icon className="w-3.5 h-3.5" /> {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Withdraw to M-PESA strip */}
+          <div className="flex items-center justify-between bg-white/5 border border-white/10
+            rounded-xl px-4 py-3">
+            <p className="text-xs text-emerald-200/80">Withdraw instantly to M-PESA anytime, 24/7</p>
+            <button
+              onClick={() => onAction('M-PESA Withdraw')}
+              className="flex items-center gap-1.5 bg-ag-amber hover:bg-amber-500
+                text-white text-xs font-extrabold px-4 py-2 rounded-lg transition-colors
+                active:scale-95 shrink-0 ml-4"
+            >
+              Withdraw to M-PESA <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* ── RIGHT: Overview panel ───────────────────── */}
+        <div className="xl:w-72 border-t xl:border-t-0 xl:border-l border-white/10
+          bg-white/5 p-6 flex flex-col justify-center gap-4">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-300">
+            Wallet Overview
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Available Balance', value: fmt(WALLET.available),  green: true,  warn: false },
+              { label: 'This Month',        value: fmt(WALLET.thisMonth),  green: false, warn: false },
+              { label: 'Pending Balance',   value: fmt(WALLET.pending),    green: false, warn: true  },
+              { label: 'Total Withdrawn',   value: fmt(WALLET.withdrawn),  green: false, warn: false },
+            ].map(item => (
+              <div key={item.label} className="bg-white/10 rounded-xl p-3 hover:bg-white/15 transition-colors">
+                <p className="text-[10px] text-emerald-300/70 mb-1 leading-tight">{item.label}</p>
+                <p className={`text-sm font-extrabold ${
+                  item.green ? 'text-emerald-300' :
+                  item.warn  ? 'text-amber-300'   : 'text-white'
+                }`}>
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={() => onAction('Full Wallet')}
+            className="w-full text-center text-xs font-extrabold text-emerald-300
+              hover:text-white py-2 border border-white/10 rounded-xl hover:bg-white/10
+              transition-all"
+          >
+            <Wallet className="w-3.5 h-3.5 inline mr-1.5" />
+            View Full Wallet
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════════
    MAIN COMPONENT
 ══════════════════════════════════════════════════════════ */
 export default function LogisticsDashboard() {
@@ -175,7 +288,7 @@ export default function LogisticsDashboard() {
   const [trackingCargo, setTrackingCargo] = useState(null);
   const [toast, setToast] = useState('');
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
 
   /* ── WALLET / EARNINGS paths delegate to WalletView ── */
   if (path === 'wallet' || path === 'earnings' || path === 'payments') {
@@ -184,10 +297,15 @@ export default function LogisticsDashboard() {
 
   /* ── STATS ── */
   const STATS = [
-    { label: 'Total Deliveries', value: '47',          sub: 'All time',         trend: '+12%', up: true  },
-    { label: 'On-Time Rate',     value: '95%',         sub: 'Last 30 days',     trend: '+3%',  up: true  },
-    { label: 'Active Drivers',   value: '12',          sub: 'Currently online', trend: '0',    up: null  },
-    { label: 'Revenue',          value: 'KSh 35,200',  sub: 'This month',       trend: '+8%',  up: true  },
+    { label: 'Total Deliveries', value: '47',         sub: 'All time',         icon: Package,        trend: '+12%', up: true,  color: 'bg-emerald-50 text-ag-primary' },
+    { label: 'On-Time Rate',     value: '95%',        sub: 'Last 30 days',     icon: CheckCircle2,   trend: '+3%',  up: true,  color: 'bg-blue-50 text-blue-600' },
+    { label: 'Active Drivers',   value: '12',         sub: 'Currently online', icon: Clock,          trend: null,   up: null,  color: 'bg-amber-50 text-amber-600' },
+    { label: 'Revenue',          value: 'KSh 35,200', sub: 'This month',       icon: Banknote,       trend: '+8%',  up: true,  color: 'bg-purple-50 text-purple-600' },
+  ];
+
+  const ALERTS = [
+    { id: 1, msg: 'DEL-004 Cabbage — delayed 45 min near Thika Road', type: 'warn' },
+    { id: 2, msg: 'DEL-003 Onions — no driver assigned yet',           type: 'error' },
   ];
 
   return (
@@ -206,10 +324,15 @@ export default function LogisticsDashboard() {
 
       {/* ── STAT CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {STATS.map(({ label, value, sub, trend, up }) => (
+        {STATS.map(({ label, value, sub, icon: Icon, trend, up, color }) => (
           <div key={label} className="bg-white rounded-2xl border border-ag-border p-5 flex flex-col gap-3
-            hover:shadow-md transition-shadow">
-            <p className="text-xs font-bold uppercase tracking-widest text-ag-muted">{label}</p>
+            hover:shadow-md transition-all hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold uppercase tracking-widest text-ag-muted">{label}</p>
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${color}`}>
+                <Icon className="w-4 h-4" />
+              </div>
+            </div>
             <div className="flex items-end justify-between">
               <p className="text-3xl font-black text-ag-body">{value}</p>
               {up !== null && (
@@ -224,66 +347,23 @@ export default function LogisticsDashboard() {
         ))}
       </div>
 
-      {/* ── WALLET BALANCE CARD ── */}
-      <div className="bg-gradient-to-br from-[#1B4332] via-[#1e5738] to-[#14532d] rounded-2xl p-6 text-white
-        shadow-xl relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-4 right-8 w-40 h-40 border-2 border-white rounded-full" />
-          <div className="absolute -bottom-8 -right-8 w-64 h-64 border border-white rounded-full" />
-        </div>
-        <div className="relative z-10">
-          <p className="text-xs font-bold uppercase tracking-widest text-emerald-300 mb-1">Wallet Balance</p>
-          <p className="text-4xl font-black mb-1">KSh 14,700.00</p>
-          <p className="text-sm text-emerald-200 mb-5">Available balance</p>
-          <div className="flex flex-wrap gap-3 mb-5">
-            {[
-              { label: 'Add Funds', icon: '↓' },
-              { label: 'Withdraw',  icon: '↑' },
-              { label: 'Transfer',  icon: '⇄' },
-              { label: 'History',   icon: '📋' },
-            ].map(b => (
-              <button key={b.label}
-                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white text-sm
-                  font-bold px-4 py-2.5 rounded-xl border border-white/20 transition-all backdrop-blur-sm"
-                onClick={() => showToast(`${b.label} coming soon!`)}
-              >
-                <span>{b.icon}</span> {b.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center justify-between bg-emerald-900/40 rounded-xl px-4 py-3 border border-emerald-700/40">
-            <p className="text-xs text-emerald-200">Withdraw instantly to M-PESA anytime, 24/7</p>
-            <button
-              onClick={() => showToast('M-PESA withdrawal initiated!')}
-              className="flex items-center gap-2 bg-ag-amber hover:bg-amber-600 text-white text-xs
-                font-extrabold px-4 py-2 rounded-lg transition-colors"
-            >
-              Withdraw to M-PESA <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
+      {/* ── WALLET BALANCE CARD (screenshot design) ── */}
+      <WalletCard onAction={showToast} />
 
-        {/* Wallet Overview Side Panel */}
-        <div className="absolute right-0 top-0 bottom-0 w-72 bg-white/5 backdrop-blur-sm border-l border-white/10
-          p-5 hidden xl:flex flex-col justify-center gap-4">
-          <p className="text-xs font-extrabold text-emerald-200 uppercase tracking-wider">Wallet Overview</p>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: 'Available Balance', value: 'KSh 14,700.00', green: true },
-              { label: 'This Month',        value: 'KSh 10,700.00', green: false },
-              { label: 'Pending Balance',   value: 'KSh 1,200.00',  green: false, warn: true },
-              { label: 'Total Withdrawn',   value: 'KSh 6,200.00',  green: false },
-            ].map(item => (
-              <div key={item.label} className="bg-white/10 rounded-xl p-3">
-                <p className="text-[10px] text-emerald-300 mb-1">{item.label}</p>
-                <p className={`text-sm font-extrabold ${item.green ? 'text-emerald-300' : item.warn ? 'text-amber-300' : 'text-white'}`}>
-                  {item.value}
-                </p>
-              </div>
-            ))}
-          </div>
+      {/* ── ALERTS ── */}
+      {ALERTS.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {ALERTS.map(a => (
+            <div key={a.id} className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold
+              ${a.type === 'error'
+                ? 'bg-red-50 border border-red-200 text-red-700'
+                : 'bg-amber-50 border border-amber-200 text-amber-700'}`}>
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              {a.msg}
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* ── LIVE OPERATIONS TABLE ── */}
       <div className="bg-white rounded-2xl border border-ag-border shadow-sm overflow-hidden">

@@ -5,20 +5,18 @@ import api from '../services/api';
 /**
  * AuthContext — single source of truth for authentication state.
  *
- * Auth system: Flask JWT (POST /api/auth/login, POST /api/auth/register).
+ * Auth system: Flask JWT via POST /api/auth/login and POST /api/auth/register.
  * Tokens are stored under two canonical localStorage keys:
  *   spToken — the JWT bearer token injected into every Axios request
  *   spUser  — JSON-serialised { id, name, email, phone, role }
  *
- * Supabase has been fully removed. No supabase-js dependency anywhere.
- *
  * Exposes:
- *   user    — { id, name, email, phone, role } | null
- *   role    — 'farmer' | 'buyer' | 'logistics' | 'admin' | null
- *   loading — true until localStorage rehydration completes (prevents flash)
- *   signIn  — ({ email, password, role }) => Promise<{ data, error }>
- *   signUp  — ({ email, password, name, phone, county, role }) => Promise<{ data, error }>
- *   signOut — () => void
+ *   user     — { id, name, email, phone, role } | null
+ *   role     — 'farmer' | 'buyer' | 'logistics' | 'admin' | null
+ *   loading  — true until localStorage rehydration completes (prevents flash)
+ *   signIn   — ({ email, password, role }) => Promise<{ data, error }>
+ *   signUp   — ({ email, password, name, phone, county, role }) => Promise<{ data, error }>
+ *   signOut  — () => void
  */
 
 const AuthContext = createContext(null);
@@ -127,8 +125,18 @@ export const AuthProvider = ({ children }) => {
   }, [applySession]);
 
   // ── signOut — clear local state (JWT is stateless; no server call needed) ─
-  const signOut = useCallback(() => {
+  const signOut = useCallback(async (redirect = true) => {
+    try {
+      // If the page fade helper exists, run the fade-out before clearing session
+      if (window?.pageFade?.fadeOut) {
+        await window.pageFade.fadeOut(300);
+      }
+    } catch { /* ignore — pageFade is optional */ }
+
     clearSession();
+    if (redirect) {
+      try { window.location.href = '/login'; } catch { /* ignore */ }
+    }
   }, [clearSession]);
 
   const value = { user, role, loading, signIn, signUp, signOut };

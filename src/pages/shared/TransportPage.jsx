@@ -26,13 +26,13 @@ const DELIVERIES = [
 ];
 
 const STATUS_COLOR = {
-  'Pending':    'bg-amber-100 text-amber-700',
-  'Accepted':   'bg-emerald-100 text-emerald-700',
-  'Preparing':  'bg-blue-100 text-blue-700',
-  'Collected':  'bg-cyan-100 text-cyan-700',
+  'Pending': 'bg-amber-100 text-amber-700',
+  'Accepted': 'bg-emerald-100 text-emerald-700',
+  'Preparing': 'bg-blue-100 text-blue-700',
+  'Collected': 'bg-cyan-100 text-cyan-700',
   'In Transit': 'bg-emerald-100 text-emerald-700',
-  'Delivered':  'bg-green-100 text-green-700',
-  'Completed':  'bg-green-100 text-green-700',
+  'Delivered': 'bg-green-100 text-green-700',
+  'Completed': 'bg-green-100 text-green-700',
 };
 
 /* ── BOOK TRANSPORT MODAL ─────────────────────────────────── */
@@ -53,11 +53,11 @@ const BookModal = ({ onClose }) => {
         </div>
         <div className="p-6 flex flex-col gap-4">
           {[
-            { key: 'from',   label: 'Pickup Location', placeholder: 'e.g. Nakuru Farm' },
-            { key: 'to',     label: 'Destination',     placeholder: 'e.g. Nairobi Wakulima Market' },
-            { key: 'cargo',  label: 'Cargo / Produce', placeholder: 'e.g. Maize 50 bags' },
-            { key: 'weight', label: 'Weight (kg)',      placeholder: 'e.g. 1500', type: 'number' },
-            { key: 'date',   label: 'Pickup Date',      type: 'date' },
+            { key: 'from', label: 'Pickup Location', placeholder: 'e.g. Nakuru Farm' },
+            { key: 'to', label: 'Destination', placeholder: 'e.g. Nairobi Wakulima Market' },
+            { key: 'cargo', label: 'Cargo / Produce', placeholder: 'e.g. Maize 50 bags' },
+            { key: 'weight', label: 'Weight (kg)', placeholder: 'e.g. 1500', type: 'number' },
+            { key: 'date', label: 'Pickup Date', type: 'date' },
           ].map(f => (
             <div key={f.key}>
               <label className="block text-xs font-bold text-ag-body mb-1 uppercase tracking-wide">{f.label}</label>
@@ -87,10 +87,10 @@ export default function TransportPage() {
   const [expandedId, setExpandedId] = useState(null);
 
   const counts = {
-    total:      DELIVERIES.length,
-    inTransit:  DELIVERIES.filter(d => d.status === 'In Transit').length,
-    delivered:  DELIVERIES.filter(d => d.status === 'Delivered' || d.status === 'Completed').length,
-    pending:    DELIVERIES.filter(d => d.status === 'Pending').length,
+    total: DELIVERIES.length,
+    inTransit: DELIVERIES.filter(d => d.status === 'In Transit').length,
+    delivered: DELIVERIES.filter(d => d.status === 'Delivered' || d.status === 'Completed').length,
+    pending: DELIVERIES.filter(d => d.status === 'Pending').length,
   };
 
   return (
@@ -123,23 +123,18 @@ export default function TransportPage() {
       {/* ── SUMMARY STAT CARDS ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { label: 'Total Deliveries', value: counts.total,     icon: Package,       dot: null },
-          { label: 'In Transit',       value: counts.inTransit,  icon: Truck,         dot: 'bg-amber-400' },
-          { label: 'Delivered',        value: counts.delivered,  icon: CheckCircle,   dot: 'bg-emerald-500' },
-          { label: 'Pending',          value: counts.pending,    icon: Clock,         dot: 'bg-amber-400' },
-        ].map(({ label, value, icon: Icon, dot }) => (
-          <div key={label} className="bg-white rounded-2xl border border-ag-border p-5 flex items-center justify-between
+          { label: 'Total Deliveries', value: counts.total, icon: Package, dot: null },
+          { label: 'In Transit', value: counts.inTransit, icon: Truck, dot: 'bg-amber-400' },
+          { label: 'Delivered', value: counts.delivered, icon: CheckCircle, dot: 'bg-emerald-500' },
+          { label: 'Pending', value: counts.pending, icon: Clock, dot: 'bg-amber-400' },
+        ].map(({ label, value, dot }) => (
+          <div key={label} className="bg-white rounded-2xl border border-ag-border p-5 flex flex-col gap-2
             hover:shadow-md transition-shadow">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                {dot && <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />}
-                <p className="text-xs font-bold text-ag-muted">{label}</p>
-              </div>
-              <p className="text-4xl font-black text-ag-body">{value}</p>
+            <div className="flex items-center gap-2">
+              {dot && <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />}
+              <p className="text-xs font-bold text-ag-muted">{label}</p>
             </div>
-            <div className="w-10 h-10 bg-ag-canvas rounded-xl flex items-center justify-center text-ag-primary shrink-0">
-              <Icon className="w-5 h-5" />
-            </div>
+            <p className="text-4xl font-black text-ag-body">{value}</p>
           </div>
         ))}
       </div>
@@ -208,16 +203,16 @@ export default function TransportPage() {
               <div className="px-5 pb-5">
                 <div className="flex items-center gap-0">
                   {STEPS.map((step, i) => {
-                    const done    = i < d.step;
+                    const done = i < d.step;
                     const current = i === d.step;
-                    const last    = i === STEPS.length - 1;
+                    const last = i === STEPS.length - 1;
                     return (
                       <div key={step} className="flex items-center flex-1">
                         <div className="flex flex-col items-center">
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all
-                            ${done    ? 'bg-ag-primary text-white' :
+                            ${done ? 'bg-ag-primary text-white' :
                               current ? 'bg-ag-amber text-white ring-4 ring-ag-amber/20' :
-                                        'bg-ag-border text-ag-muted'}`}>
+                                'bg-ag-border text-ag-muted'}`}>
                             {done ? (
                               <CheckCircle className="w-4 h-4" />
                             ) : current ? (

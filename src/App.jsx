@@ -4,6 +4,7 @@ import TopNavLayout    from './layouts/TopNavLayout';
 import DashboardLayout from './layouts/DashboardLayout';
 import ProtectedRoute  from './routes/ProtectedRoute';
 import { useAuth }     from './contexts/AuthContext';
+import PageFade        from './components/common/PageFade';
 
 /* ── Lazy-loaded pages ─────────────────────────────────── */
 const Landing            = lazy(() => import('./pages/landing/Landing'));
@@ -77,6 +78,7 @@ function App() {
 
   return (
     <Router>
+      <PageFade duration={360} />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* ── Public / top-nav ── */}
