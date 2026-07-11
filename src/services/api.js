@@ -7,13 +7,21 @@ import axios from 'axios';
  * Auth: reads JWT from localStorage key 'spToken' (written by AuthContext).
  * On 401: clears credentials and fires 'shambapoint:signout' so AuthContext
  *         can clear React state reactively — no window.location.href needed.
+ *
+ * IMPORTANT: Always use a relative base '/api' so the Vite proxy handles
+ * the forwarding to Flask. Never hardcode http://127.0.0.1:5000 here, as
+ * that bypasses the proxy and causes CORS issues.
  */
 
+// Always use relative /api — Vite proxy handles the rest in dev,
+// and in production the same path is served by the Flask/nginx reverse proxy.
+const API_BASE_URL = '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 10000,
-  withCredentials: true, // required for Flask CORS supports_credentials=True
+  withCredentials: false,
 });
 
 // ─── REQUEST: inject JWT ──────────────────────────────────────────────────────

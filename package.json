@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:backend": "cd backend && python app.py --dev",
-    "start:backend": "cd backend && python app.py",
+    "dev:backend": ".venv/Scripts/python.exe backend/app.py --dev",
+    "start:backend": ".venv/Scripts/python.exe backend/app.py",
     "build": "vite build",
-    "built": "npm run build",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
