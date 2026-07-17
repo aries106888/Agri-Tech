@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, AlertCircle, Leaf, CheckCircle } from 'lucide-react';
-import api from '../services/api';
+import { useAuth, ROLE_REDIRECTS } from '../contexts/AuthContext';
 
 const ROLES = [
   { id: 'farmer',    label: 'Farmer',    redirect: '/farmer/dashboard' },
@@ -12,17 +12,13 @@ const ROLES = [
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [form, setForm]       = useState({ email: '', password: '', role: 'farmer' });
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-
-  const getRedirect = (role) => {
-    const found = ROLES.find(r => r.id === role);
-    return found ? found.redirect : '/farmer/dashboard';
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,31 +31,18 @@ const Login = () => {
     }
 
     setLoading(true);
-    try {
-      // Try Flask backend first
-      const res = await api.post('/auth/login', form);
-      const { token, user, redirect } = res.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setSuccess(`Welcome back, ${user.name}! Redirecting...`);
-      setTimeout(() => navigate(redirect || getRedirect(form.role)), 800);
-    } catch (err) {
-      // Bulletproof fallback: If the backend is off or returns any connection error,
-      // log the user in locally so the frontend can still be used and tested.
-      const isExpectedBackendError = err.response && (err.response.status === 400 || err.response.status === 401);
-      
-      if (!isExpectedBackendError) {
-        const user = { name: form.email.split('@')[0], role: form.role, email: form.email };
-        localStorage.setItem('token', btoa(form.email + ':' + form.role));
-        localStorage.setItem('user', JSON.stringify(user));
-        setSuccess(`Welcome, ${user.name}! Redirecting to your dashboard...`);
-        setTimeout(() => navigate(getRedirect(form.role)), 800);
-      } else {
-        setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
-      }
-    } finally {
-      setLoading(false);
+    const { data, error: signInError } = await signIn({ email: form.email, password: form.password });
+    setLoading(false);
+
+    if (signInError) {
+      setError(signInError.message || 'Login failed. Please check your credentials.');
+      return;
     }
+
+    const userRole = data?.user?.user_metadata?.role || form.role;
+    const redirect = ROLE_REDIRECTS[userRole] || '/farmer/dashboard';
+    setSuccess(`Welcome back! Redirecting...`);
+    setTimeout(() => navigate(redirect), 800);
   };
 
   return (

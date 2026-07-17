@@ -1,7 +1,7 @@
 import { useState, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, ShieldCheck, AlertCircle } from 'lucide-react';
-import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const COUNTIES = ['Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Kiambu','Machakos','Nyeri','Meru','Uasin Gishu','Kajiado','Nyandarua','Kericho','Bomet','Kakamega'];
 const CROP_TYPES = ['Maize','Tomatoes','Potatoes','Onions','Cabbage','Spinach','Carrots','Beans','Pineapple','Avocado'];
@@ -17,6 +17,7 @@ const STEPS = ['Your Role', 'Your Details', 'Verify'];
 
 const Signup = () => {
   const navigate = useNavigate();
+  const { signUp } = useAuth();
   const [step] = useState(0);
   const [selectedRole, setSelectedRole] = useState('farmer');
   const [error, setError]     = useState('');
@@ -46,32 +47,21 @@ const Signup = () => {
       return;
     }
     setLoading(true);
-    try {
-      const res = await api.post('/auth/register', {
-        name:         form.name,
-        email:        form.email,
-        phone:        form.phone,
-        county:       form.county,
-        password:     form.password,
-        role:         selectedRole,
-        cropType:     form.cropType,
-        businessName: form.businessName,
-      });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user',  JSON.stringify(res.data.user));
-      setSuccess('Account created successfully! Taking you to login...');
-      setTimeout(() => navigate('/login'), 1500);
-    } catch (err) {
-      // Fallback: if Flask offline or on GitHub pages (404), still proceed to login
-      if (!err.response || err.response?.status >= 500 || err.response?.status === 404) {
-        setSuccess('Account created! Please log in to continue.');
-        setTimeout(() => navigate('/login'), 1500);
-      } else {
-        setError(err.response?.data?.error || 'Registration failed. Please try again.');
-      }
-    } finally {
-      setLoading(false);
+    const { error: signUpError } = await signUp({
+      email:    form.email,
+      password: form.password,
+      name:     form.name,
+      phone:    form.phone,
+      county:   form.county,
+      role:     selectedRole,
+    });
+    setLoading(false);
+    if (signUpError) {
+      setError(signUpError.message || 'Registration failed. Please try again.');
+      return;
     }
+    setSuccess('Account created! Check your email to confirm, then log in.');
+    setTimeout(() => navigate('/login'), 2500);
   };
 
   return (
