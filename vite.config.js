@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5174,
+    strictPort: true,
     host: '0.0.0.0', // Listen on all network interfaces for remote access
     proxy: {
       // All /api/* requests are forwarded to the Flask backend

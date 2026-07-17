@@ -36,6 +36,14 @@ Endpoints:
 
 import os
 import sys
+
+# Automatically add the virtual environment's site-packages path to sys.path
+# to support running the script with the global Python interpreter.
+venv_site_packages = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.venv', 'Lib', 'site-packages'))
+if os.path.exists(venv_site_packages) and venv_site_packages not in sys.path:
+    sys.path.insert(0, venv_site_packages)
+
+import ssl
 import json
 import base64
 import hmac
@@ -51,6 +59,8 @@ from flask import Flask, jsonify, request, send_from_directory, g
 from flask_cors import CORS
 from dotenv import load_dotenv
 from typing import Any, cast
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 
 # Optional MySQL — install with: pip install PyMySQL
@@ -69,6 +79,12 @@ request = cast(Any, request)
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
+)
 
 # ─── CORS ────────────────────────────────────────────────────────────────────
 # ALLOWED_ORIGINS env var: comma-separated list of origins, e.g.:
@@ -80,7 +96,7 @@ _raw_origins = os.getenv(
 ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(',') if o.strip()]
 DEVELOPMENT_MODE = os.getenv('FLASK_ENV') == 'development' or '--dev' in sys.argv
 if DEVELOPMENT_MODE:
-    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
+    CORS(app, resources={r"/api/*": {"origins": ALLOWED_ORIGINS}}, supports_credentials=False)
 else:
     CORS(app, origins=ALLOWED_ORIGINS, supports_credentials=True)
 
@@ -133,13 +149,12 @@ ADMIN_USERS     = []   # users created by admin
 # Admin accounts are allowed in demo mode for account creation.
 PUBLIC_SIGNUP_ROLES = {'farmer', 'buyer', 'logistics', 'admin'}
 
-JWT_SECRET  = os.getenv('JWT_SECRET', 'shambapoint-dev-secret-CHANGE-IN-PRODUCTION')
+JWT_SECRET  = os.environ['JWT_SECRET']
 JWT_EXPIRY  = 60 * 60 * 24 * 7  # 7 days in seconds
 
-DB_HOST     = os.getenv('DB_HOST', '127.0.0.1')
-DB_USER     = os.getenv('DB_USER', 'shambapoint_app')
-DB_PASSWORD = os.getenv('DB_PASSWORD', 'shamba_secure_pass_123!')
-DB_NAME     = os.getenv('DB_NAME', 'shambapoint')
+SUPABASE_URL         = os.getenv('SUPABASE_URL')
+SUPABASE_ANON_KEY     = os.getenv('SUPABASE_ANON_KEY')
+SUPABASE_DB_PASSWORD = os.getenv('SUPABASE_DB_PASSWORD')
 
 # ─── IN-MEMORY USER STORE (dev only — replace with MySQL in production) ────────
 # key: email (lowercase) -> { id, name, email, phone, role, password_hash, county }
@@ -168,10 +183,42 @@ def make_token(user_id, role, name):
 
 
 def decode_token(token_str):
-    """Verify HMAC signature and expiry. Returns payload dict or None."""
+    """Verify Supabase JWT via Auth API when active, fallback to local HMAC verification."""
     try:
         if token_str.startswith('Bearer '):
             token_str = token_str[7:]
+
+        # If Supabase is active, verify via Supabase Auth GET /user
+        if SUPABASE_URL and SUPABASE_ANON_KEY:
+            try:
+                headers = {
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization": f"Bearer {token_str}"
+                }
+                resp = requests.get(f"{SUPABASE_URL}/auth/v1/user", headers=headers, timeout=5)
+                if resp.status_code == 200:
+                    user_data = resp.json()
+                    user_id = user_data.get('id')
+                    user_metadata = user_data.get('user_metadata', {})
+                    
+                    # Fetch from profiles table to get latest role/name
+                    db_prof = db_query("SELECT name, role FROM public.profiles WHERE id = %s", (user_id,))
+                    if db_prof:
+                        role = db_prof[0]['role']
+                        name = db_prof[0]['name']
+                    else:
+                        role = user_metadata.get('role', 'buyer').lower()
+                        name = user_metadata.get('name', '')
+
+                    return {
+                        "user_id": user_id,
+                        "role": role,
+                        "name": name
+                    }
+            except Exception as exc:
+                log.error(f"[Auth] Supabase token verification failed: {exc}")
+
+        # Local HMAC verification fallback
         parts = token_str.split('.')
         if len(parts) != 2:
             return None
@@ -208,20 +255,71 @@ def check_password(password, stored_hash):
         return False
 
 
-# ── MySQL connection ─────────────────────────────────────────────────────────────────────────
+# ── Supabase connection & Query Helpers ────────────────────────────────────────────────────────
 
-def get_db():
-    """Return a PyMySQL DictCursor connection. Use `with conn:` in callers."""
-    if not MYSQL_AVAILABLE or pymysql is None:
-        raise RuntimeError(
-            'PyMySQL not installed. Run: pip install PyMySQL  '
-            'then restart the Flask server.'
+def get_db_connection():
+    """Return a pg8000 connection to Supabase PostgreSQL or None if not configured."""
+    if not SUPABASE_DB_PASSWORD:
+        return None
+    try:
+        import pg8000.dbapi  # type: ignore
+
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = False
+        ssl_context.verify_mode = ssl.CERT_NONE
+
+        conn = pg8000.dbapi.connect(
+            host="aws-0-eu-central-1.pooler.supabase.com",
+            port=5432,
+            database="postgres",
+            user="postgres.hwhebeixeflsdshmgowc",
+            password=SUPABASE_DB_PASSWORD,
+            ssl_context=ssl_context
         )
-    return pymysql.connect(
-        host=DB_HOST, user=DB_USER, password=DB_PASSWORD, database=DB_NAME,
-        cursorclass=pymysql.cursors.DictCursor,
-        charset='utf8mb4', connect_timeout=5, autocommit=False,
-    )
+        return conn
+    except Exception as exc:
+        log.error(f"[DB] Error connecting to Supabase database: {exc}")
+        return None
+
+def db_query(query, params=None):
+    """Run a SELECT query and return list of dicts. Returns None if DB not active."""
+    conn = get_db_connection()
+    if not conn:
+        return None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query, params or ())
+        # Convert row tuples to dictionaries
+        if cursor.description is None:
+            cursor.close()
+            conn.close()
+            return []
+
+        columns = [desc[0] for desc in cursor.description or []]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        cursor.close()
+        conn.close()
+        return results
+    except Exception as exc:
+        log.error(f"[DB] Query error: {exc} | Query: {query}")
+        return None
+
+def db_execute(query, params=None):
+    """Run an INSERT/UPDATE/DELETE query and commit. Returns True on success, False otherwise."""
+    conn = get_db_connection()
+    if not conn:
+        return False
+    try:
+        conn.autocommit = True
+        cursor = conn.cursor()
+        cursor.execute(query, params or ())
+        cursor.close()
+        conn.close()
+        return True
+    except Exception as exc:
+        log.error(f"[DB] Execute error: {exc} | Query: {query}")
+        return False
+
 
 
 from functools import wraps
@@ -354,6 +452,12 @@ def serve_spa_or_static(path):
 
 @app.route('/api', methods=['GET'])
 def index():
+    if not DEVELOPMENT_MODE:
+        auth_header = request.headers.get('Authorization')
+        token_info = decode_token(auth_header) if auth_header else None
+        if not token_info or token_info.get('role', '').lower() != 'admin':
+            return jsonify({"error": "Forbidden: Admin access required."}), 403
+
     return jsonify({
         "service": "ShambaPoint Agri-Tech API",
         "version": "3.0",
@@ -384,6 +488,7 @@ def index():
 
 # ─── AUTH ─────────────────────────────────────────────────────────────────────
 @app.route('/api/auth/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def register():
     data = request.get_json() or {}
     required = ['name', 'email', 'phone', 'password', 'role']
@@ -426,6 +531,7 @@ def register():
 
 
 @app.route('/api/auth/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     data = request.get_json() or {}
     if not data.get('email') or not data.get('password'):
@@ -448,18 +554,8 @@ def login():
         user_role = user['role']
         public_user = {k: v for k, v in user.items() if k != 'password_hash'}
     else:
-        # Fallback demo mode: no registered user found — allow dev login with any password
-        # In production, remove this fallback and connect MySQL.
-        log.warning(f"[Auth] Demo login for unregistered user: {email}")
-        user_id   = str(random.randint(10000, 99999))
-        user_name = email.split('@')[0].replace('.', ' ').title()
-        user_role = role
-        public_user = {
-            "id":    user_id,
-            "name":  user_name,
-            "email": email,
-            "role":  user_role,
-        }
+        log.warning(f"[Auth] Login failed: account not found for {email}")
+        return jsonify({"error": "Invalid email or password."}), 401
 
     role_map = {
         'farmer':    '/farmer/dashboard',
@@ -552,24 +648,47 @@ def update_product(product_id):
 
 # ─── ORDERS ───────────────────────────────────────────────────────────────────
 @app.route('/api/orders', methods=['GET'])
+@require_role('buyer', 'farmer', 'admin')
 def get_orders():
-    buyer_id = request.args.get('buyer_id')
-    if buyer_id:
-        mine = BUYER_ORDERS.get(str(buyer_id), [])
-        return jsonify(mine)
-    fallback = ORDERS if ORDERS else [
-        {"order_id": "A1B2C3D4", "buyer": "John Kamau",   "status": "delivered", "total": 1540},
-        {"order_id": "E5F6G7H8", "buyer": "Grace Atieno", "status": "pending",   "total": 860},
+    current_user = getattr(request, 'current_user', {})
+    user_id = current_user.get('user_id')
+    user_role = current_user.get('role', '').lower()
+
+    # Determine orders list
+    all_orders = ORDERS if ORDERS else [
+        {"order_id": "A1B2C3D4", "buyer_id": "1", "buyer": "John Kamau",   "status": "delivered", "total": 1540, "farmer_id": "2"},
+        {"order_id": "E5F6G7H8", "buyer_id": "2", "buyer": "Grace Atieno", "status": "pending",   "total": 860, "farmer_id": "3"},
     ]
-    return jsonify(fallback)
+
+    if user_role == 'admin':
+        return jsonify(all_orders)
+    elif user_role == 'buyer':
+        mine = [o for o in all_orders if str(o.get('buyer_id')) == str(user_id)]
+        return jsonify(mine)
+    elif user_role == 'farmer':
+        mine = []
+        for o in all_orders:
+            if str(o.get('farmer_id')) == str(user_id):
+                mine.append(o)
+                continue
+            items = o.get('items', [])
+            if isinstance(items, list):
+                for item in items:
+                    if isinstance(item, dict) and str(item.get('farmer_id')) == str(user_id):
+                        mine.append(o)
+                        break
+        return jsonify(mine)
+    return jsonify([]), 403
 
 @app.route('/api/orders', methods=['POST'])
+@require_role('buyer', 'admin')
 def create_order():
     data = request.get_json() or {}
     if not data.get('items') or not data.get('buyer_name'):
         return jsonify({"error": "items and buyer_name are required"}), 422
 
-    buyer_id = str(data.get('buyer_id', 'anon'))
+    current_user = getattr(request, 'current_user', {})
+    buyer_id = current_user.get('user_id', 'anon')
     order = {
         "order_id":  random_id(),
         "buyer_id":  buyer_id,
@@ -725,6 +844,7 @@ def admin_create_user():
 
 # ─── CART ─────────────────────────────────────────────────────────────────────
 @app.route('/api/cart', methods=['POST'])
+@require_role('buyer', 'farmer', 'logistics', 'admin')
 def add_to_cart():
     data = request.get_json() or {}
     if not data.get('productId'):
@@ -736,6 +856,7 @@ def add_to_cart():
 FEEDBACK_STORE = []  # In-memory; replace with DB in production
 
 @app.route('/api/feedback', methods=['POST'])
+@require_role('buyer', 'farmer', 'logistics', 'admin')
 def submit_feedback():
     """
     Accept secure transaction feedback from SmartSecurePay.
@@ -866,6 +987,8 @@ def submit_contact():
 
 # ─── STK PUSH (Buyer pays — C2B) ──────────────────────────────────────────────
 @app.route('/api/payments/mpesa/stkpush', methods=['POST'])
+@require_role('buyer', 'admin')
+@limiter.limit("10 per minute")
 def mpesa_stk_push():
     """
     Initiate Lipa Na M-Pesa Online (STK Push).
@@ -948,6 +1071,7 @@ def mpesa_stk_push():
 
 # ─── STK PUSH QUERY ───────────────────────────────────────────────────────────
 @app.route('/api/payments/mpesa/stkpush/query', methods=['POST'])
+@require_role('buyer', 'admin')
 def mpesa_stk_query():
     """
     Query status of a previously initiated STK Push.
@@ -1028,9 +1152,9 @@ def mpesa_callback():
         })
 
         if result_code == 0:
-            log.info(f"[STK Callback] ✅ Payment SUCCESS — Receipt: {meta.get('MpesaReceiptNumber')}, KES {meta.get('Amount')}, Phone: {meta.get('PhoneNumber')}")
+            log.info(f"[STK Callback] Payment SUCCESS — Receipt: {meta.get('MpesaReceiptNumber')}, KES {meta.get('Amount')}, Phone: {meta.get('PhoneNumber')}")
         else:
-            log.warning(f"[STK Callback] ❌ Payment FAILED — {result_desc}")
+            log.warning(f"[STK Callback] Payment FAILED — {result_desc}")
 
     except Exception as exc:
         log.error(f"[STK Callback] Parse error: {exc}")
@@ -1151,9 +1275,9 @@ def mpesa_b2c_result():
         })
 
         if result_code == 0:
-            log.info(f"[B2C Result] ✅ Payout SUCCESS — Receipt: {params.get('TransactionReceipt')}")
+            log.info(f"[B2C Result] Payout SUCCESS — Receipt: {params.get('TransactionReceipt')}")
         else:
-            log.warning(f"[B2C Result] ❌ Payout FAILED — {result_desc}")
+            log.warning(f"[B2C Result] Payout FAILED — {result_desc}")
 
     except Exception as exc:
         log.error(f"[B2C Result] Parse error: {exc}")
@@ -1311,6 +1435,10 @@ def not_found(e):
 @app.errorhandler(405)
 def method_not_allowed(e):
     return jsonify({"error": "Method not allowed on this route."}), 405
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({"error": f"Rate limit exceeded: {e.description}"}), 429
 
 
 # ─── RUN ──────────────────────────────────────────────────────────────────────

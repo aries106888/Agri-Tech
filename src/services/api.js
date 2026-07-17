@@ -47,6 +47,22 @@ api.interceptors.response.use(
       // Notify AuthContext to clear React state — ProtectedRoute then redirects
       window.dispatchEvent(new CustomEvent('shambapoint:signout'));
     }
+
+    // Check if it's a network error or 502/504 Bad Gateway (typical backend-down errors from Vite proxy)
+    const isNetworkError = !error.response;
+    const is502Or504 = error.response?.status === 502 || error.response?.status === 504;
+    const isConnError = error.code === 'ECONNREFUSED' || error.message?.includes('Network Error');
+
+    if (isNetworkError || is502Or504 || isConnError) {
+      const customMsg = "Cannot reach the server — make sure the backend is running";
+      if (!error.response) {
+        error.response = { data: { error: customMsg } };
+      } else {
+        error.response.data = { error: customMsg };
+      }
+      error.message = customMsg;
+    }
+
     return Promise.reject(error);
   }
 );

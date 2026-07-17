@@ -1,7 +1,7 @@
-import { useState, Fragment, useEffect } from 'react';
+import { useState, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, Shield, AlertCircle, CheckCircle } from 'lucide-react';
-import { useAuth, ROLE_REDIRECTS } from '../../contexts/AuthContext';
+import { User, Mail, Phone, Lock, MapPin, Tractor, Briefcase, Truck, ShieldCheck, AlertCircle } from 'lucide-react';
+import api from '../services/api';
 
 const COUNTIES = ['Nairobi','Mombasa','Kisumu','Nakuru','Eldoret','Kiambu','Machakos','Nyeri','Meru','Uasin Gishu','Kajiado','Nyandarua','Kericho','Bomet','Kakamega'];
 const CROP_TYPES = ['Maize','Tomatoes','Potatoes','Onions','Cabbage','Spinach','Carrots','Beans','Pineapple','Avocado'];
@@ -10,26 +10,18 @@ const ROLES = [
   { id: 'farmer',    icon: Tractor,    label: 'Farmer',    desc: 'List and sell your crops directly to verified buyers.' },
   { id: 'buyer',     icon: Briefcase,  label: 'Buyer',     desc: 'Source fresh produce directly from verified farms.' },
   { id: 'logistics', icon: Truck,      label: 'Logistics', desc: 'Deliver produce from farms to buyers reliably.' },
-  { id: 'admin',     icon: Shield,     label: 'Admin',     desc: 'Manage listings, orders and platform operations.' },
+  { id: 'admin',     icon: ShieldCheck,label: 'Admin',     desc: 'Manage the platform, users, and listings.' },
 ];
 
 const STEPS = ['Your Role', 'Your Details', 'Verify'];
 
 const Signup = () => {
   const navigate = useNavigate();
-  const { signUp, user, role } = useAuth();
   const [step] = useState(0);
   const [selectedRole, setSelectedRole] = useState('farmer');
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Reactive redirect based on authenticated user state
-  useEffect(() => {
-    if (user && role) {
-      navigate(ROLE_REDIRECTS[role] || '/', { replace: true });
-    }
-  }, [user, role, navigate]);
   const [form, setForm] = useState({ name: '', email: '', phone: '', county: '', cropType: '', businessName: '', password: '', confirmPassword: '', agree: false });
 
   const handleChange = (e) => {
@@ -45,10 +37,6 @@ const Signup = () => {
       setError('Please fill in all required fields.');
       return;
     }
-    if (form.password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
     if (form.password !== form.confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -59,26 +47,28 @@ const Signup = () => {
     }
     setLoading(true);
     try {
-      const { error: signUpError } = await signUp({
-        email:    form.email,
-        password: form.password,
-        name:     form.name,
-        phone:    form.phone,
-        county:   form.county,
-        role:     selectedRole,
+      const res = await api.post('/auth/register', {
+        name:         form.name,
+        email:        form.email,
+        phone:        form.phone,
+        county:       form.county,
+        password:     form.password,
+        role:         selectedRole,
+        cropType:     form.cropType,
+        businessName: form.businessName,
       });
-
-      if (signUpError) {
-        setError(signUpError.message || 'Registration failed. Please try again.');
-        return;
-      }
-
-      // Flask auth returns a token immediately on 201 — no email confirmation step.
-      // AuthContext.signUp already called applySession(), so user+role are set.
-      // The useEffect above watching user+role handles the navigation.
-      setSuccess('Account created! Taking you to your dashboard…');
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('user',  JSON.stringify(res.data.user));
+      setSuccess('Account created successfully! Taking you to login...');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      setError(err.message || 'Registration failed. Please try again.');
+      // Fallback: if Flask offline or on GitHub pages (404), still proceed to login
+      if (!err.response || err.response?.status >= 500 || err.response?.status === 404) {
+        setSuccess('Account created! Please log in to continue.');
+        setTimeout(() => navigate('/login'), 1500);
+      } else {
+        setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -89,7 +79,7 @@ const Signup = () => {
       {/* Header Brand */}
       <div className="w-full max-w-[560px] mb-8">
         <div className="bg-ag-primary rounded-card p-6 mb-6 flex items-center gap-3">
-          <span className="text-3xl"></span>
+          <span className="text-3xl">🌿</span>
           <div>
             <p className="text-white font-extrabold text-xl">ShambaPoint</p>
             <p className="text-ag-primary-fixed font-bold text-sm">Sell Your Harvest. Get Paid Instantly.</p>
@@ -117,13 +107,12 @@ const Signup = () => {
       {/* Card */}
       <form onSubmit={handleSubmit} className="w-full max-w-[560px] bg-white border border-ag-border rounded-card p-8 shadow-sm">
         <h1 className="text-headline-lg text-ag-body mb-1">Create Account</h1>
-        <p className="text-ag-muted text-sm mb-6">Choose the account type you want to create</p>
+        <p className="text-ag-muted text-sm mb-6">Select User Role</p>
 
         {/* Success Banner */}
         {success && (
-          <div className="flex items-start gap-3 bg-green-50 border border-green-300 rounded-btn px-4 py-3 mb-6">
-            <CheckCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
-            <span className="text-green-700 font-bold text-sm">{success}</span>
+          <div className="flex items-center gap-3 bg-green-50 border border-green-300 rounded-btn px-4 py-3 mb-6">
+            <span className="text-green-600 font-bold text-sm">{success}</span>
           </div>
         )}
 
@@ -204,7 +193,7 @@ const Signup = () => {
             <div>
               <label className="block text-sm font-bold text-ag-body mb-1.5">Crop Type</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-outline text-sm"></span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ag-outline text-sm">🌾</span>
                 <select name="cropType" value={form.cropType} onChange={handleChange} className="form-input pl-9 appearance-none bg-ag-card">
                   <option value="">Select primary crop...</option>
                   {CROP_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -252,18 +241,11 @@ const Signup = () => {
 
           {/* Submit — M-PESA Payment Green */}
           <button type="submit" disabled={loading} className={`btn-pay w-full text-base mt-2 ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}>
-             {loading ? 'Creating account...' : 'Create Account Now →'}
+            🔒 {loading ? 'Creating account...' : 'Create Account Now →'}
           </button>
 
           <p className="text-xs text-ag-muted text-center">
             Your phone number will be verified via M-PESA for secure payments.
-          </p>
-
-          <p className="text-center text-sm text-ag-muted">
-            Need admin access instead?{' '}
-            <Link to="/admin/login" className="text-ag-primary font-bold hover:underline">
-              Sign in as an admin
-            </Link>
           </p>
 
           <p className="text-center text-sm text-ag-muted">

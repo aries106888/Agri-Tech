@@ -1,4 +1,4 @@
-# 🌿 ShambaPoint Agri-Tech Platform
+# ShambaPoint Agri-Tech Platform
 
 A full-stack agricultural marketplace connecting Kenyan farmers, buyers, and logistics providers.
 
@@ -9,7 +9,7 @@ A full-stack agricultural marketplace connecting Kenyan farmers, buyers, and log
 
 ---
 
-## 🚀 Running Locally
+## Running Locally
 
 ### Prerequisites
 - Python 3.10+
@@ -29,34 +29,24 @@ python -m venv .venv
 pip install -r backend/requirements.txt
 ```
 
-### 2. Start the Flask Backend
+### 2. Start the Development Server
 
-**Option A — using npm script (recommended):**
+To start both the Flask backend and React frontend together in a single terminal:
 ```powershell
-npm run dev:backend
-```
-
-**Option B — directly:**
-```powershell
-.\.venv\Scripts\python.exe backend\app.py --dev
-```
-
-The API will be available at: **http://localhost:5000/api**
-
-### 3. Start the React Frontend (new terminal)
-
-```powershell
-npm install    # first time only
 npm run dev
+# OR
+npm run dev:full
 ```
 
-The website will be available at: **http://localhost:5174**
+This command automatically kills any stale/zombie processes on ports `5174` and `5000` before booting, runs both components concurrently, and outputs a readiness message once they are fully up.
+
+The frontend will be available at **http://localhost:5174** and the API at **http://localhost:5000/api**.
 
 > **Proxy**: All `/api/*` requests from the frontend are proxied by Vite to `http://localhost:5000`. Never hardcode the Flask URL in the frontend — always use `/api`.
 
 ---
 
-## 🗄️ Database Setup (MySQL)
+## Database Setup (MySQL)
 
 If MySQL is running, create the database and user:
 
@@ -80,7 +70,7 @@ DB_NAME=shambapoint
 
 ---
 
-## 📡 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -99,7 +89,7 @@ DB_NAME=shambapoint
 
 ---
 
-## 🗂 Project Structure
+## Project Structure
 
 ```
 ├── backend/
@@ -120,7 +110,7 @@ DB_NAME=shambapoint
 
 ---
 
-## 👤 User Roles
+## User Roles
 
 | Role | Login URL | Dashboard |
 |------|-----------|-----------|
@@ -131,7 +121,7 @@ DB_NAME=shambapoint
 
 ---
 
-## 🔐 Auth System
+## Auth System
 
 - JWT tokens are HMAC-SHA256 signed (no PyJWT dependency required)
 - Token is stored in `localStorage` as `spToken`
