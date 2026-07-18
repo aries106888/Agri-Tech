@@ -59,8 +59,22 @@ from flask import Flask, jsonify, request, send_from_directory, g
 from flask_cors import CORS
 from dotenv import load_dotenv
 from typing import Any, cast
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+try:
+    # pyrefly: ignore [missing-import]
+    from flask_limiter import Limiter
+    # pyrefly: ignore [missing-import]
+    from flask_limiter.util import get_remote_address
+except ImportError:
+    class Limiter:
+        def __init__(self, key_func=None, app=None, default_limits=None, storage_uri=None):
+            pass
+        def limit(self, limit_value, **kwargs):
+            def decorator(f):
+                return f
+            return decorator
+    def get_remote_address():
+        return "127.0.0.1"
+
 
 
 # Optional MySQL — install with: pip install PyMySQL
@@ -91,7 +105,7 @@ limiter = Limiter(
 #   http://localhost:5173,https://shambapoint.co.ke
 _raw_origins = os.getenv(
     'ALLOWED_ORIGINS',
-    'http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5000'
+    'http://localhost:5173,http://127.0.0.1:5173,http://localhost:5174,http://127.0.0.1:5174,http://localhost:5000,https://incandescent-cocada-15c910.netlify.app'
 )
 ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(',') if o.strip()]
 DEVELOPMENT_MODE = os.getenv('FLASK_ENV') == 'development' or '--dev' in sys.argv
@@ -1441,10 +1455,36 @@ def ratelimit_handler(e):
     return jsonify({"error": f"Rate limit exceeded: {e.description}"}), 429
 
 
+# ─── FEEDBACK ────────────────────────────────────────────────────────────────
+@app.route('/api/feedback', methods=['POST'])
+def submit_feedback():
+    """Accept transaction feedback submissions from SmartSecurePay."""
+    data = request.get_json() or {}
+    receipt_no = data.get('receiptNo', 'N/A')
+    rating     = data.get('rating', 0)
+    log.info(f"[Feedback] Receipt={receipt_no} Rating={rating}/5")
+    return jsonify({"message": "Feedback received. Thank you!"}), 200
+
+
+# ─── HELP / CONTACT ──────────────────────────────────────────────────────────
+@app.route('/api/help/contact', methods=['POST'])
+def help_contact():
+    """Accept contact / support ticket submissions from HelpCenter."""
+    data    = request.get_json() or {}
+    name    = data.get('name', 'Anonymous')
+    subject = data.get('subject', '(no subject)')
+    log.info(f"[Help] Contact ticket from {name}: {subject}")
+    return jsonify({
+        "message": "Your message has been received. Our team will respond within 24 hours.",
+        "ticketId": f"SP-{random.randint(10000, 99999)}"
+    }), 200
+
+
 # ─── RUN ──────────────────────────────────────────────────────────────────────
 def main():
     import sys
     is_dev = '--dev' in sys.argv or os.getenv('FLASK_ENV') == 'development'
+    port   = int(os.getenv('PORT', 5000))
 
     print("\n" + "="*55)
     print("  ShambaPoint Agri-Tech API v3.0")
@@ -1453,17 +1493,17 @@ def main():
     print(f"  Consumer Key       : {CONSUMER_KEY[:12]}..." if CONSUMER_KEY else "  Consumer Key       : [NOT SET]")
     print(f"  Consumer Secret    : {'[SET]' if CONSUMER_SECRET and CONSUMER_SECRET != 'your_new_secret_here' else '[NOT SET] (required for live)'}")
     print(f"  Callback URL       : {CALLBACK_URL}")
-    print(f"  Server URL         : http://localhost:5000/api")
+    print(f"  Server URL         : http://0.0.0.0:{port}/api")
     print("="*55 + "\n")
 
     if is_dev:
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=port, debug=True)
     else:
         try:
             from waitress import serve
-            serve(app, host='0.0.0.0', port=5000)
+            serve(app, host='0.0.0.0', port=port)
         except ImportError:
-            app.run(host='0.0.0.0', port=5000, debug=False)
+            app.run(host='0.0.0.0', port=port, debug=False)
 
 
 if __name__ == '__main__':

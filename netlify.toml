@@ -1,0 +1,26 @@
+# ── Build configuration ────────────────────────────────────────────────────────
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# ── API Proxy ──────────────────────────────────────────────────────────────────
+# All /api/* requests are proxied to the Flask backend.
+# Set the VITE_API_URL environment variable in Netlify dashboard to point to
+# your deployed backend (e.g. https://your-backend.onrender.com/api).
+# The redirect below forwards Netlify-received /api/* requests to the backend.
+#
+# Replace https://YOUR_BACKEND_URL with your actual deployed backend URL.
+# Example: https://shambapoint-api.onrender.com
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://YOUR_BACKEND_URL/api/:splat"
+  status = 200
+  force  = true
+
+# ── SPA Fallback ───────────────────────────────────────────────────────────────
+# All other routes are handled by React Router (client-side routing).
+# Without this, refreshing /farmer/dashboard would give a 404 from Netlify.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

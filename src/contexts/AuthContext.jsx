@@ -1,11 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import api from '../services/api';
 
 /**
  * AuthContext — single source of truth for authentication state.
- * Auth system: Supabase Auth (email/password).
- * Profile data (name, phone, county, role) stored in public.profiles table.
+ * Auth system: Flask backend (/api/auth/register, /api/auth/login).
+ * Tokens (HMAC-SHA256 JWT) are stored in localStorage under 'spToken'.
+ * User profile is stored in localStorage under 'spUser'.
  */
 
 const AuthContext = createContext(null);
@@ -17,85 +18,75 @@ export const ROLE_REDIRECTS = {
   admin:     '/admin/dashboard',
 };
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser]       = useState(null);
-  const [role, setRole]       = useState(null);
-  const [loading, setLoading] = useState(true);
+// ── helpers ────────────────────────────────────────────────────────────────────
+const loadFromStorage = () => {
+  try {
+    const token = localStorage.getItem('spToken');
+    const user  = JSON.parse(localStorage.getItem('spUser') || 'null');
+    return { token, user };
+  } catch {
+    return { token: null, user: null };
+  }
+};
 
-  // Fetch profile from public.profiles table
-  const fetchProfile = useCallback(async (supabaseUser) => {
-    if (!supabaseUser) {
+export const AuthProvider = ({ children }) => {
+  const initial = loadFromStorage();
+  const [user, setUser]       = useState(initial.user);
+  const [role, setRole]       = useState(initial.user?.role || null);
+  const [loading, setLoading] = useState(false);
+
+  // Listen for a signout event dispatched by the Axios 401 interceptor
+  useEffect(() => {
+    const handler = () => {
       setUser(null);
       setRole(null);
-      return;
-    }
+    };
+    window.addEventListener('shambapoint:signout', handler);
+    return () => window.removeEventListener('shambapoint:signout', handler);
+  }, []);
+
+  // ── signIn ─────────────────────────────────────────────────────────────────
+  const signIn = useCallback(async ({ email, password, role: loginRole }) => {
     try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', supabaseUser.id)
-        .single();
-
-      const merged = {
-        id:    supabaseUser.id,
-        email: supabaseUser.email,
-        name:  profile?.name  || supabaseUser.email?.split('@')[0],
-        phone: profile?.phone || '',
-        county: profile?.county || '',
-        role:  profile?.role  || 'buyer',
-      };
-      setUser(merged);
-      setRole(merged.role);
-    } catch {
-      // Profile not found — use basic info
-      const fallback = {
-        id:    supabaseUser.id,
-        email: supabaseUser.email,
-        name:  supabaseUser.email?.split('@')[0],
-        role:  'buyer',
-      };
-      setUser(fallback);
-      setRole('buyer');
+      const { data } = await api.post('/auth/login', { email, password, role: loginRole });
+      const { token, user: u } = data;
+      localStorage.setItem('spToken', token);
+      localStorage.setItem('spUser', JSON.stringify(u));
+      setUser(u);
+      setRole(u.role);
+      return { data, error: null };
+    } catch (err) {
+      const message = err.response?.data?.error || err.message || 'Login failed.';
+      return { data: null, error: { message } };
     }
   }, []);
 
-  // Listen to Supabase auth state changes
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      fetchProfile(session?.user ?? null).finally(() => setLoading(false));
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      fetchProfile(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [fetchProfile]);
-
-  // ── signIn ────────────────────────────────────────────────────────────────
-  const signIn = useCallback(async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { data: null, error: { message: error.message } };
-    await fetchProfile(data.user);
-    return { data, error: null };
-  }, [fetchProfile]);
-
-  // ── signUp ────────────────────────────────────────────────────────────────
+  // ── signUp ─────────────────────────────────────────────────────────────────
   const signUp = useCallback(async ({ email, password, name, phone, county, role: userRole }) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { name, phone, county, role: userRole || 'buyer' },
-      },
-    });
-    if (error) return { data: null, error: { message: error.message } };
-    return { data, error: null };
+    try {
+      const { data } = await api.post('/auth/register', {
+        email, password, name, phone, county,
+        role: userRole || 'buyer',
+      });
+      // Auto-login after successful registration
+      const { token, user: u } = data;
+      if (token && u) {
+        localStorage.setItem('spToken', token);
+        localStorage.setItem('spUser', JSON.stringify(u));
+        setUser(u);
+        setRole(u.role);
+      }
+      return { data, error: null };
+    } catch (err) {
+      const message = err.response?.data?.error || err.message || 'Registration failed.';
+      return { data: null, error: { message } };
+    }
   }, []);
 
-  // ── signOut ───────────────────────────────────────────────────────────────
-  const signOut = useCallback(async (redirect = true) => {
-    await supabase.auth.signOut();
+  // ── signOut ────────────────────────────────────────────────────────────────
+  const signOut = useCallback((redirect = true) => {
+    localStorage.removeItem('spToken');
+    localStorage.removeItem('spUser');
     setUser(null);
     setRole(null);
     if (redirect) window.location.href = '/login';

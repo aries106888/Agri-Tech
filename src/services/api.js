@@ -13,9 +13,8 @@ import axios from 'axios';
  * that bypasses the proxy and causes CORS issues.
  */
 
-// Always use relative /api — Vite proxy handles the rest in dev,
-// and in production the same path is served by the Flask/nginx reverse proxy.
-const API_BASE_URL = '/api';
+// Dynamically read from import.meta.env.VITE_API_URL if defined, falling back to relative /api
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

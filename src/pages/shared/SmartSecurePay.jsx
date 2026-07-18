@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import api from '../../services/api';
 import {
   Shield, CheckCircle, Clock, Truck, Package,
   AlertTriangle, X, Phone, RefreshCw, Eye, Download,
@@ -91,9 +92,9 @@ const FeedbackModal = ({ receiptNo, farmer, crop, amount, onClose, onSubmit }) =
   const handleSubmit = () => {
     setSubmitting(true);
     const payload = { receiptNo, farmer, crop, amount, rating, sentiment, comment, tags, anonymous, submittedAt: new Date().toISOString() };
-    fetch('/api/feedback', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
-    }).catch(() => {}).finally(() => { setSubmitting(false); setStep(3); onSubmit(payload); });
+    api.post('/feedback', payload)
+      .catch(() => {})
+      .finally(() => { setSubmitting(false); setStep(3); onSubmit(payload); });
   };
 
   return (

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: shambapoint-api
+    runtime: python
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: python backend/app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        value: https://incandescent-cocada-15c910.netlify.app
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
