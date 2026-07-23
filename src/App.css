@@ -1,0 +1,33 @@
+/* Global App Styles - Minimal overrides for Tailwind + Agri-Tech theme */
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Ensure proper scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Fix for form elements */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Link styles */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Remove outline on focus for better UX with custom focus styles */
+button:focus {
+  outline: 2px solid transparent;
+}
+

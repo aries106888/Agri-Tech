@@ -1,0 +1,50 @@
+{
+  "name": "agri-tech-php",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "predev": "node scripts/kill-ports.cjs",
+    "predev:full": "npm run predev",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\" \"node scripts/health-check.cjs\"",
+    "dev:frontend": "vite",
+    "dev:backend": ".venv\\Scripts\\python.exe backend/app.py --dev",
+    "dev:full": "npm run dev",
+    "start:backend": ".venv\\Scripts\\python.exe backend/app.py",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
+    "@vercel/analytics": "^2.0.1",
+    "axios": "^1.17.0",
+    "clsx": "^2.1.1",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-leaflet": "^5.0.0",
+    "react-router-dom": "^7.17.0",
+    "recharts": "^3.8.1",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "autoprefixer": "^10.5.0",
+    "concurrently": "^10.0.3",
+    "eslint": "^10.3.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "gh-pages": "^6.3.0",
+    "globals": "^17.6.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^3.4.19",
+    "vite": "^8.0.12"
+  }
+}

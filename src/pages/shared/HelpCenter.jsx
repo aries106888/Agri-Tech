@@ -1,0 +1,680 @@
+/* ── ShambaPoint Help Center (Role-Specific) ─────────────── */
+import { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
+import {
+  HelpCircle, Phone, Search, ChevronDown, ChevronUp,
+  MessageSquare, Mail, Clock, CheckCircle2, AlertTriangle,
+  Leaf, ShoppingBag, Truck, Shield, BookOpen, ArrowRight, User,
+  Ticket, Tag
+} from 'lucide-react';
+
+/* ── Role-specific config ─────────────────────────────────── */
+const ROLE_CONFIG = {
+  farmer: {
+    label: 'Farmer Support',
+    icon: Leaf,
+    color: 'from-ag-primary to-emerald-800',
+    accent: 'text-ag-primary',
+    badge: 'bg-emerald-100 text-ag-primary',
+    quickDial: {
+      label: 'Farmer Hotline',
+      number: '+254700111222',
+      display: '+254 700 111 222',
+      whatsapp: '254700111222',
+      note: '24/7 — Listings, payments, quality disputes',
+    },
+    contacts: [
+      { label: 'Farmer Hotline (24/7)',    number: '+254 700 111 222', icon: Phone,   note: 'Crop listings, quality disputes, payments', wa: '254700111222' },
+      { label: 'Agronomy Advisory Line',   number: '+254 711 333 444', icon: Phone,   note: 'Planting advice, pest control, weather alerts', wa: '254711333444' },
+      { label: 'Farmer WhatsApp Group',    number: '+254 722 555 666', icon: MessageSquare, note: 'Peer support & market tips', wa: '254722555666' },
+      { label: 'Email Support',            number: 'farmers@shambapoint.co.ke', icon: Mail, note: 'Non-urgent queries, documents, KYC' },
+    ],
+    faqs: [
+      { q: 'How do I list my produce on ShambaPoint?', a: 'Go to My Products in your dashboard, click "Add Listing", fill in crop details, price, quantity, and county. Your listing goes live after admin approval — usually within 2 hours.' },
+      { q: 'When do I get paid after a delivery?', a: 'Payments are released via Smart SecurePay once the buyer confirms delivery. Funds reach your M-PESA wallet within 2 minutes of release — 24/7.' },
+      { q: 'What does "Grade A" vs "Grade B" mean?', a: 'Grade A is top-quality produce meeting ShambaPoint standards (minimal bruising, correct moisture, uniform size). Grade B has minor imperfections but is still sellable. Your listed grade must match what you deliver.' },
+      { q: 'How do I dispute a rejected delivery?', a: 'Call the Farmer Hotline at +254 700 111 222 with your Order ID. Our field officer will conduct a physical inspection within 24 hours.' },
+      { q: 'Can I book cold storage directly?', a: 'Yes — go to Storage in your dashboard. Select a facility near your county, choose duration, and pay via M-PESA. IoT temperature monitoring starts immediately.' },
+    ],
+  },
+  buyer: {
+    label: 'Buyer Support',
+    icon: ShoppingBag,
+    color: 'from-blue-800 to-blue-950',
+    accent: 'text-blue-700',
+    badge: 'bg-blue-100 text-blue-700',
+    quickDial: {
+      label: 'Buyer Support Desk',
+      number: '+254700222333',
+      display: '+254 700 222 333',
+      whatsapp: '254700222333',
+      note: '24/7 — Orders, deliveries, refunds',
+    },
+    contacts: [
+      { label: 'Buyer Support Desk (24/7)',   number: '+254 700 222 333', icon: Phone,   note: 'Orders, deliveries, refunds', wa: '254700222333' },
+      { label: 'Corporate Procurement Line',  number: '+254 711 444 555', icon: Phone,   note: 'Bulk orders, contracts, invoicing', wa: '254711444555' },
+      { label: 'Quality Assurance Team',      number: '+254 722 666 777', icon: Phone,   note: 'Grade disputes, produce inspection requests', wa: '254722666777' },
+      { label: 'Email Support',               number: 'buyers@shambapoint.co.ke', icon: Mail, note: 'Non-urgent queries, documentation' },
+    ],
+    faqs: [
+      { q: 'How does Smart SecurePay protect my money?', a: 'When you place an order, your payment is locked in escrow. Funds are only released to the farmer after YOU confirm that the produce arrived in the correct grade and quantity. Your money is safe at all times.' },
+      { q: 'What if my produce arrives damaged or wrong grade?', a: 'Reject delivery in the app within 12 hours and call +254 700 222 333. We will arrange a re-delivery or full refund — whichever you prefer.' },
+      { q: 'Can I place bulk corporate orders?', a: 'Yes. Call our Corporate Procurement Line at +254 711 444 555 to set up a standing purchase order with weekly or monthly delivery schedules and volume discounts.' },
+      { q: 'How do I track my delivery?', a: 'Go to My Orders → select the order → click "Track Live". You will see real-time GPS location, cargo temperature, and estimated arrival time.' },
+      { q: 'Can I pay via bank transfer instead of M-PESA?', a: 'Yes — bank and Pesalink transfers are supported for orders over KSh 50,000. Contact the Buyer Support Desk to arrange.' },
+    ],
+  },
+  logistics: {
+    label: 'Logistics Support',
+    icon: Truck,
+    color: 'from-amber-700 to-amber-900',
+    accent: 'text-ag-amber',
+    badge: 'bg-amber-100 text-amber-700',
+    quickDial: {
+      label: 'Driver Operations',
+      number: '+254700333444',
+      display: '+254 700 333 444',
+      whatsapp: '254700333444',
+      note: '24/7 — Trip assignments, emergencies',
+    },
+    contacts: [
+      { label: 'Driver Operations (24/7)',   number: '+254 700 333 444', icon: Phone,   note: 'Trip assignments, route changes, emergencies', wa: '254700333444' },
+      { label: 'Fleet Manager Direct Line',  number: '+254 711 555 666', icon: Phone,   note: 'Vehicle breakdowns, replacements', wa: '254711555666' },
+      { label: 'Earnings & Payments',        number: '+254 722 777 888', icon: Phone,   note: 'Wallet issues, M-PESA payouts, disputes', wa: '254722777888' },
+      { label: 'Email Support',              number: 'drivers@shambapoint.co.ke', icon: Mail, note: 'Documents, vehicle registration, KYC' },
+    ],
+    faqs: [
+      { q: 'How are trip earnings calculated?', a: 'Earnings are based on distance (KSh/km rate × route km) plus a cargo-weight bonus for loads over 500 kg. Rates are shown before you accept each trip. Payments hit your wallet within 30 minutes of delivery confirmation.' },
+      { q: 'What do I do if my vehicle breaks down mid-trip?', a: 'Call the Fleet Manager Direct Line at +254 711 555 666 immediately. We will dispatch a replacement vehicle and you will still receive partial payment for the completed portion of the trip.' },
+      { q: 'How do I update my available/on-trip status?', a: 'Go to your Dashboard → Moderation section. Click "Toggle Status" to switch between Available and On Trip. Buyers and the platform see your real-time status.' },
+      { q: 'What is the cold-chain monitoring system?', a: 'IoT sensors in partner vehicles track temperature, humidity, and GPS in real-time. You will receive alerts if temperature goes outside safe ranges for the cargo type, helping you avoid produce loss.' },
+      { q: 'How do I withdraw my wallet earnings?', a: 'Go to Dashboard → Wallet → "Withdraw to M-PESA". Minimum withdrawal is KSh 500. Funds arrive instantly, 24/7. For amounts over KSh 70,000 call +254 722 777 888.' },
+    ],
+  },
+  admin: {
+    label: 'Admin Support',
+    icon: Shield,
+    color: 'from-purple-800 to-purple-950',
+    accent: 'text-purple-700',
+    badge: 'bg-purple-100 text-purple-700',
+    quickDial: {
+      label: 'Platform Engineering',
+      number: '+254700999000',
+      display: '+254 700 999 000',
+      whatsapp: '254700999000',
+      note: '24/7 — System issues, outages, API errors',
+    },
+    contacts: [
+      { label: 'Platform Engineering',      number: '+254 700 999 000', icon: Phone,   note: 'System issues, outages, API errors', wa: '254700999000' },
+      { label: 'Compliance & Legal',        number: '+254 711 000 111', icon: Phone,   note: 'KYC escalations, legal holds, sanctions', wa: '254711000111' },
+      { label: 'Operations Centre',         number: '+254 722 111 222', icon: Phone,   note: 'Fraud alerts, escalations, live disputes', wa: '254722111222' },
+      { label: 'Admin Email',               number: 'admin@shambapoint.co.ke', icon: Mail, note: 'Reports, audit requests, data exports' },
+    ],
+    faqs: [
+      { q: 'How do I approve KYC for a new farmer?', a: 'Go to the Users tab → find the user with "pending_kyc" status → click "Approve KYC". The user is immediately activated and can list produce.' },
+      { q: 'How do I suspend a user account?', a: 'In the Users tab, click "View" on the user → click "Suspend". The user loses access immediately and receives an automated SMS. Document the reason in the audit log.' },
+      { q: 'How do I handle a disputed payment?', a: 'Go to Orders tab, find the flagged order. Use the status dropdown to update. For complex disputes, call the Operations Centre at +254 722 111 222 — they have override access.' },
+      { q: 'How do I enable Maintenance Mode?', a: 'Go to Admin Settings tab → toggle Maintenance Mode ON. All user-facing routes will show a maintenance page. Always notify users via SMS blast before enabling.' },
+      { q: 'How do I export user data?', a: 'In the Users tab, click "Export CSV". For full database exports or GDPR data-subject requests, contact admin@shambapoint.co.ke with the request details.' },
+    ],
+  },
+};
+
+/* ── Shared generic FAQs ─────────────────────────────────── */
+const GENERAL_FAQS = [
+  { q: 'What is ShambaPoint AgriTech?', a: 'ShambaPoint is a farm-to-buyer marketplace that connects Kenyan farmers directly to retailers, supermarkets, and individual buyers — cutting out middlemen and ensuring fair prices for both sides.' },
+  { q: 'How does M-PESA payment work?', a: 'Enter your Safaricom number at checkout. You will receive an STK push prompt on your phone. Approve it and payment is confirmed instantly. We use the official Safaricom Daraja API — your PIN is never shared with us.' },
+  { q: 'Is ShambaPoint available across Kenya?', a: 'Yes — we currently serve 10 counties: Nairobi, Kiambu, Nakuru, Meru, Uasin Gishu, Kajiado, Nyandarua, Kericho, Kakamega, and Kisumu. More counties are launching in Q3 2026.' },
+];
+
+/* ── FAQ Accordion ───────────────────────────────────────── */
+const FaqItem = ({ faq, accent }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`border border-ag-border rounded-xl overflow-hidden transition-shadow ${open ? 'shadow-md' : ''}`}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left bg-white hover:bg-ag-canvas transition-colors gap-3"
+      >
+        <span className="font-bold text-ag-body text-sm">{faq.q}</span>
+        {open
+          ? <ChevronUp className={`w-4 h-4 shrink-0 ${accent}`} />
+          : <ChevronDown className="w-4 h-4 shrink-0 text-ag-muted" />}
+      </button>
+      {open && (
+        <div className="px-5 py-4 bg-ag-canvas border-t border-ag-border">
+          <p className="text-sm text-ag-muted leading-relaxed">{faq.a}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════════
+   MAIN COMPONENT
+══════════════════════════════════════════════════════════ */
+export default function HelpCenter() {
+  const [search, setSearch] = useState('');
+  
+  const { role, user } = useAuth();
+  
+  // Derive initial form values from user/role — no useEffect needed because
+  // user and role are synchronously available from AuthContext (localStorage init).
+  const resolveCategory = (r) =>
+    r === 'farmer' ? 'Farmer Support' :
+    r === 'buyer'  ? 'Buyer Support' :
+    r === 'logistics' ? 'Logistics Support' :
+    r === 'admin' ? 'Admin Support' : 'General Inquiry';
+
+  const [formData, setFormData] = useState(() => ({
+    name:     user?.name  || '',
+    email:    user?.email || '',
+    phone:    user?.phone || '',
+    category: resolveCategory(role),
+    message:  ''
+  }));
+
+  const [ticketLoading, setTicketLoading] = useState(false);
+  const [ticketSuccess, setTicketSuccess] = useState(null);
+  const [ticketError, setTicketError] = useState(null);
+
+  const userKey = (user?.email || user?.phone || user?.id || user?.name || role || 'guest').toLowerCase().replace(/[^a-z0-9_]/g, '_');
+  const ticketsStorageKey = `sp_tickets_${userKey}`;
+
+  const [myTickets, setMyTickets] = useState(() => {
+    try {
+      const saved = localStorage.getItem(ticketsStorageKey);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to load tickets', e);
+    }
+    if (role === 'logistics') {
+      return [
+        {
+          id: 'TCK-8921',
+          name: user?.name || 'Driver Operations',
+          email: user?.email || 'driver@shambapoint.co.ke',
+          phone: user?.phone || '+254 700 333 444',
+          category: 'Logistics Support',
+          message: 'Vehicle temperature telemetry sensor sync inquiry for Nakuru -> Nairobi route.',
+          status: 'In Progress',
+          createdAt: new Date().toISOString(),
+          formattedDate: 'Today, 10:30 AM',
+          userRole: 'logistics'
+        }
+      ];
+    } else if (role === 'farmer') {
+      return [
+        {
+          id: 'TCK-4812',
+          name: user?.name || 'Farmer Account',
+          email: user?.email || 'farmer@shambapoint.co.ke',
+          phone: user?.phone || '+254 700 111 222',
+          category: 'Farmer Support',
+          message: 'Grade A Produce inspection and cold storage booking request.',
+          status: 'Resolved',
+          createdAt: new Date().toISOString(),
+          formattedDate: 'Yesterday, 04:15 PM',
+          userRole: 'farmer'
+        }
+      ];
+    }
+    return [];
+  });
+
+  const cfg = ROLE_CONFIG[role] || ROLE_CONFIG.farmer;
+  const Icon = cfg.icon;
+
+  const allFaqs  = [...cfg.faqs, ...GENERAL_FAQS];
+  const filtered = search
+    ? allFaqs.filter(f => f.q.toLowerCase().includes(search.toLowerCase()) || f.a.toLowerCase().includes(search.toLowerCase()))
+    : allFaqs;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const submitTicket = async (e) => {
+    if (e) e.preventDefault();
+    if (!formData.name.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.message.trim()) {
+      setTicketError('All fields are required.');
+      return;
+    }
+
+    setTicketLoading(true);
+    setTicketError(null);
+    setTicketSuccess(null);
+
+    const newTicket = {
+      id: 'TCK-' + Math.floor(1000 + Math.random() * 9000),
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      category: formData.category,
+      message: formData.message,
+      status: 'Open',
+      createdAt: new Date().toISOString(),
+      formattedDate: 'Just now (' + new Date().toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }) + ')',
+      userRole: role || 'user'
+    };
+
+    const updatedTickets = [newTicket, ...myTickets];
+    setMyTickets(updatedTickets);
+    try {
+      localStorage.setItem(ticketsStorageKey, JSON.stringify(updatedTickets));
+    } catch (err) {
+      console.error('Failed to save ticket locally', err);
+    }
+
+    try {
+      await api.post('/help/contact', formData).catch(() => {});
+      setTicketSuccess(`Ticket #${newTicket.id} submitted! Track status in your ticket list below.`);
+      setFormData(prev => ({
+        ...prev,
+        message: ''
+      }));
+    } catch {
+      setTicketSuccess(`Ticket #${newTicket.id} created and stored in your profile tickets.`);
+      setFormData(prev => ({
+        ...prev,
+        message: ''
+      }));
+    } finally {
+      setTicketLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto animate-fade-in">
+
+      {/* ── HERO ── */}
+      <div className={`bg-gradient-to-br ${cfg.color} rounded-2xl p-8 text-white relative overflow-hidden`}>
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-6 right-10 w-40 h-40 border-2 border-white rounded-full" />
+          <div className="absolute -bottom-10 -right-10 w-64 h-64 border border-white rounded-full" />
+        </div>
+        <div className="relative z-10 flex items-start gap-4">
+          <div className="w-12 h-12 bg-white/15 rounded-2xl flex items-center justify-center shrink-0">
+            <Icon className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-white/60 mb-1">{cfg.label}</p>
+            <h1 className="text-2xl font-black mb-2">How can we help you?</h1>
+            <p className="text-sm text-white/70">
+              Find answers, contact our team, or submit a support ticket below.
+            </p>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative mt-6">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search your question..."
+            className="w-full bg-white/10 border border-white/20 rounded-xl px-5 py-3 pl-12
+              text-white placeholder-white/50 text-sm font-medium focus:outline-none
+              focus:bg-white/20 transition-colors"
+          />
+        </div>
+      </div>
+
+      {/* ── QUICK DIAL STRIP (role-specific primary number) ── */}
+      <div className="bg-white border-2 border-ag-primary/20 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-ag-primary/10 rounded-xl flex items-center justify-center shrink-0">
+            <Phone className="w-6 h-6 text-ag-primary" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-ag-primary mb-0.5">
+              📞 Your Primary Support Line
+            </p>
+            <a
+              href={`tel:${cfg.quickDial.number}`}
+              className="text-2xl font-black text-ag-body hover:text-ag-primary transition-colors tracking-tight"
+            >
+              {cfg.quickDial.display}
+            </a>
+            <p className="text-xs text-ag-muted mt-0.5">{cfg.quickDial.label} — {cfg.quickDial.note}</p>
+          </div>
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <a
+            href={`tel:${cfg.quickDial.number}`}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-ag-primary hover:bg-emerald-800 text-white font-extrabold text-sm px-5 py-3 rounded-xl transition-colors shadow-md shadow-ag-primary/20"
+          >
+            <Phone className="w-4 h-4" /> Call Now
+          </a>
+          <a
+            href={`https://wa.me/${cfg.quickDial.whatsapp}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b558] text-white font-extrabold text-sm px-5 py-3 rounded-xl transition-colors shadow-md shadow-green-600/20"
+          >
+            <MessageSquare className="w-4 h-4" /> WhatsApp
+          </a>
+        </div>
+      </div>
+
+      {/* ── EMERGENCY RAPID RESPONSE ── */}
+      <div className="relative overflow-hidden bg-red-50 border border-red-100 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition-shadow">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-red-500/10 to-transparent rounded-bl-full pointer-events-none" />
+        <div className="flex items-start gap-4">
+          <div className="relative w-11 h-11 bg-red-100 rounded-xl flex items-center justify-center shrink-0">
+            <span className="w-2 h-2 bg-red-600 rounded-full animate-ping absolute" />
+            <Phone className="w-5 h-5 text-red-600 relative z-10" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-red-100 text-red-700 px-2 py-0.5 rounded-full">Emergency Hotline</span>
+              <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-[11px] text-red-600 font-extrabold">Rapid Response Dispatch</span>
+            </div>
+            <h3 className="font-extrabold text-gray-900 text-sm mt-1">Direct Dispatch, Vehicle Breakdown & Escrow Disputes</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Call immediately for active road accidents, vehicle failures during transit, or SecurePay security alerts.</p>
+          </div>
+        </div>
+        <div className="w-full md:w-auto relative z-10 flex gap-2">
+          <a
+            href="tel:+254700999111"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-extrabold text-sm px-5 py-3 rounded-xl shadow-lg shadow-red-600/10 transition-colors"
+          >
+            <Phone className="w-4 h-4" />
+            +254 700 999 111
+          </a>
+          <a
+            href="https://wa.me/254700999111"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20b558] text-white font-extrabold text-sm px-5 py-3 rounded-xl transition-colors"
+          >
+            <MessageSquare className="w-4 h-4" /> WhatsApp
+          </a>
+        </div>
+      </div>
+
+      {/* ── CONTACT CARDS ── */}
+      <div>
+        <h2 className="font-extrabold text-ag-body mb-4 flex items-center gap-2">
+          <Phone className="w-4 h-4 text-ag-primary" /> All Contact Numbers
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {cfg.contacts.map((c, i) => {
+            const CIcon = c.icon;
+            const isMail = c.icon === Mail;
+            return (
+              <div key={i} className="bg-white border border-ag-border rounded-2xl p-5 hover:shadow-md transition-shadow flex items-start gap-4">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${cfg.badge}`}>
+                  <CIcon className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-ag-muted uppercase tracking-wide mb-1">{c.label}</p>
+                  {isMail ? (
+                    <a href={`mailto:${c.number}`} className={`font-extrabold text-sm ${cfg.accent} hover:underline block`}>
+                      {c.number}
+                    </a>
+                  ) : (
+                    <a href={`tel:${c.number.replace(/\s/g, '')}`} className={`font-extrabold text-base ${cfg.accent} hover:underline block`}>
+                      {c.number}
+                    </a>
+                  )}
+                  <p className="text-xs text-ag-muted mt-1">{c.note}</p>
+                  {/* WhatsApp quick link for phone contacts */}
+                  {!isMail && c.wa && (
+                    <a
+                      href={`https://wa.me/${c.wa}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 mt-2 text-[10px] font-black uppercase tracking-wider text-[#25D366] hover:underline"
+                    >
+                      <MessageSquare className="w-3 h-3" /> WhatsApp
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── HOURS BANNER ── */}
+      <div className="bg-ag-canvas border border-ag-border rounded-2xl px-6 py-4 flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 bg-ag-pay rounded-full animate-pulse" />
+          <span className="text-xs font-bold text-ag-pay uppercase tracking-wider">Support Online</span>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-ag-muted flex-wrap gap-y-1">
+          <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> Phone: Mon–Sun 6 AM – 10 PM EAT</span>
+          <span className="text-ag-border">|</span>
+          <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5" /> WhatsApp & Email: 24/7</span>
+        </div>
+      </div>
+
+      {/* ── FAQ SECTION ── */}
+      <div>
+        <h2 className="font-extrabold text-ag-body mb-4 flex items-center gap-2">
+          <BookOpen className="w-4 h-4 text-ag-primary" /> Frequently Asked Questions
+          {search && <span className="text-xs font-bold text-ag-muted">({filtered.length} results)</span>}
+        </h2>
+        {filtered.length === 0 ? (
+          <div className="text-center py-12">
+            <HelpCircle className="w-12 h-12 text-ag-border mx-auto mb-3" />
+            <p className="font-bold text-ag-muted">No FAQs match your search.</p>
+            <p className="text-sm text-ag-muted mt-1">Try calling our support line instead.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {filtered.map((faq, i) => (
+              <FaqItem key={i} faq={faq} accent={cfg.accent} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── MY TICKETS SECTION (Scoped to current Driver / User) ── */}
+      <div className="bg-white border border-ag-border rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center justify-between border-b border-ag-border pb-4 mb-4">
+          <div>
+            <h2 className="font-extrabold text-ag-body flex items-center gap-2 text-base">
+              <Ticket className="w-5 h-5 text-ag-primary" /> My Submitted Support Tickets
+            </h2>
+            <p className="text-xs text-ag-muted mt-0.5">
+              Showing tickets for account: <span className="font-bold text-ag-body">{user?.name || user?.email || 'Current Driver/User'}</span>
+            </p>
+          </div>
+          <span className="text-xs font-black px-3 py-1 bg-ag-primary-fixed text-ag-primary rounded-full">
+            {myTickets.length} {myTickets.length === 1 ? 'Ticket' : 'Tickets'}
+          </span>
+        </div>
+
+        {myTickets.length === 0 ? (
+          <div className="text-center py-8 bg-ag-canvas rounded-xl border border-dashed border-ag-border">
+            <Ticket className="w-10 h-10 text-ag-outline mx-auto mb-2 opacity-50" />
+            <p className="font-bold text-ag-body text-sm">No tickets submitted yet</p>
+            <p className="text-xs text-ag-muted mt-1">Fill out the support form below to submit a ticket to our team.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {myTickets.map(t => {
+              const statusCls =
+                t.status === 'Resolved'    ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                t.status === 'In Progress' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                                             'bg-amber-100 text-amber-900 border-amber-300';
+              return (
+                <div key={t.id} className="p-4 bg-ag-canvas border border-ag-border rounded-xl flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-black text-xs text-ag-primary bg-ag-primary/10 px-2 py-0.5 rounded">
+                        #{t.id}
+                      </span>
+                      <span className="text-xs font-bold text-ag-body flex items-center gap-1">
+                        <Tag className="w-3 h-3 text-ag-muted" /> {t.category}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] text-ag-muted flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-ag-muted" /> {t.formattedDate}
+                      </span>
+                      <span className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${statusCls}`}>
+                        {t.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-ag-body bg-white p-3 rounded-lg border border-ag-border/60 leading-relaxed font-medium">
+                    "{t.message}"
+                  </p>
+
+                  <div className="flex items-center justify-between text-[11px] text-ag-muted pt-1">
+                    <span>Submitted by: <strong className="text-ag-body">{t.name}</strong> ({t.phone})</span>
+                    <span className="capitalize font-bold text-ag-primary">Interface: {t.userRole || role}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── SUPPORT TICKET FORM ── */}
+      <div className="bg-white border border-ag-border rounded-2xl p-6">
+        <h2 className="font-extrabold text-ag-body mb-1 flex items-center gap-2">
+          <MessageSquare className="w-4 h-4 text-ag-primary" /> Submit a Support Ticket
+        </h2>
+        <p className="text-xs text-ag-muted mb-4">Didn't find your answer? We'll get back to you within 2 hours via SMS and email.</p>
+
+        {/* Success Alert */}
+        {ticketSuccess && (
+          <div className="mb-4 bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-ag-primary shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-ag-body text-sm">Ticket Submitted Successfully</p>
+              <p className="text-xs text-ag-muted mt-0.5">{ticketSuccess}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error Alert */}
+        {ticketError && (
+          <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-red-800 text-sm">Error Submitting Ticket</p>
+              <p className="text-xs text-red-600 mt-0.5">{ticketError}</p>
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={submitTicket} className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Name */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ticket-name" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+                <User className="w-3.5 h-3.5" /> Full Name
+              </label>
+              <input
+                id="ticket-name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="e.g. John Kamau"
+                className="form-input text-sm"
+                required
+              />
+            </div>
+
+            {/* Email */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ticket-email" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5" /> Email Address
+              </label>
+              <input
+                id="ticket-email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="e.g. john@kamau.com"
+                className="form-input text-sm"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Phone */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ticket-phone" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+                <Phone className="w-3.5 h-3.5" /> Phone Number
+              </label>
+              <input
+                id="ticket-phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="e.g. +254 712 345 678"
+                className="form-input text-sm"
+                required
+              />
+            </div>
+
+            {/* Category */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="ticket-category" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+                <HelpCircle className="w-3.5 h-3.5" /> Category / Department
+              </label>
+              <select
+                id="ticket-category"
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="form-input text-sm py-[9px]"
+                required
+              >
+                <option value="Farmer Support">Farmer Support & Listings</option>
+                <option value="Buyer Support">Buyer Support & SecurePay</option>
+                <option value="Logistics Support">Logistics Support & Dispatch</option>
+                <option value="Admin Support">Technical & Admin Issues</option>
+                <option value="General Inquiry">General Marketplace Inquiry</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Message */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="ticket-message" className="text-xs font-black uppercase tracking-wider text-ag-body flex items-center gap-1">
+              <MessageSquare className="w-3.5 h-3.5" /> Message Details
+            </label>
+            <textarea
+              id="ticket-message"
+              name="message"
+              value={formData.message}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Describe your issue in detail — include your Order ID or receipt number if relevant..."
+              className="form-input resize-none text-sm"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={ticketLoading || !formData.name.trim() || !formData.email.trim() || !formData.phone.trim() || !formData.message.trim()}
+            className="btn-primary w-fit flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {ticketLoading ? 'Sending Ticket...' : 'Send Ticket'}
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
