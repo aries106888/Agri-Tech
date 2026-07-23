@@ -31,12 +31,11 @@ const Login = () => {
   );
   const [loading, setLoading]   = useState(false);
 
-  // ── Reactive redirect once AuthContext has user + role ─────────────────────
+  // ── Reactive redirect ONLY if redirected from a ProtectedRoute ─────────────────
   useEffect(() => {
-    if (user && role) {
+    if (user && role && location.state?.from) {
       if (isAdminRoute && role !== 'admin') return;
-      const target = location.state?.from || ROLE_REDIRECTS[role] || '/';
-      navigate(target, { replace: true });
+      navigate(location.state.from, { replace: true });
     }
   }, [user, role, navigate, isAdminRoute, location.state]);
 
