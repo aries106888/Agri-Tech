@@ -2,9 +2,12 @@
   "version": 2,
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": "vite",
   "functions": {
     "api/index.py": {
-      "includeFiles": "backend/*.py"
+      "runtime": "python3.12",
+      "includeFiles": "backend/**"
     }
   },
   "rewrites": [
