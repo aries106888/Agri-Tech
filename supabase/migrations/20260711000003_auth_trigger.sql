@@ -5,22 +5,36 @@
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
-security invoker
+security definer                      -- critical: trigger runs as superuser
 set search_path = ''
 as $$
+declare
+  v_name   text;
+  v_phone  text;
+  v_county text;
+  v_role   text;
 begin
+  v_name   := coalesce(nullif(trim(new.raw_user_meta_data->>'name'),   ''), split_part(new.email, '@', 1));
+  v_phone  := nullif(trim(new.raw_user_meta_data->>'phone'),  '');
+  v_county := nullif(trim(new.raw_user_meta_data->>'county'), '');
+  v_role   := coalesce(lower(nullif(trim(new.raw_user_meta_data->>'role'), '')), 'buyer');
+
+  if v_role not in ('farmer', 'buyer', 'logistics', 'admin') then
+    v_role := 'buyer';
+  end if;
+
   insert into public.profiles (id, name, phone, county, role)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    new.raw_user_meta_data->>'phone',
-    new.raw_user_meta_data->>'county',
-    coalesce(
-      lower(new.raw_user_meta_data->>'role'),
-      'buyer'
-    )
-  )
-  on conflict (id) do nothing;
+  values (new.id, v_name, v_phone, v_county, v_role)
+  on conflict (id) do update set
+    name       = excluded.name,
+    phone      = coalesce(excluded.phone, public.profiles.phone),
+    county     = coalesce(excluded.county, public.profiles.county),
+    role       = excluded.role,
+    updated_at = now();
+
+  return new;
+exception when others then
+  raise warning 'handle_new_user: % - %', sqlstate, sqlerrm;
   return new;
 end;
 $$;
