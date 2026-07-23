@@ -8,4 +8,5 @@ PyMySQL==1.1.1
 PyJWT>=2.6.0
 flask-limiter>=3.7.0
 supabase>=2.0.0
+gunicorn>=21.2.0
 

@@ -9,4 +9,5 @@ PyJWT>=2.6.0
 flask-limiter>=3.7.0
 supabase>=2.0.0
 pg8000>=1.30.0
+gunicorn>=21.2.0
 
