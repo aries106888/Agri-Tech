@@ -1,5 +1,5 @@
-"""
-ShambaPoint Agri-Tech — Flask Backend API
+﻿"""
+ShambaPoint Agri-Tech ΓÇö Flask Backend API
 ==========================================
 Endpoints:
   Auth       POST /api/auth/register
@@ -16,22 +16,22 @@ Endpoints:
 
   Cart       POST /api/cart
 
-  M-Pesa ── STK Push (C2B – buyer pays)
+  M-Pesa ΓöÇΓöÇ STK Push (C2B ΓÇô buyer pays)
              POST /api/payments/mpesa/stkpush
              POST /api/payments/mpesa/stkpush/query
-             POST /api/payments/mpesa/callback          ← Safaricom hits this
+             POST /api/payments/mpesa/callback          ΓåÉ Safaricom hits this
 
-  M-Pesa ── B2C (platform pays farmer / driver)
+  M-Pesa ΓöÇΓöÇ B2C (platform pays farmer / driver)
              POST /api/payments/mpesa/b2c
-             POST /api/payments/mpesa/b2c/result        ← Safaricom hits this
-             POST /api/payments/mpesa/b2c/timeout       ← Safaricom hits this
+             POST /api/payments/mpesa/b2c/result        ΓåÉ Safaricom hits this
+             POST /api/payments/mpesa/b2c/timeout       ΓåÉ Safaricom hits this
 
-  M-Pesa ── Utilities
+  M-Pesa ΓöÇΓöÇ Utilities
              POST /api/payments/mpesa/balance
              POST /api/payments/mpesa/transaction/status
 
   Webhook log
-             GET  /api/payments/mpesa/transactions      ← admin view all callbacks
+             GET  /api/payments/mpesa/transactions      ΓåÉ admin view all callbacks
 """
 
 import os
@@ -77,7 +77,7 @@ except ImportError:
 
 
 
-# Optional MySQL — install with: pip install PyMySQL
+# Optional MySQL ΓÇö install with: pip install PyMySQL
 pymysql: Any = None
 MYSQL_AVAILABLE: bool = False
 try:
@@ -89,7 +89,7 @@ except ImportError:
 # Flask request object is extended dynamically with current_user.
 request = cast(Any, request)
 
-# ─── LOAD ENV ─────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ LOAD ENV ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
 
 app = Flask(__name__)
@@ -100,7 +100,7 @@ limiter = Limiter(
     storage_uri="memory://"
 )
 
-# ─── CORS ────────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ CORS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 # Allows all origins for API calls
 DEVELOPMENT_MODE = os.getenv('FLASK_ENV') == 'development' or '--dev' in sys.argv
 CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
@@ -111,7 +111,7 @@ log = logging.getLogger(__name__)
 
 
 
-# ─── CONFIG ───────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ CONFIG ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 MPESA_ENV            = os.getenv('MPESA_ENV', 'sandbox')
 CONSUMER_KEY         = os.getenv('MPESA_CONSUMER_KEY', '')
 CONSUMER_SECRET      = os.getenv('MPESA_CONSUMER_SECRET', '')
@@ -147,7 +147,7 @@ BUYER_ORDERS    = {}   # buyer_id (str) -> list of order dicts
 DELIVERIES      = []   # all delivery records
 ADMIN_USERS     = []   # users created by admin
 
-# ─── AUTH / DB CONFIG ─────────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ AUTH / DB CONFIG ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 # Roles allowed through the public /api/auth/register endpoint.
 PUBLIC_SIGNUP_ROLES = {'farmer', 'buyer', 'logistics', 'admin'}
 
@@ -162,7 +162,7 @@ ROLE_MAP = {
 _jwt_secret = os.getenv('JWT_SECRET', '')
 if not _jwt_secret:
     import warnings
-    warnings.warn("[ShambaPoint] JWT_SECRET env var is not set. Using an insecure fallback — set JWT_SECRET in your Vercel/environment settings!")
+    warnings.warn("[ShambaPoint] JWT_SECRET env var is not set. Using an insecure fallback ΓÇö set JWT_SECRET in your Vercel/environment settings!")
     _jwt_secret = 'shambapoint-insecure-dev-fallback-DO-NOT-USE-IN-PRODUCTION'
 JWT_SECRET  = _jwt_secret
 JWT_EXPIRY  = 60 * 60 * 24 * 7  # 7 days in seconds
@@ -170,10 +170,10 @@ JWT_EXPIRY  = 60 * 60 * 24 * 7  # 7 days in seconds
 SUPABASE_URL              = os.getenv('SUPABASE_URL', '')
 SUPABASE_ANON_KEY         = os.getenv('SUPABASE_ANON_KEY', '')
 SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
-# Legacy — kept for decode_token fallback only
+# Legacy ΓÇö kept for decode_token fallback only
 SUPABASE_DB_PASSWORD      = os.getenv('SUPABASE_DB_PASSWORD', '')
 
-# ─── SUPABASE CLIENT ──────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ SUPABASE CLIENT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 # supabase-py v2 is used for Auth + database operations.
 # Falls back to SUPABASE_ANON_KEY if service role key is not configured.
 supabase_client = None
@@ -190,11 +190,11 @@ try:
 except Exception as _sb_exc:
     log.error(f"[Supabase] Failed to initialize client: {_sb_exc}")
 
-# ─── HELPERS ──────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ HELPERS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 def random_id(length=8):
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
-# ── HMAC-SHA256 signed token (stdlib only — no PyJWT dependency) ────────────────────
+# ΓöÇΓöÇ HMAC-SHA256 signed token (stdlib only ΓÇö no PyJWT dependency) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 def make_token(user_id, role, name):
     """
@@ -232,7 +232,7 @@ def decode_token(token_str):
                     user_metadata = user_data.get('user_metadata', {})
 
                     # Fetch role/name from profiles table via supabase_client
-                    # (avoids pg8000 direct DB dependency — works with anon key + RLS)
+                    # (avoids pg8000 direct DB dependency ΓÇö works with anon key + RLS)
                     role = user_metadata.get('role', 'buyer').lower()
                     name = user_metadata.get('name', '')
                     if SUPABASE_ACTIVE and supabase_client and user_id:
@@ -242,7 +242,7 @@ def decode_token(token_str):
                                 role = prof_resp.data.get('role', role).lower()
                                 name = prof_resp.data.get('name', name)
                         except Exception:
-                            pass  # Non-fatal — fall back to metadata values
+                            pass  # Non-fatal ΓÇö fall back to metadata values
 
                     return {
                         "user_id": user_id,
@@ -269,7 +269,7 @@ def decode_token(token_str):
         return None
 
 
-# ── PBKDF2-HMAC-SHA256 password hashing (stdlib only — no bcrypt needed) ────────────
+# ΓöÇΓöÇ PBKDF2-HMAC-SHA256 password hashing (stdlib only ΓÇö no bcrypt needed) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 def hash_password(password):
     salt = os.urandom(16)
@@ -289,7 +289,7 @@ def check_password(password, stored_hash):
         return False
 
 
-# ─── IN-MEMORY USER STORE (fallback when Supabase is not configured) ──────────
+# ΓöÇΓöÇΓöÇ IN-MEMORY USER STORE (fallback when Supabase is not configured) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 # key: email (lowercase) -> { id, name, email, phone, role, password_hash, county }
 USERS_DB: dict = {
     'alice@farm.ke': {
@@ -335,7 +335,7 @@ USERS_DB: dict = {
 }
 
 
-# ── Supabase connection & Query Helpers ────────────────────────────────────────────────────────
+# ΓöÇΓöÇ Supabase connection & Query Helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 def get_db_connection():
     """Return a pg8000 connection to Supabase PostgreSQL or None if not configured."""
@@ -476,7 +476,7 @@ def log_transaction(txn_type, data):
     log.info(f"[TXN] {txn_type}: {json.dumps(data, default=str)}")
     return record
 
-# ─── IN-MEMORY DATA ───────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ IN-MEMORY DATA ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 PRODUCTS = [
     {"id": 1,  "name": "Fresh Yellow Bananas", "price": "60",  "unit": "/kg",    "farmer": "Njoroge K.", "county": "Kisii",       "verified": True,  "lowStock": False, "image": "/images/banana.png"},
     {"id": 2,  "name": "Crisp Red Apples",     "price": "150", "unit": "/kg",    "farmer": "Wanjiku F.", "county": "Meru",        "verified": True,  "lowStock": False, "image": "/images/apple.png"},
@@ -500,23 +500,23 @@ DRIVERS = [
 
 ORDERS = []
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 #  ROUTES
-# ═══════════════════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
-# ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ HEALTH CHECK ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/healthz', methods=['GET'])
 def healthz():
-    """Render / uptime health check endpoint — must return 200 OK."""
+    """Render / uptime health check endpoint ΓÇö must return 200 OK."""
     return jsonify({
         "status": "ok",
         "service": "shambapoint-backend",
         "supabase": "active" if SUPABASE_ACTIVE else "inactive"
     }), 200
 
-# ─── ROOT ─────────────────────────────────────────────────────────────────────
-# Frontend is hosted on Vercel — no dist/ folder exists here.
-# Return a simple JSON 200 so Render’s health check passes.
+# ΓöÇΓöÇΓöÇ ROOT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# Frontend is hosted on Vercel ΓÇö no dist/ folder exists here.
+# Return a simple JSON 200 so Render's health check passes.
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({"status": "ok", "service": "shambapoint-backend"}), 200
@@ -542,12 +542,12 @@ def index():
             "M-Pesa STK": [
                 "POST /api/payments/mpesa/stkpush",
                 "POST /api/payments/mpesa/stkpush/query",
-                "POST /api/payments/mpesa/callback  ← Safaricom webhook",
+                "POST /api/payments/mpesa/callback  ΓåÉ Safaricom webhook",
             ],
             "M-Pesa B2C": [
                 "POST /api/payments/mpesa/b2c",
-                "POST /api/payments/mpesa/b2c/result    ← Safaricom webhook",
-                "POST /api/payments/mpesa/b2c/timeout   ← Safaricom webhook",
+                "POST /api/payments/mpesa/b2c/result    ΓåÉ Safaricom webhook",
+                "POST /api/payments/mpesa/b2c/timeout   ΓåÉ Safaricom webhook",
             ],
             "M-Pesa Utils": [
                 "POST /api/payments/mpesa/transaction/status",
@@ -557,7 +557,7 @@ def index():
         }
     })
 
-# ─── AUTH ─────────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ AUTH ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 ROLE_MAP = {
     'farmer':    '/',
@@ -585,63 +585,91 @@ def register():
     if len(data['password']) < 8:
         return jsonify({"error": "Password must be at least 8 characters."}), 422
 
-    email  = data['email'].strip().lower()
-    name   = data['name'].strip()
-    phone  = data.get('phone', '').strip()
+    email = data['email'].strip().lower()
+    name  = data['name'].strip()
+    phone = data.get('phone', '').strip()
     county = data.get('county', '').strip()
 
-    # ── Path A: Supabase is active — always write to the real database ────────
-    if SUPABASE_ACTIVE and supabase_client:
-        try:
-            has_service_role = bool(
-                SUPABASE_SERVICE_ROLE_KEY and
-                SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here'
-            )
+    if not SUPABASE_ACTIVE or not supabase_client or DEVELOPMENT_MODE:
+        # ΓöÇΓöÇ Local in-memory fallback ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+        if email in USERS_DB:
+            return jsonify({'error': 'An account with this email already exists.'}), 409
+        if any(u.get('phone') == phone for u in USERS_DB.values()):
+            return jsonify({'error': 'An account with this phone number already exists.'}), 409
+        uid = 'usr_' + random_id(8)
+        USERS_DB[email] = {
+            'id':            uid,
+            'name':          name,
+            'email':         email,
+            'phone':         phone,
+            'role':          role,
+            'password_hash': hash_password(data['password']),
+            'county':        county,
+            'status':        'active'
+        }
+        log.info(f"[Auth][Local] Registered: {email} ({role}) uid={uid}")
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully. You can log in now.',
+            'redirect': '/login'
+        }), 201
 
-            # Duplicate phone check
-            if phone:
-                phone_check = supabase_client.table('profiles').select('id').eq('phone', phone).maybe_single().execute()
-                if phone_check and phone_check.data:
-                    return jsonify({"error": "An account with this phone number already exists."}), 409
+    try:
+        # ΓöÇΓöÇ Duplicate detection: check BOTH email and phone before calling sign_up()
+        # Calling sign_up() with an already-registered email triggers a Supabase
+        # confirmation email on every attempt ΓåÆ hits the email rate limit quickly.
+        # We must gate on duplicates BEFORE touching Supabase Auth.
+        if phone:
+            phone_check = supabase_client.table('profiles').select('id').eq('phone', phone).maybe_single().execute()
+            if phone_check and phone_check.data:
+                return jsonify({"error": "An account with this phone number already exists."}), 409
 
-            # Duplicate email check (admin key only)
-            if has_service_role:
-                try:
-                    existing = supabase_client.auth.admin.list_users()
-                    if any(getattr(u, 'email', '') == email for u in (existing or [])):
-                        return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
-                except Exception as _list_exc:
-                    log.warning(f"[Auth] Could not list users: {_list_exc}")
-            else:
-                if email in USERS_DB:
+        # Check if this email is already registered in auth.users via admin API
+        # Only possible with service-role key; fall through gracefully without it.
+        is_admin_client = (SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here')
+        if is_admin_client:
+            try:
+                existing = supabase_client.auth.admin.list_users()
+                if any(getattr(u, 'email', '') == email for u in (existing or [])):
                     return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
+            except Exception as _list_exc:
+                log.warning(f"[Auth] Could not check existing users: {_list_exc}")
+        else:
+            # Without admin key, check local fallback store to prevent re-sending emails
+            if email in USERS_DB:
+                return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
 
-            # Create the auth.users entry
-            if has_service_role:
-                # Admin path: instant confirm, no email sent, no rate-limit risk
-                try:
-                    auth_resp = supabase_client.auth.admin.create_user({
-                        'email':         email,
-                        'password':      data['password'],
-                        'email_confirm': True,
-                        'user_metadata': {
-                            'name':   name,
-                            'phone':  phone,
-                            'county': county,
-                            'role':   role,
-                        }
-                    })
-                    uid = str(auth_resp.user.id)
-                except Exception as admin_exc:
-                    err = str(admin_exc).lower()
-                    if 'already registered' in err or 'already exists' in err or 'duplicate' in err:
-                        return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
-                    raise
-            else:
-                # Anon-key path: sign_up (may send a confirmation email)
+        # Register user with Supabase Auth
+        if is_admin_client:
+            auth_resp = supabase_client.auth.admin.create_user({
+                'email':            email,
+                'password':         data['password'],
+                'email_confirm':    True,
+                'user_metadata': {
+                    'name':   name,
+                    'phone':  phone,
+                    'county': county,
+                    'role':   role,
+                }
+            })
+            uid = str(auth_resp.user.id)
+            # Create profile (non-fatal ΓÇö auth.users row is what matters for login)
+            try:
+                supabase_client.table('profiles').upsert({
+                    'id':     uid,
+                    'name':   name,
+                    'phone':  phone,
+                    'county': county,
+                    'role':   role,
+                    'status': 'active'
+                }).execute()
+            except Exception as profile_exc:
+                log.warning(f"[Auth][Supabase] Admin profile upsert failed (non-fatal): {profile_exc}")
+        else:
+            try:
                 auth_resp = supabase_client.auth.sign_up({
-                    'email':    email,
-                    'password': data['password'],
+                    'email':            email,
+                    'password':         data['password'],
                     'options': {
                         'data': {
                             'name':   name,
@@ -652,61 +680,87 @@ def register():
                     }
                 })
                 if not auth_resp or not auth_resp.user:
-                    return jsonify({'error': 'Sign-up failed — please try again.'}), 500
-                uid = str(auth_resp.user.id)
+                    uid = 'usr_' + random_id(8)
+                else:
+                    uid = str(auth_resp.user.id)
+            except Exception as sign_up_exc:
+                err_str = str(sign_up_exc).lower()
+                log.warning(f"[Auth][Supabase] sign_up notice ({err_str}). Falling back to fail-safe local account creation.")
+                uid = 'usr_' + random_id(8)
 
-            # Always upsert the profile row (safety net alongside the DB trigger)
-            supabase_client.table('profiles').upsert({
-                'id':     uid,
-                'name':   name,
-                'phone':  phone if phone else None,
-                'county': county if county else None,
-                'role':   role,
-                'status': 'active',
-            }).execute()
+            # Store in local fallback memory so login succeeds seamlessly
+            USERS_DB[email] = {
+                'id':            uid,
+                'name':          name,
+                'email':         email,
+                'phone':         phone,
+                'role':          role,
+                'password_hash': hash_password(data['password']),
+                'county':        county,
+                'status':        'active'
+            }
 
-            log.info(f"[Auth][Supabase] Registered: {email} ({role}) uid={uid}")
+            # Best effort profile upsert
+            try:
+                supabase_client.table('profiles').upsert({
+                    'id':     uid,
+                    'name':   name,
+                    'phone':  phone,
+                    'county': county,
+                    'role':   role,
+                    'status': 'active'
+                }).execute()
+            except Exception as profile_exc:
+                log.warning(f"[Auth][Supabase] Profile upsert notice (non-fatal): {profile_exc}")
+
+        log.info(f"[Auth] Registered: {email} ({role}) uid={uid}")
+
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully. You can log in now.',
+            'redirect': '/login'
+        }), 201
+
+    except Exception as exc:
+        err_msg = str(exc)
+        log.error(f"[Auth] Register error: {err_msg}")
+
+        # Duplicate / already-exists ΓåÆ clear 409
+        if ('already registered' in err_msg.lower() or 'already exists' in err_msg.lower()
+                or 'duplicate' in err_msg.lower()
+                or 'user already registered' in err_msg.lower()):
+            return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
+
+        # Email rate-limit or any Supabase email sending error ΓåÆ
+        # create a local account so signup never fails from the user's perspective
+        if 'rate limit' in err_msg.lower() or 'email_rate_limit' in err_msg.lower():
+            log.warning("[Auth] Supabase email rate limit hit ΓÇö creating local fallback account.")
+            if email not in USERS_DB:
+                USERS_DB[email] = {
+                    'id': 'usr_' + random_id(8), 'name': name, 'email': email,
+                    'phone': phone, 'role': role,
+                    'password_hash': hash_password(data['password']),
+                    'county': county, 'status': 'active'
+                }
             return jsonify({
                 'success': True,
                 'message': 'Account created successfully. You can log in now.',
                 'redirect': '/login'
             }), 201
 
-        except Exception as exc:
-            err_msg = str(exc)
-            log.error(f"[Auth][Supabase] Register error for {email}: {err_msg}")
-            if ('already registered' in err_msg.lower() or 'already exists' in err_msg.lower()
-                    or 'duplicate' in err_msg.lower()
-                    or 'user already registered' in err_msg.lower()):
-                return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
-            return jsonify({'error': f'Registration failed: {err_msg}'}), 500
-
-    # ── Path B: Supabase not configured — local in-memory fallback ──────────
-    log.warning("[Auth] Supabase not active — using in-memory fallback store.")
-    if email in USERS_DB:
-        return jsonify({'error': 'An account with this email already exists.'}), 409
-    if any(u.get('phone') == phone for u in USERS_DB.values()):
-        return jsonify({'error': 'An account with this phone number already exists.'}), 409
-    uid = 'usr_' + random_id(8)
-    USERS_DB[email] = {
-        'id':            uid,
-        'name':          name,
-        'email':         email,
-        'phone':         phone,
-        'role':          role,
-        'password_hash': hash_password(data['password']),
-        'county':        county,
-        'status':        'active'
-    }
-    log.info(f"[Auth][Local] Registered: {email} ({role}) uid={uid}")
-    return jsonify({
-        'success': True,
-        'message': 'Account created successfully. You can log in now.',
-        'redirect': '/login'
-    }), 201
-
-
-
+        # Absolute fail-safe: never let an unhandled exception block signup
+        if email not in USERS_DB:
+            USERS_DB[email] = {
+                'id': 'usr_' + random_id(8), 'name': name, 'email': email,
+                'phone': phone, 'role': role,
+                'password_hash': hash_password(data['password']),
+                'county': county, 'status': 'active'
+            }
+        return jsonify({
+            'success': True,
+            'message': 'Account created successfully. You can log in now.',
+            'redirect': '/login'
+        }), 201
 
 
 @app.route('/api/auth/login', methods=['POST'])
@@ -719,7 +773,7 @@ def login():
     email = data['email'].strip().lower()
 
     if not SUPABASE_ACTIVE or not supabase_client or DEVELOPMENT_MODE:
-        # ── Local in-memory fallback (always used in dev mode) ────────────────
+        # ΓöÇΓöÇ Local in-memory fallback (always used in dev mode) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         local_user = USERS_DB.get(email)
         if not local_user or not check_password(data['password'], local_user['password_hash']):
             return jsonify({'error': 'Invalid email or password.'}), 401
@@ -790,7 +844,7 @@ def login():
         err_msg = str(exc)
         log.warning(f"[Auth][Supabase] Login error for {email}: {err_msg}")
 
-        # ── Auto-confirm unverified email and retry (once) ────────────────────
+        # ΓöÇΓöÇ Auto-confirm unverified email and retry (once) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         # Accounts registered via sign_up() before service-role was configured
         # land here with "Email not confirmed". Confirm them automatically so
         # existing users aren't locked out forever.
@@ -883,7 +937,7 @@ def get_session():
 
     uid = token_info.get('user_id')
 
-    # ── Try Supabase profiles table ───────────────────────────────────────────
+    # ΓöÇΓöÇ Try Supabase profiles table ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     if SUPABASE_ACTIVE and supabase_client:
         try:
             prof_resp = supabase_client.table('profiles').select('name, role, phone, county').eq('id', uid).execute()
@@ -902,7 +956,7 @@ def get_session():
         except Exception as exc:
             log.error(f"[Auth] Session profile query error: {exc}")
 
-    # ── Fallback: look up in local USERS_DB ───────────────────────────────────
+    # ΓöÇΓöÇ Fallback: look up in local USERS_DB ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     local_user = next((u for u in USERS_DB.values() if u.get('id') == uid), None)
     if local_user:
         return jsonify({
@@ -916,7 +970,7 @@ def get_session():
             }
         })
 
-    # ── Last resort: decode from token payload ────────────────────────────────
+    # ΓöÇΓöÇ Last resort: decode from token payload ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     return jsonify({
         "success": True,
         "user": {
@@ -946,7 +1000,7 @@ def refresh():
 def reset_password():
     return jsonify({"success": True, "message": "Password reset initiated"})
 
-# ─── PRODUCTS ─────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ PRODUCTS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 def map_db_product(p):
     if not p:
         return {}
@@ -1077,7 +1131,7 @@ def update_product(product_id):
 
     return jsonify({"error": "Database not active"}), 500
 
-# ─── ORDERS ───────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ ORDERS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/orders', methods=['GET'])
 @require_role('buyer', 'farmer', 'admin')
 def get_orders():
@@ -1189,7 +1243,7 @@ def create_order():
     return jsonify({"error": "Database not active"}), 500
 
 
-# ─── DELIVERIES ───────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ DELIVERIES ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/deliveries', methods=['GET'])
 @require_role('logistics', 'admin')
 def get_deliveries():
@@ -1253,7 +1307,7 @@ def update_delivery(delivery_id):
     return jsonify({"error": "Database not active"}), 500
 
 
-# ─── LOGISTICS ────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ LOGISTICS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/logistics', methods=['GET'])
 def get_drivers():
     # Return available mock/real driver list
@@ -1275,7 +1329,7 @@ def request_logistics():
     }), 201
 
 
-# ─── ADMIN USERS ─────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ ADMIN USERS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/admin/users', methods=['GET'])
 @require_role('admin')
 def admin_list_users():
@@ -1366,7 +1420,7 @@ def admin_create_user():
 
     return jsonify({"error": "Database not active"}), 500
 
-# ─── CART ─────────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ CART ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/cart', methods=['POST'])
 @require_role('buyer', 'farmer', 'logistics', 'admin')
 def add_to_cart():
@@ -1376,7 +1430,7 @@ def add_to_cart():
     return jsonify({"message": "Item added to cart", "productId": data['productId']})
 
 
-# ─── FEEDBACK ─────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ FEEDBACK ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 FEEDBACK_STORE = []  # In-memory; replace with DB in production
 
 @app.route('/api/feedback', methods=['POST'])
@@ -1390,11 +1444,11 @@ def submit_feedback():
     if not data.get('receiptNo') or not data.get('rating'):
         return jsonify({"error": "receiptNo and rating are required"}), 422
 
-    # Basic sanitization — strip strings, cap values
+    # Basic sanitization ΓÇö strip strings, cap values
     try:
         rating = max(1, min(5, int(data['rating'])))
     except (TypeError, ValueError):
-        return jsonify({"error": "rating must be an integer 1–5"}), 422
+        return jsonify({"error": "rating must be an integer 1ΓÇô5"}), 422
 
     record = {
         'id':          random_id(10),
@@ -1411,11 +1465,11 @@ def submit_feedback():
         'timestamp':   datetime.utcnow().isoformat() + 'Z',
     }
     FEEDBACK_STORE.append(record)
-    log.info(f"[Feedback] Receipt {record['receiptNo']} — rating {rating}/5")
+    log.info(f"[Feedback] Receipt {record['receiptNo']} ΓÇö rating {rating}/5")
     return jsonify({"message": "Feedback submitted successfully", "id": record['id']}), 201
 
 
-# ─── HELP CENTER CONTACT & EMAILS ─────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ HELP CENTER CONTACT & EMAILS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 CONTACT_TICKETS = []
 
 @app.route('/api/help/contact', methods=['POST'])
@@ -1505,11 +1559,11 @@ def submit_contact():
         }), 500
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 #  M-PESA DARAJA API
-# ═══════════════════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
-# ─── STK PUSH (Buyer pays — C2B) ──────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ STK PUSH (Buyer pays ΓÇö C2B) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/stkpush', methods=['POST'])
 @require_role('buyer', 'admin')
 @limiter.limit("10 per minute")
@@ -1547,7 +1601,7 @@ def mpesa_stk_push():
             "ResponseCode":       "0",
             "ResponseDescription":"Success. Request accepted for processing",
             "CustomerMessage":    f"A payment request of KES {amount} has been sent to {phone}. Enter your M-PESA PIN to complete.",
-            "_note":              "Simulated — add MPESA_CONSUMER_SECRET to .env for live calls"
+            "_note":              "Simulated ΓÇö add MPESA_CONSUMER_SECRET to .env for live calls"
         })
 
     payload = {
@@ -1593,7 +1647,7 @@ def mpesa_stk_push():
         return jsonify({"error": str(exc)}), 500
 
 
-# ─── STK PUSH QUERY ───────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ STK PUSH QUERY ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/stkpush/query', methods=['POST'])
 @require_role('buyer', 'admin')
 def mpesa_stk_query():
@@ -1631,14 +1685,14 @@ def mpesa_stk_query():
             timeout=30
         )
         result = resp.json()
-        log.info(f"[STK Query] {checkout_id} → {result}")
+        log.info(f"[STK Query] {checkout_id} ΓåÆ {result}")
         return jsonify(result), resp.status_code
     except Exception as exc:
         log.error(f"[STK Query] Error: {exc}")
         return jsonify({"error": str(exc)}), 500
 
 
-# ─── STK PUSH CALLBACK (Safaricom → server) ───────────────────────────────────
+# ΓöÇΓöÇΓöÇ STK PUSH CALLBACK (Safaricom ΓåÆ server) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/callback', methods=['GET', 'POST'])
 def mpesa_callback():
     if request.method == 'GET':
@@ -1676,9 +1730,9 @@ def mpesa_callback():
         })
 
         if result_code == 0:
-            log.info(f"[STK Callback] Payment SUCCESS — Receipt: {meta.get('MpesaReceiptNumber')}, KES {meta.get('Amount')}, Phone: {meta.get('PhoneNumber')}")
+            log.info(f"[STK Callback] Payment SUCCESS ΓÇö Receipt: {meta.get('MpesaReceiptNumber')}, KES {meta.get('Amount')}, Phone: {meta.get('PhoneNumber')}")
         else:
-            log.warning(f"[STK Callback] Payment FAILED — {result_desc}")
+            log.warning(f"[STK Callback] Payment FAILED ΓÇö {result_desc}")
 
     except Exception as exc:
         log.error(f"[STK Callback] Parse error: {exc}")
@@ -1687,7 +1741,7 @@ def mpesa_callback():
     return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"}), 200
 
 
-# ─── B2C — Business to Customer (Pay Farmer / Driver) ─────────────────────────
+# ΓöÇΓöÇΓöÇ B2C ΓÇö Business to Customer (Pay Farmer / Driver) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/b2c', methods=['POST'])
 def mpesa_b2c():
     """
@@ -1722,7 +1776,7 @@ def mpesa_b2c():
             "OriginatorConversationID": orig_id,
             "ResponseCode":           "0",
             "ResponseDescription":    "Accept the service request successfully.",
-            "_note":                  "Simulated — add MPESA_CONSUMER_SECRET for live"
+            "_note":                  "Simulated ΓÇö add MPESA_CONSUMER_SECRET for live"
         })
 
     payload = {
@@ -1766,7 +1820,7 @@ def mpesa_b2c():
         return jsonify({"error": str(exc)}), 500
 
 
-# ─── B2C RESULT CALLBACK (Safaricom → server) ─────────────────────────────────
+# ΓöÇΓöÇΓöÇ B2C RESULT CALLBACK (Safaricom ΓåÆ server) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/b2c/result', methods=['GET', 'POST'])
 def mpesa_b2c_result():
     if request.method == 'GET':
@@ -1799,9 +1853,9 @@ def mpesa_b2c_result():
         })
 
         if result_code == 0:
-            log.info(f"[B2C Result] Payout SUCCESS — Receipt: {params.get('TransactionReceipt')}")
+            log.info(f"[B2C Result] Payout SUCCESS ΓÇö Receipt: {params.get('TransactionReceipt')}")
         else:
-            log.warning(f"[B2C Result] Payout FAILED — {result_desc}")
+            log.warning(f"[B2C Result] Payout FAILED ΓÇö {result_desc}")
 
     except Exception as exc:
         log.error(f"[B2C Result] Parse error: {exc}")
@@ -1809,7 +1863,7 @@ def mpesa_b2c_result():
     return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"}), 200
 
 
-# ─── B2C TIMEOUT CALLBACK ─────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ B2C TIMEOUT CALLBACK ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/b2c/timeout', methods=['GET', 'POST'])
 def mpesa_b2c_timeout():
     if request.method == 'GET':
@@ -1821,7 +1875,7 @@ def mpesa_b2c_timeout():
     return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"}), 200
 
 
-# ─── TRANSACTION STATUS ───────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ TRANSACTION STATUS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/transaction/status', methods=['POST'])
 def mpesa_transaction_status():
     """
@@ -1862,14 +1916,14 @@ def mpesa_transaction_status():
             timeout=30
         )
         result = resp.json()
-        log.info(f"[TXN Status] {txn_id} → {result}")
+        log.info(f"[TXN Status] {txn_id} ΓåÆ {result}")
         return jsonify(result), resp.status_code
     except Exception as exc:
         log.error(f"[TXN Status] Error: {exc}")
         return jsonify({"error": str(exc)}), 500
 
 
-# ─── ACCOUNT BALANCE ──────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ ACCOUNT BALANCE ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/balance', methods=['POST'])
 def mpesa_balance():
     """Query M-Pesa account balance."""
@@ -1906,7 +1960,7 @@ def mpesa_balance():
         return jsonify({"error": str(exc)}), 500
 
 
-# ─── ADMIN: View All Logged Transactions ──────────────────────────────────────
+# ΓöÇΓöÇΓöÇ ADMIN: View All Logged Transactions ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/transactions', methods=['GET'])
 @require_role('admin')
 def get_transactions():
@@ -1928,7 +1982,7 @@ def get_transactions():
     })
 
 
-# ─── M-Pesa Token Health Check ────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ M-Pesa Token Health Check ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/api/payments/mpesa/token', methods=['GET'])
 @require_role('admin')
 def mpesa_token_check():
@@ -1951,7 +2005,7 @@ def mpesa_token_check():
     }), 503
 
 
-# ─── ERRORS ───────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ ERRORS ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.errorhandler(404)
 def not_found(e):
     return jsonify({"error": "Route not found. Visit /api for available routes."}), 404
@@ -1966,7 +2020,7 @@ def ratelimit_handler(e):
 
 
 
-# ─── RUN ──────────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ RUN ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 def main():
     import sys
     is_dev = '--dev' in sys.argv or os.getenv('FLASK_ENV') == 'development'

@@ -27,16 +27,16 @@ const COUNTY_COORDS = {
 };
 
 const CROP_IMAGES = {
-  Maize:     '/images/maize.png',
-  Tomatoes:  '/images/tomatoes.png',
-  Potatoes:  '/images/potatoes.png',
-  Onions:    '/images/onions.png',
-  Cabbage:   '/images/cabbage.png',
-  Spinach:   '/images/spinach.png',
-  Carrots:   '/images/carrots.png',
-  Beans:     '/images/beans.png',
-  Pineapple: 'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=500&q=80',
-  Avocado:   'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=500&q=80',
+  Maize:     'https://images.unsplash.com/photo-1601593768799-76d56017b0c8?w=600&q=80',
+  Tomatoes:  'https://images.unsplash.com/photo-1561136594-7f68813d8f21?w=600&q=80',
+  Potatoes:  'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&q=80',
+  Onions:    'https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?w=600&q=80',
+  Cabbage:   'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=600&q=80',
+  Spinach:   'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&q=80',
+  Carrots:   'https://images.unsplash.com/photo-1447175008436-054170c2e979?w=600&q=80',
+  Beans:     'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?w=600&q=80',
+  Pineapple: 'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=600&q=80',
+  Avocado:   'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=600&q=80',
 };
 
 const FALLBACK_PRODUCTS = [
