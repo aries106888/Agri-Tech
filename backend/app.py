@@ -507,6 +507,16 @@ ORDERS = []
 #  ROUTES
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# ─── HEALTH CHECK ─────────────────────────────────────────────────────────────
+@app.route('/healthz', methods=['GET'])
+def healthz():
+    """Render / uptime health check endpoint — must return 200 OK."""
+    return jsonify({
+        "status": "ok",
+        "service": "shambapoint-backend",
+        "supabase": "active" if SUPABASE_ACTIVE else "inactive"
+    }), 200
+
 # ─── ROOT ─────────────────────────────────────────────────────────────────────
 @app.route('/', methods=['GET'])
 def home():
