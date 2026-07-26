@@ -55,7 +55,7 @@ import logging
 from datetime import datetime
 
 import requests
-from flask import Flask, jsonify, request, send_from_directory, g
+from flask import Flask, jsonify, request, g
 from flask_cors import CORS
 from dotenv import load_dotenv
 from typing import Any, cast
@@ -109,10 +109,7 @@ CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=False)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 log = logging.getLogger(__name__)
 
-# ─── DIST DIR (React build output) ───────────────────────────────────────────
-# app.py lives in  <project_root>/backend/
-# React builds to <project_root>/dist/
-DIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dist'))
+
 
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
 MPESA_ENV            = os.getenv('MPESA_ENV', 'sandbox')
@@ -518,30 +515,11 @@ def healthz():
     }), 200
 
 # ─── ROOT ─────────────────────────────────────────────────────────────────────
+# Frontend is hosted on Vercel — no dist/ folder exists here.
+# Return a simple JSON 200 so Render's health check passes.
 @app.route('/', methods=['GET'])
 def home():
-    return send_from_directory(DIST_DIR, 'index.html')
-
-@app.route('/index.html', methods=['GET'])
-def serve_index_explicit():
-    return send_from_directory(DIST_DIR, 'index.html')
-
-@app.route('/assets/<path:path>', methods=['GET'])
-def serve_assets(path):
-    return send_from_directory(os.path.join(DIST_DIR, 'assets'), path)
-
-@app.route('/<path:path>', methods=['GET'])
-def serve_spa_or_static(path):
-    # API paths that fall through to this catch-all don't exist
-    if path.startswith('api'):
-        return jsonify({"error": "Route not found. Visit /api for available routes."}), 404
-
-    # Serve exact static file if it exists (favicon.svg, icons.svg, images/, etc.)
-    if os.path.exists(os.path.join(DIST_DIR, path)):
-        return send_from_directory(DIST_DIR, path)
-
-    # Fallback to index.html for React SPA client-side routing
-    return send_from_directory(DIST_DIR, 'index.html')
+    return jsonify({"status": "ok", "service": "shambapoint-backend"}), 200
 
 @app.route('/api', methods=['GET'])
 def index():
