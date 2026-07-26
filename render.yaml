@@ -4,18 +4,48 @@ services:
     env: python
     region: oregon
     plan: free
+    rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn backend.app:app
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.0
       - key: FLASK_ENV
         value: production
+      - key: FLASK_APP
+        value: app.py
+      # ── Supabase ─────────────────────────────────────
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_ANON_KEY
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      # ── JWT ───────────────────────────────────────────
       - key: JWT_SECRET
         generateValue: true
+      # ── M-Pesa STK Push ───────────────────────────────
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      - key: MPESA_ENV
+        value: sandbox
+      # ── M-Pesa B2C ────────────────────────────────────
+      - key: MPESA_B2C_SHORTCODE
+        sync: false
+      - key: MPESA_B2C_INITIATOR_NAME
+        sync: false
+      - key: MPESA_B2C_SECURITY_CREDENTIAL
+        sync: false
+      # ── M-Pesa Callback URLs (set after first deploy) ─
+      - key: MPESA_CALLBACK_URL
+        sync: false
+      - key: MPESA_B2C_RESULT_URL
+        sync: false
+      - key: MPESA_B2C_TIMEOUT_URL
+        sync: false
