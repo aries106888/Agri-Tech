@@ -599,13 +599,16 @@ def register():
 
     # Try Supabase Auth & profile insertion
     if SUPABASE_ACTIVE and supabase_client:
-        try:
-            # Check duplicate email in Supabase profiles
-            email_check = supabase_client.table('profiles').select('id').eq('email', email).maybe_single().execute()
-            if email_check and email_check.data:
-                return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
-        except Exception as _chk_exc:
-            log.warning(f"[Auth] Supabase duplicate check notice: {_chk_exc}")
+        # Duplicate email check — use auth admin list, not profiles (profiles has no email column)
+        if SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here':
+            try:
+                existing = supabase_client.auth.admin.list_users()
+                if existing and hasattr(existing, '__iter__'):
+                    for u in existing:
+                        if hasattr(u, 'email') and u.email and u.email.lower() == email:
+                            return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
+            except Exception as _chk_exc:
+                log.warning(f"[Auth] Supabase duplicate check notice: {_chk_exc}")
 
         has_admin_key = (SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here')
         if has_admin_key:
@@ -644,20 +647,21 @@ def register():
             except Exception as sign_up_exc:
                 log.warning(f"[Auth][Supabase] sign_up notice: {sign_up_exc}")
 
-        # Save profile to PostgreSQL database
-        try:
-            supabase_client.table('profiles').upsert({
-                'id':     auth_user_id,
-                'name':   name,
-                'email':  email,
-                'phone':  phone if phone else None,
-                'county': county if county else None,
-                'role':   role,
-                'status': 'active',
-            }).execute()
-            log.info(f"[Auth][Supabase] Profile saved to database for {email} ({role}) id={auth_user_id}")
-        except Exception as profile_exc:
-            log.warning(f"[Auth][Supabase] Profile upsert notice: {profile_exc}")
+        # Save profile — only if we have a real Supabase UUID (not our local placeholder)
+        # profiles.id references auth.users(id), so a local usr_* ID would fail FK constraint
+        if not auth_user_id.startswith('usr_'):
+            try:
+                supabase_client.table('profiles').upsert({
+                    'id':     auth_user_id,
+                    'name':   name,
+                    'phone':  phone if phone else None,
+                    'county': county if county else None,
+                    'role':   role,
+                    'status': 'active',
+                }).execute()
+                log.info(f"[Auth][Supabase] Profile saved for {email} ({role}) id={auth_user_id}")
+            except Exception as profile_exc:
+                log.warning(f"[Auth][Supabase] Profile upsert notice: {profile_exc}")
 
     # Memory store fallback
     USERS_DB[email] = {
