@@ -27,7 +27,7 @@ const COUNTY_COORDS = {
   "Murang'a":  { lat: -0.7167, lng: 37.1500 },
 };
 
-/* Crop images — AI-generated locals + verified Unsplash CDN for remainder */
+/* Crop images — all locally hosted in public/images/ for guaranteed loading */
 const CROP_IMAGES = {
   Maize:      '/images/maize.png',
   Tomatoes:   '/images/tomatoes.png',
@@ -35,16 +35,17 @@ const CROP_IMAGES = {
   Onions:     '/images/onions.png',
   Cabbage:    '/images/cabbage.png',
   Spinach:    '/images/spinach.png',
-  Carrots:    'https://images.unsplash.com/photo-1447175008436-054170c2e979?w=600&q=80',
-  Beans:      'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?w=600&q=80',
-  Pineapple:  'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=600&q=80',
-  Avocado:    'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=600&q=80',
-  Kale:       'https://images.unsplash.com/photo-1515543237350-b3ecd655a41a?w=600&q=80',
-  Banana:     'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&q=80',
-  Apple:      'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600&q=80',
-  Mango:      'https://images.unsplash.com/photo-1623227773350-e3a14b9f5b15?w=600&q=80',
-  Orange:     'https://images.unsplash.com/photo-1547514701-42782101795e?w=600&q=80',
+  Carrots:    '/images/carrots.png',
+  Beans:      '/images/beans.png',
+  Pineapple:  '/images/pineapple.png',
+  Avocado:    '/images/avocado.png',
+  Kale:       '/images/kale.png',
+  Banana:     '/images/banana.png',
+  Apple:      '/images/apple.png',
+  Mango:      '/images/mango.png',
+  Orange:     '/images/orange.png',
 };
+
 
 
 
