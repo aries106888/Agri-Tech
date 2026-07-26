@@ -51,10 +51,14 @@ class ChunkErrorBoundary extends Component {
   }
   componentDidCatch(error) {
     const isChunkError = error?.message?.includes('Failed to fetch dynamically imported module')
-      || error?.message?.includes('Loading chunk');
+      || error?.message?.includes('Loading chunk')
+      || error?.message?.includes('Importing a module script failed')
+      || error?.name === 'ChunkLoadError';
     if (isChunkError && !sessionStorage.getItem('chunk_reload')) {
       sessionStorage.setItem('chunk_reload', '1');
-      window.location.reload();
+      // Hard cache-busting redirect — forces browser to fetch fresh index.html
+      const base = window.location.pathname;
+      window.location.href = base + '?_v=' + Date.now();
     }
   }
   render() {
@@ -67,7 +71,7 @@ class ChunkErrorBoundary extends Component {
             A new version of ShambaPoint was deployed. The page will reload automatically.
           </p>
           <button
-            onClick={() => { sessionStorage.removeItem('chunk_reload'); window.location.reload(); }}
+            onClick={() => { sessionStorage.removeItem('chunk_reload'); window.location.href = window.location.pathname + '?_v=' + Date.now(); }}
             className="btn-primary mt-2"
           >
             Reload Now
