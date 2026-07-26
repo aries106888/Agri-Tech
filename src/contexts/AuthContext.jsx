@@ -169,6 +169,13 @@ export const AuthProvider = ({ children }) => {
         email, password, name, phone, county,
         role: userRole || 'buyer',
       });
+      if (data?.token && data?.user) {
+        const normalizedUser = { ...data.user, role: data.user.role?.toLowerCase() };
+        localStorage.setItem('spToken', data.token);
+        localStorage.setItem('spUser', JSON.stringify(normalizedUser));
+        setUser(normalizedUser);
+        setRole(normalizedUser.role);
+      }
       return { data, error: null };
     } catch (err) {
       const isServerDown = !err.response || err.message?.includes('Cannot reach') || err.code === 'ECONNREFUSED';
@@ -178,7 +185,8 @@ export const AuthProvider = ({ children }) => {
       const message = err.response?.data?.error || err.message || 'Registration failed.';
       return { data: null, error: { message } };
     }
-  }, []);
+  }, [setUser, setRole]);
+
 
   // ── signOut ────────────────────────────────────────────────────────────────
   const signOut = useCallback((redirect = true) => {

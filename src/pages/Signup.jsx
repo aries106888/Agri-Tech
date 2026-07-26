@@ -60,8 +60,12 @@ const Signup = () => {
       setError(signUpError.message || 'Registration failed. Please try again.');
       return;
     }
-    setSuccess('Account created! Check your email to confirm, then log in.');
-    setTimeout(() => navigate('/login'), 2500);
+    setSuccess('Account created successfully! Redirecting...');
+    const rolePath = selectedRole === 'farmer' ? '/farmer/dashboard'
+                   : selectedRole === 'buyer' ? '/buyer/dashboard'
+                   : selectedRole === 'logistics' ? '/logistics/dashboard'
+                   : selectedRole === 'admin' ? '/admin/dashboard' : '/';
+    setTimeout(() => navigate(rolePath, { replace: true }), 800);
   };
 
   return (

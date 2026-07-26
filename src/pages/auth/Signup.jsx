@@ -75,10 +75,13 @@ const Signup = () => {
         return;
       }
 
-      // Account created successfully — redirect to login.
-      // Supabase may require email confirmation before first login.
-      setSuccess('Account created! Please log in with your credentials.');
-      setTimeout(() => navigate('/login', { state: { registered: true } }), 2000);
+      // Account created successfully — auto-login & redirect to dashboard.
+      setSuccess('Account created successfully! Redirecting...');
+      const rolePath = selectedRole === 'farmer' ? '/farmer/dashboard'
+                     : selectedRole === 'buyer' ? '/buyer/dashboard'
+                     : selectedRole === 'logistics' ? '/logistics/dashboard'
+                     : selectedRole === 'admin' ? '/admin/dashboard' : '/';
+      setTimeout(() => navigate(rolePath, { replace: true }), 800);
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {

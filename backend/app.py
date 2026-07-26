@@ -1,4 +1,4 @@
-﻿"""
+"""
 ShambaPoint Agri-Tech ΓÇö Flask Backend API
 ==========================================
 Endpoints:
@@ -507,15 +507,15 @@ ORDERS = []
 # ΓöÇΓöÇΓöÇ HEALTH CHECK ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 @app.route('/healthz', methods=['GET'])
 def healthz():
-    """Render / uptime health check endpoint ΓÇö must return 200 OK."""
+    """Render / uptime health check endpoint — must return 200 OK."""
     return jsonify({
         "status": "ok",
         "service": "shambapoint-backend",
         "supabase": "active" if SUPABASE_ACTIVE else "inactive"
     }), 200
 
-# ΓöÇΓöÇΓöÇ ROOT ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-# Frontend is hosted on Vercel ΓÇö no dist/ folder exists here.
+# ─── ROOT ────────────────────────────────────────────────────────────────────
+# Frontend is hosted on Vercel — no dist/ folder exists here.
 # Return a simple JSON 200 so Render's health check passes.
 @app.route('/', methods=['GET'])
 def home():
@@ -542,12 +542,12 @@ def index():
             "M-Pesa STK": [
                 "POST /api/payments/mpesa/stkpush",
                 "POST /api/payments/mpesa/stkpush/query",
-                "POST /api/payments/mpesa/callback  ΓåÉ Safaricom webhook",
+                "POST /api/payments/mpesa/callback  🠖 Safaricom webhook",
             ],
             "M-Pesa B2C": [
                 "POST /api/payments/mpesa/b2c",
-                "POST /api/payments/mpesa/b2c/result    ΓåÉ Safaricom webhook",
-                "POST /api/payments/mpesa/b2c/timeout   ΓåÉ Safaricom webhook",
+                "POST /api/payments/mpesa/b2c/result    🠖 Safaricom webhook",
+                "POST /api/payments/mpesa/b2c/timeout   🠖 Safaricom webhook",
             ],
             "M-Pesa Utils": [
                 "POST /api/payments/mpesa/transaction/status",
@@ -557,7 +557,7 @@ def index():
         }
     })
 
-# ΓöÇΓöÇΓöÇ AUTH ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+# ─── AUTH ────────────────────────────────────────────────────────────────────
 
 ROLE_MAP = {
     'farmer':    '/',
@@ -569,7 +569,7 @@ ROLE_MAP = {
 
 @app.route('/api/auth/register', methods=['POST'])
 @app.route('/api/auth/signup', methods=['POST'])
-@limiter.limit("5 per minute")
+@limiter.limit("10 per minute")
 def register():
     data = request.get_json() or {}
     required = ['name', 'email', 'phone', 'password', 'role']
@@ -585,91 +585,51 @@ def register():
     if len(data['password']) < 8:
         return jsonify({"error": "Password must be at least 8 characters."}), 422
 
-    email = data['email'].strip().lower()
-    name  = data['name'].strip()
-    phone = data.get('phone', '').strip()
+    email  = data['email'].strip().lower()
+    name   = data['name'].strip()
+    phone  = data.get('phone', '').strip()
     county = data.get('county', '').strip()
 
-    if not SUPABASE_ACTIVE or not supabase_client or DEVELOPMENT_MODE:
-        # ΓöÇΓöÇ Local in-memory fallback ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
-        if email in USERS_DB:
-            return jsonify({'error': 'An account with this email already exists.'}), 409
-        if any(u.get('phone') == phone for u in USERS_DB.values()):
-            return jsonify({'error': 'An account with this phone number already exists.'}), 409
-        uid = 'usr_' + random_id(8)
-        USERS_DB[email] = {
-            'id':            uid,
-            'name':          name,
-            'email':         email,
-            'phone':         phone,
-            'role':          role,
-            'password_hash': hash_password(data['password']),
-            'county':        county,
-            'status':        'active'
-        }
-        log.info(f"[Auth][Local] Registered: {email} ({role}) uid={uid}")
-        return jsonify({
-            'success': True,
-            'message': 'Account created successfully. You can log in now.',
-            'redirect': '/login'
-        }), 201
+    # Check duplicate in-memory
+    if email in USERS_DB:
+        return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
 
-    try:
-        # ΓöÇΓöÇ Duplicate detection: check BOTH email and phone before calling sign_up()
-        # Calling sign_up() with an already-registered email triggers a Supabase
-        # confirmation email on every attempt ΓåÆ hits the email rate limit quickly.
-        # We must gate on duplicates BEFORE touching Supabase Auth.
-        if phone:
-            phone_check = supabase_client.table('profiles').select('id').eq('phone', phone).maybe_single().execute()
-            if phone_check and phone_check.data:
-                return jsonify({"error": "An account with this phone number already exists."}), 409
+    uid = 'usr_' + random_id(10)
+    auth_user_id = uid
 
-        # Check if this email is already registered in auth.users via admin API
-        # Only possible with service-role key; fall through gracefully without it.
-        is_admin_client = (SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here')
-        if is_admin_client:
-            try:
-                existing = supabase_client.auth.admin.list_users()
-                if any(getattr(u, 'email', '') == email for u in (existing or [])):
-                    return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
-            except Exception as _list_exc:
-                log.warning(f"[Auth] Could not check existing users: {_list_exc}")
-        else:
-            # Without admin key, check local fallback store to prevent re-sending emails
-            if email in USERS_DB:
+    # Try Supabase Auth & profile insertion
+    if SUPABASE_ACTIVE and supabase_client:
+        try:
+            # Check duplicate email in Supabase profiles
+            email_check = supabase_client.table('profiles').select('id').eq('email', email).maybe_single().execute()
+            if email_check and email_check.data:
                 return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
+        except Exception as _chk_exc:
+            log.warning(f"[Auth] Supabase duplicate check notice: {_chk_exc}")
 
-        # Register user with Supabase Auth
-        if is_admin_client:
-            auth_resp = supabase_client.auth.admin.create_user({
-                'email':            email,
-                'password':         data['password'],
-                'email_confirm':    True,
-                'user_metadata': {
-                    'name':   name,
-                    'phone':  phone,
-                    'county': county,
-                    'role':   role,
-                }
-            })
-            uid = str(auth_resp.user.id)
-            # Create profile (non-fatal ΓÇö auth.users row is what matters for login)
+        has_admin_key = (SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here')
+        if has_admin_key:
             try:
-                supabase_client.table('profiles').upsert({
-                    'id':     uid,
-                    'name':   name,
-                    'phone':  phone,
-                    'county': county,
-                    'role':   role,
-                    'status': 'active'
-                }).execute()
-            except Exception as profile_exc:
-                log.warning(f"[Auth][Supabase] Admin profile upsert failed (non-fatal): {profile_exc}")
+                auth_resp = supabase_client.auth.admin.create_user({
+                    'email':         email,
+                    'password':      data['password'],
+                    'email_confirm': True,
+                    'user_metadata': {
+                        'name':   name,
+                        'phone':  phone,
+                        'county': county,
+                        'role':   role,
+                    }
+                })
+                if auth_resp and hasattr(auth_resp, 'user') and auth_resp.user:
+                    auth_user_id = str(auth_resp.user.id)
+            except Exception as admin_exc:
+                log.warning(f"[Auth][Supabase] admin.create_user notice: {admin_exc}")
         else:
             try:
                 auth_resp = supabase_client.auth.sign_up({
-                    'email':            email,
-                    'password':         data['password'],
+                    'email':    email,
+                    'password': data['password'],
                     'options': {
                         'data': {
                             'name':   name,
@@ -679,88 +639,58 @@ def register():
                         }
                     }
                 })
-                if not auth_resp or not auth_resp.user:
-                    uid = 'usr_' + random_id(8)
-                else:
-                    uid = str(auth_resp.user.id)
+                if auth_resp and hasattr(auth_resp, 'user') and auth_resp.user:
+                    auth_user_id = str(auth_resp.user.id)
             except Exception as sign_up_exc:
-                err_str = str(sign_up_exc).lower()
-                log.warning(f"[Auth][Supabase] sign_up notice ({err_str}). Falling back to fail-safe local account creation.")
-                uid = 'usr_' + random_id(8)
+                log.warning(f"[Auth][Supabase] sign_up notice: {sign_up_exc}")
 
-            # Store in local fallback memory so login succeeds seamlessly
-            USERS_DB[email] = {
-                'id':            uid,
-                'name':          name,
-                'email':         email,
-                'phone':         phone,
-                'role':          role,
-                'password_hash': hash_password(data['password']),
-                'county':        county,
-                'status':        'active'
-            }
+        # Save profile to PostgreSQL database
+        try:
+            supabase_client.table('profiles').upsert({
+                'id':     auth_user_id,
+                'name':   name,
+                'email':  email,
+                'phone':  phone if phone else None,
+                'county': county if county else None,
+                'role':   role,
+                'status': 'active',
+            }).execute()
+            log.info(f"[Auth][Supabase] Profile saved to database for {email} ({role}) id={auth_user_id}")
+        except Exception as profile_exc:
+            log.warning(f"[Auth][Supabase] Profile upsert notice: {profile_exc}")
 
-            # Best effort profile upsert
-            try:
-                supabase_client.table('profiles').upsert({
-                    'id':     uid,
-                    'name':   name,
-                    'phone':  phone,
-                    'county': county,
-                    'role':   role,
-                    'status': 'active'
-                }).execute()
-            except Exception as profile_exc:
-                log.warning(f"[Auth][Supabase] Profile upsert notice (non-fatal): {profile_exc}")
+    # Memory store fallback
+    USERS_DB[email] = {
+        'id':            auth_user_id,
+        'name':          name,
+        'email':         email,
+        'phone':         phone,
+        'role':          role,
+        'password_hash': hash_password(data['password']),
+        'county':        county,
+        'status':        'active'
+    }
 
-        log.info(f"[Auth] Registered: {email} ({role}) uid={uid}")
+    # Generate access token for immediate auto-login
+    access_token = make_token(auth_user_id, role, name)
+    public_user = {
+        'id':     auth_user_id,
+        'name':   name,
+        'email':  email,
+        'phone':  phone,
+        'role':   role,
+        'county': county,
+    }
 
-        return jsonify({
-            'success': True,
-            'message': 'Account created successfully. You can log in now.',
-            'redirect': '/login'
-        }), 201
+    log.info(f"[Auth] Account created and auto-logged in: {email} ({role}) uid={auth_user_id}")
+    return jsonify({
+        'success':  True,
+        'message':  'Account created successfully!',
+        'token':    access_token,
+        'user':     public_user,
+        'redirect': ROLE_MAP.get(role, '/'),
+    }), 201
 
-    except Exception as exc:
-        err_msg = str(exc)
-        log.error(f"[Auth] Register error: {err_msg}")
-
-        # Duplicate / already-exists ΓåÆ clear 409
-        if ('already registered' in err_msg.lower() or 'already exists' in err_msg.lower()
-                or 'duplicate' in err_msg.lower()
-                or 'user already registered' in err_msg.lower()):
-            return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
-
-        # Email rate-limit or any Supabase email sending error ΓåÆ
-        # create a local account so signup never fails from the user's perspective
-        if 'rate limit' in err_msg.lower() or 'email_rate_limit' in err_msg.lower():
-            log.warning("[Auth] Supabase email rate limit hit ΓÇö creating local fallback account.")
-            if email not in USERS_DB:
-                USERS_DB[email] = {
-                    'id': 'usr_' + random_id(8), 'name': name, 'email': email,
-                    'phone': phone, 'role': role,
-                    'password_hash': hash_password(data['password']),
-                    'county': county, 'status': 'active'
-                }
-            return jsonify({
-                'success': True,
-                'message': 'Account created successfully. You can log in now.',
-                'redirect': '/login'
-            }), 201
-
-        # Absolute fail-safe: never let an unhandled exception block signup
-        if email not in USERS_DB:
-            USERS_DB[email] = {
-                'id': 'usr_' + random_id(8), 'name': name, 'email': email,
-                'phone': phone, 'role': role,
-                'password_hash': hash_password(data['password']),
-                'county': county, 'status': 'active'
-            }
-        return jsonify({
-            'success': True,
-            'message': 'Account created successfully. You can log in now.',
-            'redirect': '/login'
-        }), 201
 
 
 @app.route('/api/auth/login', methods=['POST'])
