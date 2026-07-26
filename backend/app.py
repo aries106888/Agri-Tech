@@ -596,22 +596,17 @@ def register():
 
     uid = 'usr_' + random_id(10)
     auth_user_id = uid
+    supabase_user_created = False
 
-    # Try Supabase Auth & profile insertion
+    # Supabase Auth
     if SUPABASE_ACTIVE and supabase_client:
-        # Duplicate email check — use auth admin list, not profiles (profiles has no email column)
-        if SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here':
-            try:
-                existing = supabase_client.auth.admin.list_users()
-                if existing and hasattr(existing, '__iter__'):
-                    for u in existing:
-                        if hasattr(u, 'email') and u.email and u.email.lower() == email:
-                            return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
-            except Exception as _chk_exc:
-                log.warning(f"[Auth] Supabase duplicate check notice: {_chk_exc}")
+        has_admin_key = bool(
+            SUPABASE_SERVICE_ROLE_KEY
+            and SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here'
+        )
 
-        has_admin_key = (SUPABASE_SERVICE_ROLE_KEY and SUPABASE_SERVICE_ROLE_KEY != 'your-service-role-key-here')
         if has_admin_key:
+            # Service-role: create user with email pre-confirmed, no email link needed
             try:
                 auth_resp = supabase_client.auth.admin.create_user({
                     'email':         email,
@@ -626,9 +621,21 @@ def register():
                 })
                 if auth_resp and hasattr(auth_resp, 'user') and auth_resp.user:
                     auth_user_id = str(auth_resp.user.id)
+                    supabase_user_created = True
+                    log.info(f"[Auth][Supabase] User created: {email} id={auth_user_id}")
+                else:
+                    log.error(f"[Auth][Supabase] admin.create_user returned no user for {email}")
+                    return jsonify({'error': 'Registration failed. Please try again.'}), 500
             except Exception as admin_exc:
-                log.warning(f"[Auth][Supabase] admin.create_user notice: {admin_exc}")
+                err_str = str(admin_exc).lower()
+                if any(kw in err_str for kw in ('already registered', 'already been registered',
+                                                  'duplicate', 'unique', 'user already exists',
+                                                  'email exists')):
+                    return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
+                log.error(f"[Auth][Supabase] admin.create_user failed: {admin_exc}")
+                return jsonify({'error': 'Registration failed. Please try again.'}), 500
         else:
+            # Anon-key fallback: standard sign_up
             try:
                 auth_resp = supabase_client.auth.sign_up({
                     'email':    email,
@@ -644,12 +651,15 @@ def register():
                 })
                 if auth_resp and hasattr(auth_resp, 'user') and auth_resp.user:
                     auth_user_id = str(auth_resp.user.id)
+                    supabase_user_created = True
             except Exception as sign_up_exc:
+                err_str = str(sign_up_exc).lower()
+                if any(kw in err_str for kw in ('already registered', 'duplicate', 'user already')):
+                    return jsonify({'error': 'An account with this email already exists. Please log in instead.'}), 409
                 log.warning(f"[Auth][Supabase] sign_up notice: {sign_up_exc}")
 
-        # Save profile — only if we have a real Supabase UUID (not our local placeholder)
-        # profiles.id references auth.users(id), so a local usr_* ID would fail FK constraint
-        if not auth_user_id.startswith('usr_'):
+        # Save profile only when we got a real Supabase UUID (FK to auth.users)
+        if supabase_user_created and not auth_user_id.startswith('usr_'):
             try:
                 supabase_client.table('profiles').upsert({
                     'id':     auth_user_id,
@@ -663,7 +673,7 @@ def register():
             except Exception as profile_exc:
                 log.warning(f"[Auth][Supabase] Profile upsert notice: {profile_exc}")
 
-    # Memory store fallback
+    # Memory store (always written - local dev fallback)
     USERS_DB[email] = {
         'id':            auth_user_id,
         'name':          name,
@@ -675,7 +685,6 @@ def register():
         'status':        'active'
     }
 
-    # Generate access token for immediate auto-login
     access_token = make_token(auth_user_id, role, name)
     public_user = {
         'id':     auth_user_id,
@@ -686,7 +695,7 @@ def register():
         'county': county,
     }
 
-    log.info(f"[Auth] Account created and auto-logged in: {email} ({role}) uid={auth_user_id}")
+    log.info(f"[Auth] Account created: {email} ({role}) uid={auth_user_id}")
     return jsonify({
         'success':  True,
         'message':  'Account created successfully!',
@@ -694,7 +703,6 @@ def register():
         'user':     public_user,
         'redirect': ROLE_MAP.get(role, '/'),
     }), 201
-
 
 
 @app.route('/api/auth/login', methods=['POST'])
