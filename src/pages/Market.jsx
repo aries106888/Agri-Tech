@@ -182,13 +182,44 @@ const Market = () => {
   });
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  const fetchProducts = useCallback(async () => {
+    try {
+      const res = await api.get('/api/products');
+      const data = Array.isArray(res.data) ? res.data : [];
+      if (data.length > 0) {
+        const mapped = data.map(p => {
+          const cropKey = CROP_TYPES.find(k => k.toLowerCase() === (p.crop || p.name || '').toLowerCase())
+            || Object.keys(CROP_IMAGES).find(k => (p.crop || p.name || '').toLowerCase().includes(k.toLowerCase()))
+            || 'Tomatoes';
+          return {
+            ...p,
+            id: p.id ?? Math.random(),
+            name: p.name || p.crop || 'Product',
+            price: p.price ?? '0',
+            unit: p.unit || '/kg',
+            farmer: p.farmer || 'ShambaPoint Farmer',
+            county: p.county || 'Kenya',
+            verified: p.verified ?? true,
+            lowStock: p.lowStock ?? false,
+            image: p.image || p.image_url || CROP_IMAGES[cropKey] || '/images/tomatoes.png',
+          };
+        });
+        setProducts(mapped);
+      } else {
+        setProducts(FALLBACK_PRODUCTS);
+      }
+    } catch {
       setProducts(FALLBACK_PRODUCTS);
+    } finally {
       setLoading(false);
-    }, 0);
-    return () => clearTimeout(timer);
+    }
   }, []);
+
+  useEffect(() => {
+    const t = setTimeout(() => { fetchProducts(); }, 0);
+    const interval = setInterval(fetchProducts, 30000);
+    return () => { clearTimeout(t); clearInterval(interval); };
+  }, [fetchProducts]);
 
   /* ── cart helpers ── */
   const addToCart = useCallback((product) => {

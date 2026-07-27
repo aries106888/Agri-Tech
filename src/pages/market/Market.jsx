@@ -165,15 +165,47 @@ const SidebarContent = ({ pendingFilters, setPending, toggleFilter, applyFilters
 const Market = () => {
   const { user, role } = useAuth();
   const [products, setProducts]         = useState(FALLBACK_PRODUCTS);
-  const [loading, setLoading]           = useState(false);
+  const [loading, setLoading]           = useState(true);
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      const res = await api.get('/api/products');
+      const data = Array.isArray(res.data) ? res.data : [];
+      if (data.length > 0) {
+        // Normalise image path for each product
+        const mapped = data.map(p => {
+          const cropKey = CROP_TYPES.find(k => k.toLowerCase() === (p.crop || p.name || '').toLowerCase())
+            || Object.keys(CROP_IMAGES).find(k => (p.crop || p.name || '').toLowerCase().includes(k.toLowerCase()))
+            || 'Tomatoes';
+          return {
+            ...p,
+            id: p.id ?? Math.random(),
+            name: p.name || p.crop || 'Product',
+            price: p.price ?? '0',
+            unit: p.unit || '/kg',
+            farmer: p.farmer || 'ShambaPoint Farmer',
+            county: p.county || 'Kenya',
+            verified: p.verified ?? true,
+            lowStock: p.lowStock ?? false,
+            image: p.image || p.image_url || CROP_IMAGES[cropKey] || '/images/tomatoes.png',
+          };
+        });
+        setProducts(mapped);
+      } else {
+        setProducts(FALLBACK_PRODUCTS);
+      }
+    } catch {
+      setProducts(FALLBACK_PRODUCTS);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setProducts(FALLBACK_PRODUCTS);
-      setLoading(false);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
+    const t = setTimeout(() => { fetchProducts(); }, 0);
+    const interval = setInterval(fetchProducts, 30000);
+    return () => { clearTimeout(t); clearInterval(interval); };
+  }, [fetchProducts]);
   const [view, setView]                 = useState('grid'); // 'grid' | 'map'
   const [searchQuery, setSearchQuery]   = useState('');
   const [sortBy, setSortBy]             = useState('relevance');
