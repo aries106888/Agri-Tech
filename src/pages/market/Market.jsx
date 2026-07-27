@@ -187,7 +187,7 @@ const Market = () => {
             county: p.county || 'Kenya',
             verified: p.verified ?? true,
             lowStock: p.lowStock ?? false,
-            image: p.image || p.image_url || CROP_IMAGES[cropKey] || '/images/tomatoes.png',
+            image: CROP_IMAGES[cropKey] || p.image_url || '/images/tomatoes.png',
           };
         });
         setProducts(mapped);
@@ -569,7 +569,7 @@ const Market = () => {
                             src={product.image}
                             alt={product.name}
                             className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
-                            onError={e => { e.target.onerror = null; e.target.src = `https://placehold.co/600x400/e8f5e9/2D6A4F?text=${encodeURIComponent(product.name)}`; }}
+                            onError={e => { e.target.onerror = null; e.target.src = CROP_IMAGES[product.cropKey] || '/images/tomatoes.png'; }}
                           />
 
                           {/* gradient scrim — light enough to see the crop photo clearly */}

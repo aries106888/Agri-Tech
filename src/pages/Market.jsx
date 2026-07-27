@@ -201,7 +201,7 @@ const Market = () => {
             county: p.county || 'Kenya',
             verified: p.verified ?? true,
             lowStock: p.lowStock ?? false,
-            image: p.image || p.image_url || CROP_IMAGES[cropKey] || '/images/tomatoes.png',
+            image: CROP_IMAGES[cropKey] || p.image_url || '/images/tomatoes.png',
           };
         });
         setProducts(mapped);
@@ -542,7 +542,7 @@ const Market = () => {
                   {filteredProducts.map(product => (
                     <div key={product.id} className="ag-card p-0 overflow-hidden flex flex-col hover:border-ag-primary transition-colors group">
                       <div className="h-48 relative overflow-hidden">
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onError={e => { e.target.onerror = null; e.target.src = CROP_IMAGES[product.cropKey] || '/images/tomatoes.png'; }} />
                         <div className="absolute top-3 left-3 flex gap-2">
                           {product.verified && <span className="chip-verified">✓ Verified</span>}
                           {product.lowStock && <span className="chip-low-stock">Low Stock</span>}
