@@ -162,8 +162,8 @@ const SidebarContent = ({ pendingFilters, setPending, toggleFilter, applyFilters
 
 /* ══════════════════════════ MAIN COMPONENT ══════════════════════════ */
 const Market = () => {
-  const [products, setProducts]         = useState([]);
-  const [loading, setLoading]           = useState(true);
+  const [products, setProducts]         = useState(FALLBACK_PRODUCTS);
+  const [loading, setLoading]           = useState(false);
   const [view, setView]                 = useState('grid'); // 'grid' | 'map'
   const [searchQuery, setSearchQuery]   = useState('');
   const [sortBy, setSortBy]             = useState('relevance');
@@ -183,9 +183,11 @@ const Market = () => {
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
 
   useEffect(() => {
-    // Always use curated farm products — load instantly for guaranteed rendering on Vercel
-    setProducts(FALLBACK_PRODUCTS);
-    setLoading(false);
+    const timer = setTimeout(() => {
+      setProducts(FALLBACK_PRODUCTS);
+      setLoading(false);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   /* ── cart helpers ── */

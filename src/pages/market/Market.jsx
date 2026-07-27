@@ -164,8 +164,16 @@ const SidebarContent = ({ pendingFilters, setPending, toggleFilter, applyFilters
 /* ══════════════════════════ MAIN COMPONENT ══════════════════════════ */
 const Market = () => {
   const { user, role } = useAuth();
-  const [products, setProducts]         = useState([]);
-  const [loading, setLoading]           = useState(true);
+  const [products, setProducts]         = useState(FALLBACK_PRODUCTS);
+  const [loading, setLoading]           = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setProducts(FALLBACK_PRODUCTS);
+      setLoading(false);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
   const [view, setView]                 = useState('grid'); // 'grid' | 'map'
   const [searchQuery, setSearchQuery]   = useState('');
   const [sortBy, setSortBy]             = useState('relevance');
@@ -182,12 +190,6 @@ const Market = () => {
   // Phone pre-populated from AuthContext — no direct localStorage read needed
   const [phone, setPhone]               = useState(user?.phone || '');
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
-
-  useEffect(() => {
-    // Always use curated farm products — load instantly for best performance
-    setProducts(FALLBACK_PRODUCTS);
-    setLoading(false);
-  }, []);
 
   /* ── cart helpers ── */
   const addToCart = useCallback((product) => {
