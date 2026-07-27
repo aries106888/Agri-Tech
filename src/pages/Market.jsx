@@ -9,8 +9,8 @@ import {
 import api from '../services/api';
 
 /* ─────────────────────────── constants ─────────────────────────── */
-const COUNTIES = ['Nairobi','Kiambu','Nakuru','Meru','Uasin Gishu','Kajiado','Nyandarua','Kericho','Kakamega','Kisumu'];
-const CROP_TYPES = ['Maize','Tomatoes','Potatoes','Onions','Cabbage','Spinach','Carrots','Beans','Pineapple','Avocado'];
+const COUNTIES = ['Nairobi','Kiambu','Nakuru','Meru','Uasin Gishu','Kajiado','Nyandarua','Kericho','Kakamega','Kisumu','Kisii','Machakos','Nyeri'];
+const CROP_TYPES = ['Maize','Tomatoes','Potatoes','Onions','Cabbage','Spinach','Carrots','Beans','Pineapple','Avocado','Kale','Banana','Apple','Mango','Orange'];
 
 const COUNTY_COORDS = {
   Nairobi:     { lat: -1.2864, lng: 36.8172 },
@@ -24,32 +24,46 @@ const COUNTY_COORDS = {
   Kakamega:    { lat:  0.2827, lng: 34.7519 },
   Kisumu:      { lat: -0.1022, lng: 34.7617 },
   "Murang'a":  { lat: -0.7167, lng: 37.1500 },
+  Kisii:       { lat: -0.6817, lng: 34.7717 },
+  Machakos:    { lat: -1.5177, lng: 37.2634 },
+  Nyeri:       { lat: -0.4201, lng: 36.9476 },
 };
 
+/* Crop images — locally hosted in public/images/ for guaranteed loading on all envs */
 const CROP_IMAGES = {
-  Maize:     'https://images.unsplash.com/photo-1601593768799-76d56017b0c8?w=600&q=80',
-  Tomatoes:  'https://images.unsplash.com/photo-1561136594-7f68813d8f21?w=600&q=80',
-  Potatoes:  'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&q=80',
-  Onions:    'https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?w=600&q=80',
-  Cabbage:   'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=600&q=80',
-  Spinach:   'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&q=80',
-  Carrots:   'https://images.unsplash.com/photo-1447175008436-054170c2e979?w=600&q=80',
-  Beans:     'https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?w=600&q=80',
-  Pineapple: 'https://images.unsplash.com/photo-1587883012610-e3df17d41270?w=600&q=80',
-  Avocado:   'https://images.unsplash.com/photo-1601039641847-7857b994d704?w=600&q=80',
+  Maize:     '/images/maize.png',
+  Tomatoes:  '/images/tomatoes.png',
+  Potatoes:  '/images/potatoes.png',
+  Onions:    '/images/onions.png',
+  Cabbage:   '/images/cabbage.png',
+  Spinach:   '/images/spinach.png',
+  Carrots:   '/images/carrots.png',
+  Beans:     '/images/beans.png',
+  Pineapple: '/images/pineapple.png',
+  Avocado:   '/images/avocado.png',
+  Kale:      '/images/kale.png',
+  Banana:    '/images/banana.png',
+  Apple:     '/images/apple.png',
+  Mango:     '/images/mango.png',
+  Orange:    '/images/orange.png',
 };
 
 const FALLBACK_PRODUCTS = [
-  { id: 101, name: 'Grade A Tomatoes',    farmer: 'Sarah K.',   county: 'Kiambu',      price: 80,  unit: '/kg',    verified: false, lowStock: true,  image: CROP_IMAGES.Tomatoes,  cropKey: 'Tomatoes'  },
-  { id: 102, name: 'Sweet Green Maize',   farmer: 'Kibet E.',   county: 'Uasin Gishu', price: 25,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Maize,     cropKey: 'Maize'     },
-  { id: 103, name: 'Irish Potatoes',      farmer: 'Mwangi J.',  county: 'Nakuru',      price: 45,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Potatoes,  cropKey: 'Potatoes'  },
-  { id: 104, name: 'Red Onions',          farmer: 'Agnes L.',   county: 'Kajiado',     price: 120, unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Onions,    cropKey: 'Onions'    },
-  { id: 105, name: 'Fresh Green Cabbage', farmer: 'Otieno M.',  county: 'Kericho',     price: 35,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Cabbage,   cropKey: 'Cabbage'   },
-  { id: 106, name: 'Organic Spinach',     farmer: 'Wanjiru A.', county: 'Kiambu',      price: 40,  unit: '/bunch', verified: true,  lowStock: true,  image: CROP_IMAGES.Spinach,   cropKey: 'Spinach'   },
-  { id: 107, name: 'Farm Carrots',        farmer: 'Kamau D.',   county: 'Nyandarua',   price: 55,  unit: '/kg',    verified: false, lowStock: false, image: CROP_IMAGES.Carrots,   cropKey: 'Carrots'   },
-  { id: 108, name: 'French Beans',        farmer: 'Chebet R.',  county: 'Meru',        price: 70,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Beans,     cropKey: 'Beans'     },
-  { id: 109, name: 'Sweet Pineapple',     farmer: 'Oduya F.',   county: 'Kisumu',      price: 90,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Pineapple, cropKey: 'Pineapple' },
-  { id: 110, name: 'Hass Avocado',        farmer: 'Njoroge P.', county: "Murang'a",    price: 15,  unit: '/pc',    verified: true,  lowStock: true,  image: CROP_IMAGES.Avocado,   cropKey: 'Avocado'   },
+  { id: 101, name: 'Grade A Tomatoes',        farmer: 'Sarah K.',    county: 'Kiambu',      price: 80,  unit: '/kg',    verified: true,  lowStock: true,  image: CROP_IMAGES.Tomatoes,  cropKey: 'Tomatoes'  },
+  { id: 102, name: 'Sweet Green Maize',       farmer: 'Kibet E.',    county: 'Uasin Gishu', price: 25,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Maize,     cropKey: 'Maize'     },
+  { id: 103, name: 'Freshly Dug Irish Potatoes', farmer: 'Mwangi J.',county: 'Nakuru',      price: 45,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Potatoes,  cropKey: 'Potatoes'  },
+  { id: 104, name: 'Organic Red Onions',      farmer: 'Agnes L.',    county: 'Kajiado',     price: 120, unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Onions,    cropKey: 'Onions'    },
+  { id: 105, name: 'Farm-Fresh Green Cabbage',farmer: 'Otieno M.',   county: 'Kericho',     price: 35,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Cabbage,   cropKey: 'Cabbage'   },
+  { id: 106, name: 'Organic Baby Spinach',    farmer: 'Wanjiru A.',  county: 'Kiambu',      price: 40,  unit: '/bunch', verified: true,  lowStock: true,  image: CROP_IMAGES.Spinach,   cropKey: 'Spinach'   },
+  { id: 107, name: 'Nyandarua Farm Carrots',  farmer: 'Kamau D.',    county: 'Nyandarua',   price: 55,  unit: '/kg',    verified: false, lowStock: false, image: CROP_IMAGES.Carrots,   cropKey: 'Carrots'   },
+  { id: 108, name: 'Meru French Beans',       farmer: 'Chebet R.',   county: 'Meru',        price: 70,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Beans,     cropKey: 'Beans'     },
+  { id: 109, name: 'Kisumu Sweet Pineapple',  farmer: 'Oduya F.',    county: 'Kisumu',      price: 90,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Pineapple, cropKey: 'Pineapple' },
+  { id: 110, name: 'Hass Avocado (Ripe)',     farmer: 'Njoroge P.',  county: "Murang'a",    price: 15,  unit: '/pc',    verified: true,  lowStock: true,  image: CROP_IMAGES.Avocado,   cropKey: 'Avocado'   },
+  { id: 111, name: 'Sukuma Wiki / Kale',      farmer: 'Wangari B.',  county: 'Nakuru',      price: 30,  unit: '/bunch', verified: true,  lowStock: false, image: CROP_IMAGES.Kale,      cropKey: 'Kale'      },
+  { id: 112, name: 'Nandi Hills Nano Bananas',farmer: 'Koech S.',    county: 'Kericho',     price: 12,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Banana,    cropKey: 'Banana'    },
+  { id: 113, name: 'Crisp Red Apples',        farmer: 'Njoroge P.',  county: 'Nyeri',       price: 150, unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Apple,     cropKey: 'Apple'     },
+  { id: 114, name: 'Sweet Kent Mangoes',      farmer: 'Muthoni K.',  county: 'Meru',        price: 40,  unit: '/pc',    verified: true,  lowStock: false, image: CROP_IMAGES.Mango,     cropKey: 'Mango'     },
+  { id: 115, name: 'Juicy Seedless Oranges',  farmer: 'Kariuki J.',  county: 'Machakos',    price: 90,  unit: '/kg',    verified: true,  lowStock: false, image: CROP_IMAGES.Orange,    cropKey: 'Orange'    },
 ];
 
 /* ─────────────── custom farm marker icon ─────────────── */

@@ -534,12 +534,12 @@ const Market = () => {
                           <img
                             src={product.image}
                             alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
                             onError={e => { e.target.onerror = null; e.target.src = `https://placehold.co/600x400/e8f5e9/2D6A4F?text=${encodeURIComponent(product.name)}`; }}
                           />
 
-                          {/* gradient scrim bottom */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
+                          {/* gradient scrim — light enough to see the crop photo clearly */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent pointer-events-none" />
 
                           {/* top-left badge row */}
                           <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
