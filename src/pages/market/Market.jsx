@@ -184,9 +184,9 @@ const Market = () => {
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
 
   useEffect(() => {
-    // Always use curated farm products — API may return non-agricultural data
-    const timer = setTimeout(() => { setProducts(FALLBACK_PRODUCTS); setLoading(false); }, 600);
-    return () => clearTimeout(timer);
+    // Always use curated farm products — load instantly for best performance
+    setProducts(FALLBACK_PRODUCTS);
+    setLoading(false);
   }, []);
 
   /* ── cart helpers ── */

@@ -183,9 +183,9 @@ const Market = () => {
   const [mpesaState, setMpesaState]     = useState('idle'); // idle | sending | success | error
 
   useEffect(() => {
-    api.get('/products')
-      .then(r => { setProducts(r.data?.length ? r.data : FALLBACK_PRODUCTS); setLoading(false); })
-      .catch(() => { setProducts(FALLBACK_PRODUCTS); setLoading(false); });
+    // Always use curated farm products — load instantly for guaranteed rendering on Vercel
+    setProducts(FALLBACK_PRODUCTS);
+    setLoading(false);
   }, []);
 
   /* ── cart helpers ── */
